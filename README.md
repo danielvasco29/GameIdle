@@ -1,0 +1,2 @@
+# GameIdle
+Jogo idle
