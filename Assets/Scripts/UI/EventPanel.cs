@@ -11,15 +11,18 @@ namespace GameIdle
         [SerializeField] private TextMeshProUGUI descriptionText;
         [SerializeField] private Transform choicesContainer;
         [SerializeField] private GameObject choiceButtonPrefab;
-        [SerializeField] private Button watchAdButton;
+        [SerializeField] private Button adButton;
+        [SerializeField] private Button closeButton;
 
         private EventData currentEvent;
         private readonly List<GameObject> spawnedChoices = new();
 
         private void Awake()
         {
-            watchAdButton.onClick.AddListener(OnWatchAdClicked);
-            gameObject.SetActive(false);
+            if (adButton != null)
+                adButton.onClick.AddListener(OnWatchAdClicked);
+            if (closeButton != null)
+                closeButton.onClick.AddListener(() => gameObject.SetActive(false));
         }
 
         public void Show(EventData eventData)
@@ -53,7 +56,8 @@ namespace GameIdle
 
         private void OnWatchAdClicked()
         {
-            MonetizationManager.Instance.RewardResolveEvent(currentEvent);
+            if (MonetizationManager.Instance != null)
+                MonetizationManager.Instance.RewardResolveEvent(currentEvent);
             gameObject.SetActive(false);
         }
     }

@@ -84,6 +84,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   choiceText: {fileID: 203}
   effectText: {fileID: 303}
+  button: {fileID: 104}
 --- !u!114 &104
 MonoBehaviour:
   m_ObjectHideFlags: 0
