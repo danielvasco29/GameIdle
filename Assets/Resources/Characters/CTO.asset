@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2, type: 3}
+  m_Name: CTO
+  m_EditorClassIdentifier:
+  characterId: cto
+  characterName: CTO
+  description: Define a arquitetura tecnica e acelera o desenvolvimento
+  icon: {fileID: 0}
+  tintColor: {r: 0.1, g: 0.5, b: 0.9, a: 1}
+  type: 0
+  baseProduction: 50
+  multiplier: 1
+  baseCost: 3000
