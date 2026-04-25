@@ -33,15 +33,31 @@ namespace GameIdle
         private void Start()
         {
             CharacterManager.Instance.Initialize();
+
+            // 🔥 IMPORTANTE: carregar save primeiro
             SaveSystem.Load();
+
+            // 🔥 CORREÇÃO PRINCIPAL (primeira vez)
+            if (TotalEarned <= 0)
+            {
+                Money = 10;
+                TotalEarned = 10;
+
+                SaveSystem.Save();
+            }
+
             RecalculateStats();
             OfflineProgress.Calculate();
             GameEventSystem.Instance.StartEventCycle();
+
+            // 🔥 força atualização da UI
+            OnMoneyChanged?.Invoke();
         }
 
         private void Update()
         {
             TickEffects(Time.deltaTime);
+
             if (MoneyPerSecond > 0)
                 AddMoney(MoneyPerSecond * Time.deltaTime);
         }
@@ -56,6 +72,7 @@ namespace GameIdle
         public bool SpendMoney(double amount)
         {
             if (Money < amount) return false;
+
             Money -= amount;
             OnMoneyChanged?.Invoke();
             return true;
@@ -74,6 +91,7 @@ namespace GameIdle
 
             multiplier = Math.Max(0.01, multiplier);
             MoneyPerSecond = baseProduction * multiplier * PrestigeMultiplier;
+
             OnStatsUpdated?.Invoke();
         }
 
@@ -81,17 +99,20 @@ namespace GameIdle
         {
             activeEffects.RemoveAll(e => e.eventId == effect.eventId);
             activeEffects.Add(effect);
+
             RecalculateStats();
         }
 
         private void TickEffects(float deltaTime)
         {
             bool anyExpired = false;
+
             foreach (var effect in activeEffects)
             {
                 effect.Tick(deltaTime);
                 if (effect.IsExpired) anyExpired = true;
             }
+
             if (anyExpired)
             {
                 activeEffects.RemoveAll(e => e.IsExpired);
@@ -104,15 +125,21 @@ namespace GameIdle
         public void Prestige()
         {
             if (!CanPrestige()) return;
+
             PrestigeCount++;
             PrestigeMultiplier = 1.0 + PrestigeCount * 0.5;
+
             Money = 0;
             TotalEarned = 0;
+
             activeEffects.Clear();
             CharacterManager.Instance.ResetAll();
+
             RecalculateStats();
+
             UIManager.Instance.RefreshAll();
             UIManager.Instance.ShowToast($"Prestígio! Multiplicador: x{PrestigeMultiplier:F1}");
+
             SaveSystem.Save();
         }
 
@@ -139,7 +166,14 @@ namespace GameIdle
             };
         }
 
-        private void OnApplicationPause(bool paused) { if (paused) SaveSystem.Save(); }
-        private void OnApplicationQuit() => SaveSystem.Save();
+        private void OnApplicationPause(bool paused)
+        {
+            if (paused) SaveSystem.Save();
+        }
+
+        private void OnApplicationQuit()
+        {
+            SaveSystem.Save();
+        }
     }
 }

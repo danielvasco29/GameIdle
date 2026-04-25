@@ -67,6 +67,6 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "GameIdle.sln",
+    "dotnet.defaultSolution": "GameIdle.slnx",
     "dotnet.enableWorkspaceBasedDevelopment": false
 }
