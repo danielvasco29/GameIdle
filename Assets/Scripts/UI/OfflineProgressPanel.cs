@@ -16,9 +16,10 @@ namespace GameIdle
 
         private void Awake()
         {
-            collectButton.onClick.AddListener(OnCollect);
-            watchAdButton.onClick.AddListener(OnWatchAd);
-            gameObject.SetActive(false);
+            if (collectButton != null)
+                collectButton.onClick.AddListener(OnCollect);
+            if (watchAdButton != null)
+                watchAdButton.onClick.AddListener(OnWatchAd);
         }
 
         public void Show(double earnings, long seconds)
@@ -27,11 +28,16 @@ namespace GameIdle
             gameObject.SetActive(true);
 
             TimeSpan time = TimeSpan.FromSeconds(seconds);
-            timeText.text = time.TotalHours >= 1
-                ? $"Você ficou fora por {(int)time.TotalHours}h {time.Minutes}m"
-                : $"Você ficou fora por {(int)time.TotalMinutes}m {time.Seconds}s";
+            string timeStr = time.TotalHours >= 1
+                ? $"Fora por {(int)time.TotalHours}h {time.Minutes}m"
+                : $"Fora por {(int)time.TotalMinutes}m {time.Seconds}s";
 
-            earningsText.text = $"Ganhou offline: ${NumberFormatter.Format(earnings)}";
+            string earningsStr = $"Ganhou: ${NumberFormatter.Format(earnings)}";
+
+            if (timeText != null)
+                timeText.text = timeStr + "\n" + earningsStr;
+            if (earningsText != null && earningsText != timeText)
+                earningsText.text = earningsStr;
         }
 
         private void OnCollect()
@@ -43,9 +49,9 @@ namespace GameIdle
 
         private void OnWatchAd()
         {
-            // First collect the base amount, then bonus via monetization
             GameManager.Instance.AddMoney(pendingEarnings);
-            MonetizationManager.Instance.RewardDoubleOfflineEarnings(pendingEarnings);
+            if (MonetizationManager.Instance != null)
+                MonetizationManager.Instance.RewardDoubleOfflineEarnings(pendingEarnings);
             gameObject.SetActive(false);
         }
     }
