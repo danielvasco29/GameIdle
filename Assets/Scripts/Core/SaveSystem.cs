@@ -37,7 +37,11 @@ namespace GameIdle
                 else if (PlayerPrefs.HasKey(BackupKey))
                     json = PlayerPrefs.GetString(BackupKey);
 
-                if (string.IsNullOrEmpty(json)) return;
+                if (string.IsNullOrEmpty(json))
+                {
+                    GameManager.Instance.AddMoney(10.0);
+                    return;
+                }
 
                 SaveData data = JsonUtility.FromJson<SaveData>(json);
                 if (data == null) return;
