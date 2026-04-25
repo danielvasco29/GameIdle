@@ -22,7 +22,7 @@ namespace GameIdle
             character = instance;
             characterIndex = index;
 
-            if (instance.data.icon != null)
+            if (iconImage != null && instance.data.icon != null)
                 iconImage.sprite = instance.data.icon;
 
             backgroundImage.color = instance.data.tintColor;

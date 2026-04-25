@@ -86,10 +86,12 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   nameText: {fileID: 1203}
-  productionText: {fileID: 1303}
   levelText: {fileID: 1403}
+  productionText: {fileID: 1303}
   costText: {fileID: 1503}
   upgradeButton: {fileID: 1004}
+  iconImage: {fileID: 0}
+  backgroundImage: {fileID: 1002}
 --- !u!114 &1004
 MonoBehaviour:
   m_ObjectHideFlags: 0
