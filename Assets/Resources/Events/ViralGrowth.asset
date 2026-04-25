@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3, type: 3}
+  m_Name: ViralGrowth
+  m_EditorClassIdentifier:
+  eventId: viral_growth
+  title: App Viralizou!
+  description: Seu app foi parar nos trending topics! Milhoes de pessoas estao falando sobre voce.
+  illustration: {fileID: 0}
+  minTriggerInterval: 45
+  maxTriggerInterval: 150
+  choices:
+  - text: Investir em marketing
+    effectType: 1
+    effectValue: 0.25
+    duration: 120
+    effectDescription: "+25% multiplicador por 2 minutos"
+  - text: Nao fazer nada
+    effectType: 3
+    effectValue: 0
+    duration: 0
+    effectDescription: "Sem efeito"

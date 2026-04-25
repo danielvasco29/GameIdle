@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3, type: 3}
+  m_Name: TechDebt
+  m_EditorClassIdentifier:
+  eventId: tech_debt
+  title: Divida Tecnica!
+  description: O codigo virou um espaguete. A equipe esta sofrendo para entregar features novas.
+  illustration: {fileID: 0}
+  minTriggerInterval: 40
+  maxTriggerInterval: 130
+  choices:
+  - text: Refatorar tudo agora
+    effectType: 0
+    effectValue: -0.3
+    duration: 45
+    effectDescription: "-30% producao por 45s mas +15% permanente depois"
+  - text: Contratar mais devs
+    effectType: 0
+    effectValue: 0.15
+    duration: 0
+    effectDescription: "+15% de producao permanente"
