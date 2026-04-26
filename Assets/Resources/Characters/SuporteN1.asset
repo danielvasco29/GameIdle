@@ -18,6 +18,6 @@ MonoBehaviour:
   icon: {fileID: 0}
   tintColor: {r: 0.25, g: 0.25, b: 0.45, a: 1}
   type: 0
-  baseProduction: 30
+  baseProduction: 50
   multiplier: 1
-  baseCost: 2000
+  baseCost: 3000

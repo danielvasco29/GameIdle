@@ -19,5 +19,5 @@ MonoBehaviour:
   tintColor: {r: 0.9, g: 0.32, b: 0, a: 1}
   type: 1
   baseProduction: 0
-  multiplier: 1.2
-  baseCost: 50
+  multiplier: 1.3
+  baseCost: 12000
