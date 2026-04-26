@@ -46,6 +46,7 @@ namespace GameIdle
             mainCanvas = FindFirstObjectByType<Canvas>();
 
             LoadCharacterSprites();
+            LoadSceneImages();
             GameManager.Instance.OnMoneyChanged += UpdateMoneyDisplay;
             GameManager.Instance.OnStatsUpdated += UpdateStatsDisplay;
             CharacterManager.Instance.OnCharactersUpdated += RebuildCharacterButtons;
@@ -109,6 +110,71 @@ namespace GameIdle
 
             FloatingText.Spawn(mainCanvas.transform, localPos,
                 $"+${NumberFormatter.Format(amount)}", new Color(0.3f, 1f, 0.5f));
+        }
+
+        // --- Scene Background ---
+
+        private void LoadSceneImages()
+        {
+            var scene = Resources.Load<Texture2D>("GameScene");
+            if (scene == null) return;
+
+            int W = scene.width;   // 1536
+            int H = scene.height;  // 1024
+
+            // GameScene.png layout (Y flipped — Unity origin at bottom-left):
+            //   Visual top row  (420px tall): Logo left | Office right (x>=512)
+            //   Visual mid row  (256px tall): UI mockups — skip
+            //   Visual bot row  (348px tall): 4 office rooms side by side
+            int topH  = Mathf.RoundToInt(H * 0.41f);  // ~420
+            int botH  = Mathf.RoundToInt(H * 0.34f);  // ~348
+            int midH  = H - topH - botH;               // ~256
+
+            int roomW = W / 4; // ~384
+
+            // Office isometric view — right 2/3 of the top row
+            var officeSprite = Sprite.Create(scene,
+                new Rect(W / 3f, H - topH, W - W / 3f, topH),
+                new Vector2(0.5f, 0.5f));
+
+            // Four bottom rooms
+            var roomSprites = new Sprite[4];
+            for (int i = 0; i < 4; i++)
+                roomSprites[i] = Sprite.Create(scene,
+                    new Rect(i * roomW, 0, roomW, botH),
+                    new Vector2(0.5f, 0.5f));
+
+            // Apply office image as Panel_Main background
+            ApplySceneBackground("Panel_Main", officeSprite, 0.22f);
+
+            // Apply room images as Panel_Left background (stacked vertically via overlay)
+            ApplySceneBackground("Panel_Left", roomSprites[0], 0.18f);
+        }
+
+        private void ApplySceneBackground(string panelName, Sprite sprite, float alpha)
+        {
+            if (mainCanvas == null) return;
+
+            RectTransform panel = null;
+            foreach (Transform child in mainCanvas.transform)
+                if (child.name == panelName) { panel = child as RectTransform; break; }
+            if (panel == null) return;
+
+            var go = new GameObject("SceneBG", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(panel, false);
+            go.transform.SetAsFirstSibling();
+
+            var rt              = (RectTransform)go.transform;
+            rt.anchorMin        = Vector2.zero;
+            rt.anchorMax        = Vector2.one;
+            rt.sizeDelta        = Vector2.zero;
+            rt.anchoredPosition = Vector2.zero;
+
+            var img             = go.GetComponent<Image>();
+            img.sprite          = sprite;
+            img.color           = new Color(1f, 1f, 1f, alpha);
+            img.type            = Image.Type.Simple;
+            img.preserveAspect  = false;
         }
 
         // --- Sprites ---
