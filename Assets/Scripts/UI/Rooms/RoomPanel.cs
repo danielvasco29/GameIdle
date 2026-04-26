@@ -136,10 +136,17 @@ namespace GameIdle
 
         private void BuildChoices(Choice[] choices)
         {
+            // Hint above the choice stack — leaves the upper half of the panel
+            // open so the room art stays visible behind everything.
+            AddText(transform, "Hint", "Escolha uma opção:",
+                new Vector2(0.04f, 0.50f), new Vector2(0.96f, 0.58f),
+                16f, new Color(1f, 1f, 1f, 0.85f),
+                FontStyles.Italic, TextAlignmentOptions.Center);
+
             int   n      = choices.Length;
-            float top    = 0.80f;
-            float bottom = 0.18f;
-            float gap    = 0.02f;
+            float top    = 0.49f;   // pushed down so art breathes above
+            float bottom = 0.17f;
+            float gap    = 0.018f;
             float each   = ((top - bottom) - gap * Mathf.Max(0, n - 1)) / n;
 
             for (int i = 0; i < n; i++)
@@ -160,7 +167,7 @@ namespace GameIdle
             rt.sizeDelta = Vector2.zero;
 
             var img     = go.GetComponent<Image>();
-            img.color   = new Color(choice.color.r, choice.color.g, choice.color.b, 0.92f);
+            img.color   = new Color(choice.color.r, choice.color.g, choice.color.b, 0.82f);
 
             var btn     = go.AddComponent<Button>();
             btn.targetGraphic = img;
@@ -180,12 +187,12 @@ namespace GameIdle
             barImg.raycastTarget = false;
 
             AddText(go.transform, "Label", choice.label,
-                new Vector2(0.04f, 0.45f), new Vector2(0.62f, 1f),
-                17f, Color.white, FontStyles.Bold, TextAlignmentOptions.MidlineLeft);
+                new Vector2(0.04f, 0.05f), new Vector2(0.55f, 0.95f),
+                18f, Color.white, FontStyles.Bold, TextAlignmentOptions.MidlineLeft);
 
             AddText(go.transform, "Desc", choice.desc,
-                new Vector2(0.62f, 0.05f), new Vector2(0.97f, 0.95f),
-                12f, new Color(1f, 1f, 1f, 0.88f), FontStyles.Normal, TextAlignmentOptions.Center);
+                new Vector2(0.56f, 0.05f), new Vector2(0.97f, 0.95f),
+                14f, new Color(1f, 1f, 1f, 0.92f), FontStyles.Normal, TextAlignmentOptions.MidlineLeft);
         }
 
         private void BuildStats(Config c)
@@ -193,16 +200,16 @@ namespace GameIdle
             var box = new GameObject("Stats", typeof(RectTransform), typeof(Image));
             box.transform.SetParent(transform, false);
             var rt          = (RectTransform)box.transform;
-            rt.anchorMin    = new Vector2(0.08f, 0.32f);
-            rt.anchorMax    = new Vector2(0.92f, 0.82f);
+            rt.anchorMin    = new Vector2(0.18f, 0.34f);
+            rt.anchorMax    = new Vector2(0.82f, 0.78f);
             rt.sizeDelta    = Vector2.zero;
             var img         = box.GetComponent<Image>();
-            img.color       = new Color(0f, 0f, 0f, 0.55f);
+            img.color       = new Color(0f, 0f, 0f, 0.78f);
             img.raycastTarget = false;
 
             AddText(box.transform, "Body", c.statsBody,
-                new Vector2(0.05f, 0.05f), new Vector2(0.95f, 0.95f),
-                17f, Color.white, FontStyles.Normal, TextAlignmentOptions.MidlineLeft);
+                new Vector2(0.06f, 0.05f), new Vector2(0.94f, 0.95f),
+                15f, Color.white, FontStyles.Normal, TextAlignmentOptions.MidlineLeft);
 
             if (c.statsAction != null && !string.IsNullOrEmpty(c.statsActionLabel))
             {
