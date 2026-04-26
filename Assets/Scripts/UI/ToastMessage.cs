@@ -24,6 +24,9 @@ namespace GameIdle
 
         public void Show(string message)
         {
+            // Safety: ensure GO is active regardless of scene state
+            if (!gameObject.activeInHierarchy)
+                gameObject.SetActive(true);
             if (showCoroutine != null) StopCoroutine(showCoroutine);
             showCoroutine = StartCoroutine(ShowRoutine(message));
         }

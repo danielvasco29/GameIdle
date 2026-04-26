@@ -128,54 +128,48 @@ namespace GameIdle
 
             int W = scene.width;
             int H = scene.height;
+            Debug.Log($"[UIManager] GameScene carregado: {W}x{H}");
 
             // Concept art layout (1536x1024):
             //   Top  ~41%: Logo (left 35%) | Isometric office (right 65%)
-            //   Mid  ~25%: UI mockup panels  — ignored
-            //   Bot  ~34%: 4 room views side by side (CEO/Reuniao/Pesquisa/Relatorios)
-            //
-            // Unity Y=0 is at BOTTOM of texture, so we flip:
-            int topH = Mathf.RoundToInt(H * 0.41f); // ~420px
-            int botH = Mathf.RoundToInt(H * 0.34f); // ~348px
-            int roomW = W / 4;                        // ~384px
+            //   Mid  ~25%: UI mockup panels — ignored
+            //   Bot  ~34%: 4 room views side by side
+            int topH  = Mathf.RoundToInt(H * 0.41f);
+            int botH  = Mathf.RoundToInt(H * 0.34f);
+            int roomW = W / 4;
 
-            // Isometric office — right 65% of the top strip
-            int officeX = Mathf.RoundToInt(W * 0.35f); // ~537
+            int officeX = Mathf.RoundToInt(W * 0.35f);
             var officeSprite = Sprite.Create(scene,
                 new Rect(officeX, H - topH, W - officeX, topH),
                 new Vector2(0.5f, 0.5f));
 
-            // Bottom rooms
-            var ceoSprite      = Sprite.Create(scene, new Rect(0,          0, roomW, botH), new Vector2(0.5f, 0.5f));
-            var meetingSprite   = Sprite.Create(scene, new Rect(roomW,     0, roomW, botH), new Vector2(0.5f, 0.5f));
-            var researchSprite  = Sprite.Create(scene, new Rect(roomW * 2, 0, roomW, botH), new Vector2(0.5f, 0.5f));
-            var reportsSprite   = Sprite.Create(scene, new Rect(roomW * 3, 0, roomW, botH), new Vector2(0.5f, 0.5f));
+            var ceoSprite = Sprite.Create(scene,
+                new Rect(0, 0, roomW, botH),
+                new Vector2(0.5f, 0.5f));
 
-            // Office isometric as Panel_Main background
-            ApplySceneBackground("Panel_Main", officeSprite, 0.65f);
+            // Place backgrounds directly on canvas with anchor-based positioning
+            // so we don't rely on finding panels by name
+            SpawnCanvasBG("OfficeBG", officeSprite, 0.60f,
+                anchorMin: new Vector2(0.24f, 0f), anchorMax: Vector2.one);
 
-            // CEO room as Panel_Left background (behind character list)
-            ApplySceneBackground("Panel_Left", ceoSprite, 0.45f);
-
-            Debug.Log($"[UIManager] GameScene carregado: {W}x{H}, office=({officeX},{H - topH},{W - officeX},{topH})");
+            SpawnCanvasBG("CharListBG", ceoSprite, 0.40f,
+                anchorMin: Vector2.zero, anchorMax: new Vector2(0.24f, 1f));
         }
 
-        private void ApplySceneBackground(string panelName, Sprite sprite, float alpha)
+        private void SpawnCanvasBG(string goName, Sprite sprite, float alpha,
+                                   Vector2 anchorMin, Vector2 anchorMax)
         {
             if (mainCanvas == null) return;
 
-            RectTransform panel = null;
-            foreach (Transform child in mainCanvas.transform)
-                if (child.name == panelName) { panel = child as RectTransform; break; }
-            if (panel == null) return;
+            var go = new GameObject(goName, typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(mainCanvas.transform, false);
 
-            var go = new GameObject("SceneBG", typeof(RectTransform), typeof(Image));
-            go.transform.SetParent(panel, false);
-            go.transform.SetAsFirstSibling();
+            // Insert just above Panel_BG (index 1) so it's behind all UI panels
+            go.transform.SetSiblingIndex(1);
 
             var rt              = (RectTransform)go.transform;
-            rt.anchorMin        = Vector2.zero;
-            rt.anchorMax        = Vector2.one;
+            rt.anchorMin        = anchorMin;
+            rt.anchorMax        = anchorMax;
             rt.sizeDelta        = Vector2.zero;
             rt.anchoredPosition = Vector2.zero;
 
@@ -184,7 +178,7 @@ namespace GameIdle
             img.color           = new Color(1f, 1f, 1f, alpha);
             img.type            = Image.Type.Simple;
             img.preserveAspect  = false;
-            img.raycastTarget   = false; // don't block clicks from elements behind
+            img.raycastTarget   = false;
         }
 
         // --- Sprites ---
