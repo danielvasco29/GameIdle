@@ -22,10 +22,13 @@ namespace GameIdle
             character = instance;
             characterIndex = index;
 
-            if (iconImage != null && instance.data.icon != null)
-                iconImage.sprite = instance.data.icon;
+            if (iconImage != null)
+                iconImage.sprite = instance.data.icon != null
+                    ? instance.data.icon
+                    : CharacterIconFactory.CreateIcon(instance.data.tintColor);
 
-            backgroundImage.color = instance.data.tintColor;
+            if (backgroundImage != null)
+                backgroundImage.color = instance.data.tintColor;
 
             upgradeButton.onClick.RemoveAllListeners();
             upgradeButton.onClick.AddListener(OnUpgradeClicked);
