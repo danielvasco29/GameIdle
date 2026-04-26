@@ -69,6 +69,13 @@ namespace GameIdle
             OnMoneyChanged?.Invoke();
         }
 
+        public double ClickMoney()
+        {
+            double amount = Math.Max(1.0, MoneyPerSecond * 0.1);
+            AddMoney(amount);
+            return amount;
+        }
+
         public bool SpendMoney(double amount)
         {
             if (Money < amount) return false;

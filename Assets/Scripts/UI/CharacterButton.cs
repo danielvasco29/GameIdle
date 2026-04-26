@@ -20,6 +20,8 @@ namespace GameIdle
         private void Awake()
         {
             ResolveReferences();
+            if (GetComponent<AnimatedButton>() == null)
+                gameObject.AddComponent<AnimatedButton>();
         }
 
         private void ResolveReferences()
@@ -92,6 +94,32 @@ namespace GameIdle
                 upgradeButton.interactable = GameManager.Instance.Money >= character.GetCurrentCost();
         }
 
-        private void OnUpgradeClicked() => CharacterManager.Instance.TryUpgrade(characterIndex);
+        private void OnUpgradeClicked()
+        {
+            bool ok = CharacterManager.Instance.TryUpgrade(characterIndex);
+            if (ok) SpawnUpgradeText();
+        }
+
+        private void SpawnUpgradeText()
+        {
+            var canvas = GetComponentInParent<Canvas>();
+            if (canvas == null) return;
+
+            var rt = GetComponent<RectTransform>();
+            if (rt == null) return;
+
+            Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(
+                canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera,
+                rt.position);
+
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                (RectTransform)canvas.transform,
+                screenPos,
+                canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera,
+                out Vector2 localPos);
+
+            FloatingText.Spawn(canvas.transform, localPos,
+                $"↑ Nv.{character.level}", new Color(1f, 0.85f, 0.1f));
+        }
     }
 }

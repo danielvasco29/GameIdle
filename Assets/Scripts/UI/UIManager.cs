@@ -33,6 +33,8 @@ namespace GameIdle
         private float uiRefreshTimer;
         private const float UiRefreshInterval = 0.1f;
 
+        private Canvas mainCanvas;
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -41,6 +43,8 @@ namespace GameIdle
 
         private void Start()
         {
+            mainCanvas = FindObjectOfType<Canvas>();
+
             LoadCharacterSprites();
             GameManager.Instance.OnMoneyChanged += UpdateMoneyDisplay;
             GameManager.Instance.OnStatsUpdated += UpdateStatsDisplay;
@@ -48,8 +52,66 @@ namespace GameIdle
             GameEventSystem.Instance.OnEventTriggered += ShowEventPanel;
             prestigeButton.onClick.AddListener(() => prestigePanel.Show());
 
+            if (prestigeButton.GetComponent<AnimatedButton>() == null)
+                prestigeButton.gameObject.AddComponent<AnimatedButton>();
+
+            CreateTapZone();
             RefreshAll();
         }
+
+        // --- Tap Zone (click-to-earn) ---
+
+        private void CreateTapZone()
+        {
+            if (mainCanvas == null) return;
+
+            RectTransform panelMain = null;
+            foreach (Transform child in mainCanvas.transform)
+            {
+                if (child.name == "Panel_Main") { panelMain = child as RectTransform; break; }
+            }
+            if (panelMain == null) return;
+
+            var go = new GameObject("TapZone", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(panelMain, false);
+            go.transform.SetAsFirstSibling(); // behind other UI elements
+
+            var rt              = (RectTransform)go.transform;
+            rt.anchorMin        = Vector2.zero;
+            rt.anchorMax        = Vector2.one;
+            rt.sizeDelta        = Vector2.zero;
+            rt.anchoredPosition = Vector2.zero;
+
+            var img         = go.GetComponent<Image>();
+            img.color       = Color.clear;
+
+            var btn         = go.AddComponent<Button>();
+            btn.targetGraphic = img;
+            btn.onClick.AddListener(OnTapZone);
+            go.AddComponent<AnimatedButton>();
+        }
+
+        private void OnTapZone()
+        {
+            double earned = GameManager.Instance.ClickMoney();
+            SpawnFloatingMoney(earned, Input.mousePosition);
+        }
+
+        public void SpawnFloatingMoney(double amount, Vector3 screenPos)
+        {
+            if (mainCanvas == null) return;
+
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                (RectTransform)mainCanvas.transform,
+                screenPos,
+                mainCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : mainCanvas.worldCamera,
+                out Vector2 localPos);
+
+            FloatingText.Spawn(mainCanvas.transform, localPos,
+                $"+${NumberFormatter.Format(amount)}", new Color(0.3f, 1f, 0.5f));
+        }
+
+        // --- Sprites ---
 
         private void LoadCharacterSprites()
         {
@@ -74,7 +136,7 @@ namespace GameIdle
             {
                 int col = i % cols;
                 int row = rows - 1 - (i / cols);
-                var rect = new Rect(col * cellW, row * cellH, cellW, cellH);
+                var rect   = new Rect(col * cellW, row * cellH, cellW, cellH);
                 var sprite = Sprite.Create(sheet, rect, new Vector2(0.5f, 0.5f));
                 if (byId.TryGetValue(order[i], out var data))
                     data.icon = sprite;
@@ -140,7 +202,7 @@ namespace GameIdle
             for (int i = 0; i < chars.Length; i++)
             {
                 if (!chars[i].isUnlocked) continue;
-                var go = Instantiate(characterButtonPrefab, charactersContent);
+                var go  = Instantiate(characterButtonPrefab, charactersContent);
                 var btn = go.GetComponent<CharacterButton>();
                 btn.Setup(chars[i], i);
                 characterButtons.Add(btn);
