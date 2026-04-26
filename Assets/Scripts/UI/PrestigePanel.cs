@@ -27,9 +27,10 @@ namespace GameIdle
             int nextCount = GameManager.Instance.PrestigeCount + 1;
             double nextMultiplier = 1.0 + nextCount * 0.5;
 
+            double requirement = GameManager.Instance.GetPrestigeRequirement();
             string info = canPrestige
                 ? $"Total ganho: ${NumberFormatter.Format(GameManager.Instance.TotalEarned)}\n\nReiniciar vai zerar personagens mas o multiplicador permanece!"
-                : $"Nao pode dar prestigio ainda.\n\nNecessario: $1B total.\nAtual: ${NumberFormatter.Format(GameManager.Instance.TotalEarned)}";
+                : $"Nao pode dar prestigio ainda.\n\nNecessario: ${NumberFormatter.Format(requirement)} total.\nAtual: ${NumberFormatter.Format(GameManager.Instance.TotalEarned)}";
 
             if (infoText != null)
                 infoText.text = info;

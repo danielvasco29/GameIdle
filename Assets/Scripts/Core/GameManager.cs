@@ -120,7 +120,9 @@ namespace GameIdle
             }
         }
 
-        public bool CanPrestige() => TotalEarned >= prestigeRequirement;
+        public double GetPrestigeRequirement() => prestigeRequirement * (PrestigeCount + 1);
+
+        public bool CanPrestige() => TotalEarned >= GetPrestigeRequirement();
 
         public void Prestige()
         {

@@ -93,7 +93,7 @@ namespace GameIdle
             bool canPrestige = GameManager.Instance.CanPrestige();
             prestigeInfoText.text = canPrestige
                 ? "PRESTIGIO DISPONIVEL!"
-                : $"Prestígio em: ${NumberFormatter.Format(1_000_000_000.0)}";
+                : $"Prestígio em: ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}";
 
             if (prestigeButton != null)
                 prestigeButton.interactable = canPrestige;
