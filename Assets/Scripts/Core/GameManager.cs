@@ -129,7 +129,7 @@ namespace GameIdle
             PrestigeCount++;
             PrestigeMultiplier = 1.0 + PrestigeCount * 0.5;
 
-            Money = 0;
+            Money = 10;
             TotalEarned = 0;
 
             activeEffects.Clear();
@@ -138,7 +138,7 @@ namespace GameIdle
             RecalculateStats();
 
             UIManager.Instance.RefreshAll();
-            UIManager.Instance.ShowToast($"Prestígio! Multiplicador: x{PrestigeMultiplier:F1}");
+            UIManager.Instance.ShowToast($"Prestigio! Multiplicador: x{PrestigeMultiplier:F1}");
 
             SaveSystem.Save();
         }
