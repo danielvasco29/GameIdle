@@ -44,7 +44,7 @@ namespace GameIdle
             barRt.anchorMin     = new Vector2(0f, 0f);
             barRt.anchorMax     = new Vector2(1f, 0f);
             barRt.pivot         = new Vector2(0.5f, 0f);
-            barRt.sizeDelta     = new Vector2(0f, 90f);
+            barRt.sizeDelta     = new Vector2(0f, 110f);
             barRt.anchoredPosition = Vector2.zero;
 
             var barBg       = barGo.GetComponent<Image>();
@@ -76,15 +76,26 @@ namespace GameIdle
             img.type        = Image.Type.Simple;
             img.preserveAspect = false;
 
-            // Tint border (outline via child)
+            // Subtle tint overlay so image keeps its look but has room colour identity
+            var tintGo  = new GameObject("Tint", typeof(RectTransform), typeof(Image));
+            tintGo.transform.SetParent(go.transform, false);
+            var tintRt  = (RectTransform)tintGo.transform;
+            tintRt.anchorMin = Vector2.zero;
+            tintRt.anchorMax = Vector2.one;
+            tintRt.sizeDelta = Vector2.zero;
+            var tintImg = tintGo.GetComponent<Image>();
+            tintImg.color = new Color(Tints[idx].r, Tints[idx].g, Tints[idx].b, 0.18f);
+            tintImg.raycastTarget = false;
+
+            // Coloured border outline (thin strip just inside each edge)
             var borderGo    = new GameObject("Border", typeof(RectTransform), typeof(Image));
             borderGo.transform.SetParent(go.transform, false);
             var borderRt    = (RectTransform)borderGo.transform;
             borderRt.anchorMin  = Vector2.zero;
             borderRt.anchorMax  = Vector2.one;
-            borderRt.sizeDelta  = new Vector2(4f, 4f);
+            borderRt.sizeDelta  = new Vector2(-4f, -4f);
             var borderImg   = borderGo.GetComponent<Image>();
-            borderImg.color = new Color(Tints[idx].r, Tints[idx].g, Tints[idx].b, 0.6f);
+            borderImg.color = new Color(Tints[idx].r, Tints[idx].g, Tints[idx].b, 0f);
             borderImg.raycastTarget = false;
 
             // Cooldown dark overlay
@@ -118,7 +129,7 @@ namespace GameIdle
             textRt.sizeDelta = Vector2.zero;
             var tmp     = textGo.AddComponent<TextMeshProUGUI>();
             tmp.text    = Names[idx];
-            tmp.fontSize = 10f;
+            tmp.fontSize = 13f;
             tmp.color   = Tints[idx];
             tmp.fontStyle = FontStyles.Bold;
             tmp.alignment = TextAlignmentOptions.Center;
