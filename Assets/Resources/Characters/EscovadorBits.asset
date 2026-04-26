@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2, type: 3}
-  m_Name: Marketing
+  m_Name: Escovador de Bits
   m_EditorClassIdentifier:
-  characterId: marketing
-  characterName: Marketing
-  description: Aumenta o alcance e multiplica toda a producao da empresa
+  characterId: escovador_bits
+  characterName: Escovador de Bits
+  description: Otimiza cada linha de codigo e escova bugs que ninguem mais encontra
   icon: {fileID: 0}
-  tintColor: {r: 0.9, g: 0.32, b: 0, a: 1}
-  type: 1
-  baseProduction: 0
-  multiplier: 1.2
-  baseCost: 50
+  tintColor: {r: 0.3, g: 0.4, b: 0.1, a: 1}
+  type: 0
+  baseProduction: 650
+  multiplier: 1
+  baseCost: 300000

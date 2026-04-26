@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2, type: 3}
-  m_Name: AI_Engineer
+  m_Name: Analista de Infra
   m_EditorClassIdentifier:
-  characterId: ai_engineer
-  characterName: AI Engineer
-  description: Desenvolve IA que automatiza e escala toda a operacao
+  characterId: analista_infra
+  characterName: Analista de Infra
+  description: Mantem os servidores no ar e escala a infraestrutura da startup
   icon: {fileID: 0}
-  tintColor: {r: 0.5, g: 0.2, b: 1, a: 1}
-  type: 2
-  baseProduction: 800
+  tintColor: {r: 0.05, g: 0.55, b: 0.5, a: 1}
+  type: 0
+  baseProduction: 500
   multiplier: 1
-  baseCost: 200000
+  baseCost: 150000

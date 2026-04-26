@@ -25,7 +25,7 @@ namespace GameIdle
             if (iconImage != null)
                 iconImage.sprite = instance.data.icon != null
                     ? instance.data.icon
-                    : CharacterIconFactory.CreateIcon(instance.data.tintColor);
+                    : CharacterIconFactory.CreateIcon(instance.data.tintColor, instance.data.characterId);
 
             if (backgroundImage != null)
                 backgroundImage.color = instance.data.tintColor;

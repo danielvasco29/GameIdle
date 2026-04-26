@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2, type: 3}
-  m_Name: Manager
+  m_Name: Gerente de Contas
   m_EditorClassIdentifier:
   characterId: manager
-  characterName: Manager
-  description: Gerencia equipes e automatiza processos da startup
+  characterName: Gerente de Contas
+  description: Gerencia clientes e automatiza processos comerciais da startup
   icon: {fileID: 0}
-  tintColor: {r: 0.3, g: 0.8, b: 0.4, a: 1}
+  tintColor: {r: 0.2, g: 0.35, b: 0.55, a: 1}
   type: 2
   baseProduction: 5
   multiplier: 1

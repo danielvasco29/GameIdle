@@ -16,7 +16,7 @@ MonoBehaviour:
   characterName: Designer
   description: Cria interfaces incriveis que atraem mais usuarios
   icon: {fileID: 0}
-  tintColor: {r: 0.9, g: 0.3, b: 0.8, a: 1}
+  tintColor: {r: 0.42, g: 0.11, b: 0.60, a: 1}
   type: 0
   baseProduction: 15
   multiplier: 1

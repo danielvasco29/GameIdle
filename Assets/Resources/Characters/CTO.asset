@@ -16,7 +16,7 @@ MonoBehaviour:
   characterName: CTO
   description: Define a arquitetura tecnica e acelera o desenvolvimento
   icon: {fileID: 0}
-  tintColor: {r: 0.1, g: 0.5, b: 0.9, a: 1}
+  tintColor: {r: 0, g: 0.51, b: 0.56, a: 1}
   type: 0
   baseProduction: 50
   multiplier: 1

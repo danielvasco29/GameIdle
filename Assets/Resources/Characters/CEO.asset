@@ -16,7 +16,7 @@ MonoBehaviour:
   characterName: CEO
   description: Lidera a empresa e multiplica toda a producao com sua visao
   icon: {fileID: 0}
-  tintColor: {r: 1, g: 0.75, b: 0, a: 1}
+  tintColor: {r: 0.96, g: 0.50, b: 0.09, a: 1}
   type: 1
   baseProduction: 0
   multiplier: 1.3

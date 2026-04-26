@@ -16,7 +16,7 @@ MonoBehaviour:
   characterName: Developer
   description: Escreve codigo e gera renda base para a startup
   icon: {fileID: 0}
-  tintColor: {r: 0.2, g: 0.6, b: 1, a: 1}
+  tintColor: {r: 0.08, g: 0.39, b: 0.75, a: 1}
   type: 0
   baseProduction: 1
   multiplier: 1

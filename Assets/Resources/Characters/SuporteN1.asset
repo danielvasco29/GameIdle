@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2, type: 3}
-  m_Name: Marketing
+  m_Name: Suporte N1
   m_EditorClassIdentifier:
-  characterId: marketing
-  characterName: Marketing
-  description: Aumenta o alcance e multiplica toda a producao da empresa
+  characterId: suporte_n1
+  characterName: Suporte N1
+  description: Resolve tickets basicos enquanto toma cafe pra sobreviver
   icon: {fileID: 0}
-  tintColor: {r: 0.9, g: 0.32, b: 0, a: 1}
-  type: 1
-  baseProduction: 0
-  multiplier: 1.2
-  baseCost: 50
+  tintColor: {r: 0.25, g: 0.25, b: 0.45, a: 1}
+  type: 0
+  baseProduction: 30
+  multiplier: 1
+  baseCost: 2000
