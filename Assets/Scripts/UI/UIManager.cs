@@ -43,7 +43,7 @@ namespace GameIdle
 
         private void Start()
         {
-            mainCanvas = FindObjectOfType<Canvas>();
+            mainCanvas = FindFirstObjectByType<Canvas>();
 
             LoadCharacterSprites();
             GameManager.Instance.OnMoneyChanged += UpdateMoneyDisplay;

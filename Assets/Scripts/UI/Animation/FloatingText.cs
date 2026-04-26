@@ -24,8 +24,8 @@ namespace GameIdle
             ft.rt.sizeDelta        = new Vector2(200, 48);
 
             ft.cg = go.GetComponent<CanvasGroup>();
-            ft.cg.raycastTarget  = false;
             ft.cg.blocksRaycasts = false;
+            ft.cg.interactable   = false;
 
             var labelGo = new GameObject("L", typeof(RectTransform));
             labelGo.transform.SetParent(go.transform, false);
