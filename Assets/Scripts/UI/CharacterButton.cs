@@ -24,30 +24,24 @@ namespace GameIdle
 
         private void ResolveReferences()
         {
-            var allTexts = GetComponentsInChildren<TextMeshProUGUI>(true);
-            foreach (var t in allTexts)
+            nameText = null; levelText = null; productionText = null; costText = null;
+
+            foreach (var t in GetComponentsInChildren<TextMeshProUGUI>(true))
             {
                 switch (t.gameObject.name)
                 {
-                    case "NameText":      if (nameText == null)       nameText = t; break;
-                    case "LevelText":     if (levelText == null)      levelText = t; break;
-                    case "ProductionText":if (productionText == null) productionText = t; break;
-                    case "CostText":      if (costText == null)       costText = t; break;
+                    case "NameText":       nameText = t;       break;
+                    case "LevelText":      levelText = t;      break;
+                    case "ProductionText": productionText = t; break;
+                    case "CostText":       costText = t;       break;
                 }
             }
 
-            if (upgradeButton == null)
-                upgradeButton = GetComponent<Button>();
+            if (upgradeButton == null) upgradeButton = GetComponent<Button>();
+            if (backgroundImage == null) backgroundImage = GetComponent<Image>();
 
-            if (backgroundImage == null)
-                backgroundImage = GetComponent<Image>();
-
-            var allImages = GetComponentsInChildren<Image>(true);
-            foreach (var img in allImages)
-            {
-                if (img.gameObject.name == "Icon" && iconImage == null)
-                    iconImage = img;
-            }
+            foreach (var img in GetComponentsInChildren<Image>(true))
+                if (img.gameObject.name == "Icon") { iconImage = img; break; }
         }
 
         public void Setup(CharacterInstance instance, int index)
