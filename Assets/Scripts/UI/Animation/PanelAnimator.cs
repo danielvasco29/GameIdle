@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace GameIdle
 {
+    [RequireComponent(typeof(CanvasGroup))]
     public class PanelAnimator : MonoBehaviour
     {
         private CanvasGroup cg;
@@ -14,7 +15,7 @@ namespace GameIdle
 
         private void Awake()
         {
-            cg = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+            cg = GetComponent<CanvasGroup>();
         }
 
         public void Open()
@@ -40,6 +41,7 @@ namespace GameIdle
 
         private IEnumerator AnimateIn()
         {
+            if (cg == null) cg = GetComponent<CanvasGroup>();
             transform.localScale = Vector3.one * 0.82f;
             cg.alpha = 0;
 
@@ -57,6 +59,7 @@ namespace GameIdle
 
         private IEnumerator AnimateOut(Action onDone)
         {
+            if (cg == null) cg = GetComponent<CanvasGroup>();
             Vector3 fromScale = transform.localScale;
 
             for (float t = 0; t < CloseDur; t += Time.unscaledDeltaTime)

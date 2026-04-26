@@ -8,23 +8,22 @@ namespace GameIdle
     {
         [SerializeField] private TextMeshProUGUI messageText;
         [SerializeField] private float displayDuration = 2.5f;
-        [SerializeField] private float fadeDuration = 0.3f;
+        [SerializeField] private float fadeDuration    = 0.3f;
 
         private CanvasGroup canvasGroup;
-        private Coroutine showCoroutine;
+        private Coroutine   showCoroutine;
 
         private void Awake()
         {
-            canvasGroup = GetComponent<CanvasGroup>();
-            if (canvasGroup == null)
-                canvasGroup = gameObject.AddComponent<CanvasGroup>();
-            canvasGroup.alpha = 0;
-            gameObject.SetActive(false);
+            canvasGroup = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+            canvasGroup.alpha        = 0;
+            canvasGroup.blocksRaycasts = false;
+            canvasGroup.interactable  = false;
+            // stay active in hierarchy — visibility controlled by alpha only
         }
 
         public void Show(string message)
         {
-            gameObject.SetActive(true);
             if (showCoroutine != null) StopCoroutine(showCoroutine);
             showCoroutine = StartCoroutine(ShowRoutine(message));
         }
@@ -32,13 +31,9 @@ namespace GameIdle
         private IEnumerator ShowRoutine(string message)
         {
             messageText.text = message;
-            gameObject.SetActive(true);
-
             yield return Fade(0f, 1f, fadeDuration);
             yield return new WaitForSeconds(displayDuration);
             yield return Fade(1f, 0f, fadeDuration);
-
-            gameObject.SetActive(false);
         }
 
         private IEnumerator Fade(float from, float to, float duration)
