@@ -7,19 +7,19 @@ namespace GameIdle
 {
     public class OfflineProgressPanel : MonoBehaviour
     {
-        [SerializeField] private TextMeshProUGUI timeText;
         [SerializeField] private TextMeshProUGUI earningsText;
         [SerializeField] private Button collectButton;
-        [SerializeField] private Button watchAdButton;
 
         private double pendingEarnings;
 
         private void Awake()
         {
+            // Fallback: find OkButton child if not assigned via Inspector
+            if (collectButton == null)
+                collectButton = GetComponentInChildren<Button>(true);
+
             if (collectButton != null)
                 collectButton.onClick.AddListener(OnCollect);
-            if (watchAdButton != null)
-                watchAdButton.onClick.AddListener(OnWatchAd);
         }
 
         public void Show(double earnings, long seconds)
@@ -32,26 +32,14 @@ namespace GameIdle
                 ? $"Fora por {(int)time.TotalHours}h {time.Minutes}m"
                 : $"Fora por {(int)time.TotalMinutes}m {time.Seconds}s";
 
-            string earningsStr = $"Ganhou: ${NumberFormatter.Format(earnings)}";
-
-            if (timeText != null)
-                timeText.text = timeStr + "\n" + earningsStr;
-            if (earningsText != null && earningsText != timeText)
-                earningsText.text = earningsStr;
+            if (earningsText != null)
+                earningsText.text = timeStr + "\n$" + NumberFormatter.Format(earnings);
         }
 
         private void OnCollect()
         {
             GameManager.Instance.AddMoney(pendingEarnings);
             UIManager.Instance.ShowToast($"Coletado: ${NumberFormatter.Format(pendingEarnings)}");
-            gameObject.SetActive(false);
-        }
-
-        private void OnWatchAd()
-        {
-            GameManager.Instance.AddMoney(pendingEarnings);
-            if (MonetizationManager.Instance != null)
-                MonetizationManager.Instance.RewardDoubleOfflineEarnings(pendingEarnings);
             gameObject.SetActive(false);
         }
     }
