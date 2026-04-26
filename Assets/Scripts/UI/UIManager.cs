@@ -50,7 +50,7 @@ namespace GameIdle
             if (toast != null) toast.gameObject.SetActive(true);
 
             roomSystem = gameObject.AddComponent<RoomSystem>();
-            CeoPanel.Create(mainCanvas);
+            RoomPanel.Create(mainCanvas);
 
             LoadCharacterSprites();
             LoadSceneImages();
