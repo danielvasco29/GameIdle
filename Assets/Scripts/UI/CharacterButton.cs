@@ -16,6 +16,7 @@ namespace GameIdle
 
         private CharacterInstance character;
         private int characterIndex;
+        private Outline affordableHighlight;
 
         private void Awake()
         {
@@ -90,8 +91,20 @@ namespace GameIdle
                 }
             }
 
+            bool canAfford = GameManager.Instance.Money >= character.GetCurrentCost();
             if (upgradeButton != null)
-                upgradeButton.interactable = GameManager.Instance.Money >= character.GetCurrentCost();
+                upgradeButton.interactable = canAfford;
+
+            if (affordableHighlight == null && backgroundImage != null)
+            {
+                affordableHighlight = backgroundImage.gameObject.GetComponent<Outline>()
+                    ?? backgroundImage.gameObject.AddComponent<Outline>();
+                affordableHighlight.effectDistance = new Vector2(2f, -2f);
+            }
+            if (affordableHighlight != null)
+                affordableHighlight.effectColor = canAfford
+                    ? new Color(1f, 0.85f, 0.2f, 0.95f)
+                    : new Color(0f, 0f, 0f, 0f);
         }
 
         private void OnUpgradeClicked()

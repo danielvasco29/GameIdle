@@ -64,7 +64,169 @@ namespace GameIdle
                 prestigeButton.gameObject.AddComponent<AnimatedButton>();
 
             CreateTapZone();
+            PolishLayout();
             RefreshAll();
+        }
+
+        // --- Layout polish ---
+        // Repositions and restyles existing scene UI at runtime so it doesn't
+        // require touching the .unity file. Run once after backgrounds inject.
+
+        private static RectTransform FindRectByName(Transform root, string name)
+        {
+            if (root == null) return null;
+            if (root.name == name) return root as RectTransform;
+            for (int i = 0; i < root.childCount; i++)
+            {
+                var found = FindRectByName(root.GetChild(i), name);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private void PolishLayout()
+        {
+            if (mainCanvas == null) return;
+
+            var canvasTr = mainCanvas.transform;
+            RectTransform panelMain = FindRectByName(canvasTr, "Panel_Main");
+            RectTransform panelLeft = FindRectByName(canvasTr, "Panel_Left");
+
+            // Strengthen the dark overlays so foreground text wins against the scene art
+            DarkenOverlay(panelMain, 0.55f);
+            DarkenOverlay(panelLeft, 0.70f);
+
+            // Money: large, bold, centered at top of Panel_Main
+            if (moneyText != null)
+            {
+                var rt = moneyText.rectTransform;
+                rt.SetParent(panelMain != null ? (Transform)panelMain : canvasTr, false);
+                rt.anchorMin       = new Vector2(0.15f, 0.92f);
+                rt.anchorMax       = new Vector2(0.85f, 1f);
+                rt.pivot           = new Vector2(0.5f, 1f);
+                rt.sizeDelta       = Vector2.zero;
+                rt.anchoredPosition = new Vector2(0f, -10f);
+                moneyText.fontSize    = 56f;
+                moneyText.fontStyle   = FontStyles.Bold;
+                moneyText.color       = new Color(0.45f, 1f, 0.6f);
+                moneyText.alignment   = TextAlignmentOptions.Center;
+                moneyText.outlineWidth = 0.25f;
+                moneyText.outlineColor = Color.black;
+                moneyText.transform.SetAsLastSibling();
+            }
+
+            // MPS: smaller, just below money
+            if (mpsText != null)
+            {
+                var rt = mpsText.rectTransform;
+                rt.SetParent(panelMain != null ? (Transform)panelMain : canvasTr, false);
+                rt.anchorMin       = new Vector2(0.15f, 0.85f);
+                rt.anchorMax       = new Vector2(0.85f, 0.92f);
+                rt.pivot           = new Vector2(0.5f, 0.5f);
+                rt.sizeDelta       = Vector2.zero;
+                rt.anchoredPosition = Vector2.zero;
+                mpsText.fontSize   = 24f;
+                mpsText.color      = new Color(0.75f, 0.92f, 1f, 0.9f);
+                mpsText.alignment  = TextAlignmentOptions.Center;
+                mpsText.transform.SetAsLastSibling();
+            }
+
+            // "Sua Startup": centered band below money
+            var companyInfo = FindRectByName(panelMain, "CompanyInfo");
+            if (companyInfo != null)
+            {
+                companyInfo.anchorMin       = new Vector2(0.15f, 0.78f);
+                companyInfo.anchorMax       = new Vector2(0.85f, 0.85f);
+                companyInfo.pivot           = new Vector2(0.5f, 0.5f);
+                companyInfo.sizeDelta       = Vector2.zero;
+                companyInfo.anchoredPosition = Vector2.zero;
+                var companyTmp = companyInfo.GetComponentInChildren<TextMeshProUGUI>();
+                if (companyTmp != null)
+                {
+                    companyTmp.fontSize     = 32f;
+                    companyTmp.fontStyle    = FontStyles.Bold;
+                    companyTmp.color        = new Color(1f, 0.93f, 0.55f);
+                    companyTmp.alignment    = TextAlignmentOptions.Center;
+                    companyTmp.outlineWidth = 0.25f;
+                    companyTmp.outlineColor = Color.black;
+                }
+                companyInfo.SetAsLastSibling();
+            }
+
+            // PrestigeInfo subtitle: directly under "Sua Startup"
+            var prestigeInfo = FindRectByName(panelMain, "PrestigeInfo");
+            if (prestigeInfo != null)
+            {
+                prestigeInfo.anchorMin       = new Vector2(0.15f, 0.73f);
+                prestigeInfo.anchorMax       = new Vector2(0.85f, 0.78f);
+                prestigeInfo.pivot           = new Vector2(0.5f, 0.5f);
+                prestigeInfo.sizeDelta       = Vector2.zero;
+                prestigeInfo.anchoredPosition = Vector2.zero;
+                if (prestigeInfoText != null)
+                {
+                    prestigeInfoText.fontSize  = 16f;
+                    prestigeInfoText.color     = new Color(1f, 1f, 1f, 0.75f);
+                    prestigeInfoText.alignment = TextAlignmentOptions.Center;
+                }
+                prestigeInfo.SetAsLastSibling();
+            }
+
+            // Prestige button: shrink and pin to top-right corner of Panel_Main, with halo
+            if (prestigeButton != null)
+            {
+                var rt = (RectTransform)prestigeButton.transform;
+                rt.anchorMin       = new Vector2(1f, 1f);
+                rt.anchorMax       = new Vector2(1f, 1f);
+                rt.pivot           = new Vector2(1f, 1f);
+                rt.sizeDelta       = new Vector2(170f, 56f);
+                rt.anchoredPosition = new Vector2(-18f, -18f);
+                rt.SetAsLastSibling();
+
+                AddPrestigeGlow(prestigeButton);
+
+                var btnImg = prestigeButton.GetComponent<Image>();
+                if (btnImg != null) btnImg.color = new Color(0.55f, 0.30f, 0.95f, 0.92f);
+
+                var btnLbl = prestigeButton.GetComponentInChildren<TextMeshProUGUI>();
+                if (btnLbl != null)
+                {
+                    btnLbl.fontSize     = 20f;
+                    btnLbl.fontStyle    = FontStyles.Bold;
+                    btnLbl.color        = Color.white;
+                    btnLbl.alignment    = TextAlignmentOptions.Center;
+                    btnLbl.outlineWidth = 0.25f;
+                    btnLbl.outlineColor = new Color(0f, 0f, 0f, 0.8f);
+                }
+            }
+        }
+
+        private static void DarkenOverlay(Transform panel, float alpha)
+        {
+            if (panel == null) return;
+            var overlay = FindRectByName(panel, "BGOverlay");
+            if (overlay == null) return;
+            var img = overlay.GetComponent<Image>();
+            if (img != null) img.color = new Color(0f, 0f, 0f, alpha);
+        }
+
+        private static void AddPrestigeGlow(Button btn)
+        {
+            // Skip if already added
+            if (btn.transform.Find("Glow") != null) return;
+
+            var glow = new GameObject("Glow", typeof(RectTransform), typeof(Image));
+            glow.transform.SetParent(btn.transform, false);
+            glow.transform.SetAsFirstSibling();
+
+            var rt          = (RectTransform)glow.transform;
+            rt.anchorMin    = Vector2.zero;
+            rt.anchorMax    = Vector2.one;
+            rt.sizeDelta    = new Vector2(28f, 28f);
+            rt.anchoredPosition = Vector2.zero;
+
+            var img         = glow.GetComponent<Image>();
+            img.color       = new Color(0.75f, 0.45f, 1f, 0.35f);
+            img.raycastTarget = false;
         }
 
         // --- Tap Zone (click-to-earn) ---

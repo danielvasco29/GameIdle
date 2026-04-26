@@ -22,6 +22,7 @@ namespace GameIdle
         private readonly float[]              timers   = new float[4];
         private readonly Button[]             buttons  = new Button[4];
         private readonly Image[]              overlays = new Image[4];
+        private readonly Image[]              borders  = new Image[4];
         private readonly TextMeshProUGUI[]    labels   = new TextMeshProUGUI[4];
 
         private void Awake()
@@ -97,6 +98,7 @@ namespace GameIdle
             var borderImg   = borderGo.GetComponent<Image>();
             borderImg.color = new Color(Tints[idx].r, Tints[idx].g, Tints[idx].b, 0f);
             borderImg.raycastTarget = false;
+            borders[idx] = borderImg;
 
             // Cooldown dark overlay
             var ovGo    = new GameObject("Overlay", typeof(RectTransform), typeof(Image));
@@ -129,10 +131,12 @@ namespace GameIdle
             textRt.sizeDelta = Vector2.zero;
             var tmp     = textGo.AddComponent<TextMeshProUGUI>();
             tmp.text    = Names[idx];
-            tmp.fontSize = 13f;
-            tmp.color   = Tints[idx];
+            tmp.fontSize = 17f;
+            tmp.color   = Color.white;
             tmp.fontStyle = FontStyles.Bold;
             tmp.alignment = TextAlignmentOptions.Center;
+            tmp.outlineWidth = 0.25f;
+            tmp.outlineColor = Color.black;
             tmp.raycastTarget = false;
             labels[idx] = tmp;
 
@@ -162,25 +166,37 @@ namespace GameIdle
 
         private void Update()
         {
+            // Pulse the border of any room that's available (timer == 0)
+            float pulse = (Mathf.Sin(Time.time * 3.5f) + 1f) * 0.5f; // 0..1
+
             for (int i = 0; i < 4; i++)
             {
-                if (timers[i] <= 0f) continue;
+                if (timers[i] > 0f)
+                {
+                    timers[i] -= Time.deltaTime;
 
-                timers[i] -= Time.deltaTime;
+                    float t = Mathf.Clamp01(timers[i] / RoomCooldown);
+                    overlays[i].color = new Color(0f, 0f, 0f, t * 0.72f);
 
-                float t     = Mathf.Clamp01(timers[i] / RoomCooldown);
-                overlays[i].color = new Color(0f, 0f, 0f, t * 0.72f);
+                    if (labels[i] != null)
+                        labels[i].text = timers[i] > 0f
+                            ? $"{Mathf.CeilToInt(timers[i])}s"
+                            : Names[i];
 
-                if (labels[i] != null)
-                    labels[i].text = timers[i] > 0f
-                        ? $"{Mathf.CeilToInt(timers[i])}s"
-                        : Names[i];
+                    if (timers[i] <= 0f && borders[i] != null)
+                        borders[i].color = new Color(Tints[i].r, Tints[i].g, Tints[i].b, 0f);
+                }
+                else if (borders[i] != null)
+                {
+                    // Available — gently pulse a coloured halo to invite a click
+                    borders[i].color = new Color(Tints[i].r, Tints[i].g, Tints[i].b, 0.25f + pulse * 0.45f);
+                }
 
                 if (buttons[i] != null)
                     buttons[i].interactable = timers[i] <= 0f;
 
-                if (timers[i] <= 0f)
-                    labels[i].color = Tints[i];
+                if (timers[i] <= 0f && labels[i] != null && labels[i].text != Names[i])
+                    labels[i].text = Names[i];
             }
         }
 
@@ -198,14 +214,14 @@ namespace GameIdle
                 isPermanent   = false
             };
             GameManager.Instance.ApplyEffect(effect);
-            UIManager.Instance.ShowToast("Reunião! +50% produção por 30s ⚡");
+            UIManager.Instance.ShowToast("Reunião! +50% produção por 30s");
         }
 
         private void TriggerResearch()
         {
             double bonus = Math.Max(100.0, GameManager.Instance.MoneyPerSecond * 60.0);
             GameManager.Instance.AddMoney(bonus);
-            UIManager.Instance.ShowToast($"Pesquisa concluída! +${NumberFormatter.Format(bonus)} 🔬");
+            UIManager.Instance.ShowToast($"Pesquisa concluída! +${NumberFormatter.Format(bonus)}");
         }
 
         private void TriggerReports()
