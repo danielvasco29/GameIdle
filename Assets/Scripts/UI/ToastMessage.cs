@@ -24,6 +24,7 @@ namespace GameIdle
 
         public void Show(string message)
         {
+            gameObject.SetActive(true);
             if (showCoroutine != null) StopCoroutine(showCoroutine);
             showCoroutine = StartCoroutine(ShowRoutine(message));
         }
