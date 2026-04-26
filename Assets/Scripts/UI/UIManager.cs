@@ -117,38 +117,44 @@ namespace GameIdle
         private void LoadSceneImages()
         {
             var scene = Resources.Load<Texture2D>("GameScene");
-            if (scene == null) return;
+            if (scene == null)
+            {
+                Debug.LogWarning("[UIManager] GameScene.png nao encontrado em Resources/");
+                return;
+            }
 
-            int W = scene.width;   // 1536
-            int H = scene.height;  // 1024
+            int W = scene.width;
+            int H = scene.height;
 
-            // GameScene.png layout (Y flipped — Unity origin at bottom-left):
-            //   Visual top row  (420px tall): Logo left | Office right (x>=512)
-            //   Visual mid row  (256px tall): UI mockups — skip
-            //   Visual bot row  (348px tall): 4 office rooms side by side
-            int topH  = Mathf.RoundToInt(H * 0.41f);  // ~420
-            int botH  = Mathf.RoundToInt(H * 0.34f);  // ~348
-            int midH  = H - topH - botH;               // ~256
+            // Concept art layout (1536x1024):
+            //   Top  ~41%: Logo (left 35%) | Isometric office (right 65%)
+            //   Mid  ~25%: UI mockup panels  — ignored
+            //   Bot  ~34%: 4 room views side by side (CEO/Reuniao/Pesquisa/Relatorios)
+            //
+            // Unity Y=0 is at BOTTOM of texture, so we flip:
+            int topH = Mathf.RoundToInt(H * 0.41f); // ~420px
+            int botH = Mathf.RoundToInt(H * 0.34f); // ~348px
+            int roomW = W / 4;                        // ~384px
 
-            int roomW = W / 4; // ~384
-
-            // Office isometric view — right 2/3 of the top row
+            // Isometric office — right 65% of the top strip
+            int officeX = Mathf.RoundToInt(W * 0.35f); // ~537
             var officeSprite = Sprite.Create(scene,
-                new Rect(W / 3f, H - topH, W - W / 3f, topH),
+                new Rect(officeX, H - topH, W - officeX, topH),
                 new Vector2(0.5f, 0.5f));
 
-            // Four bottom rooms
-            var roomSprites = new Sprite[4];
-            for (int i = 0; i < 4; i++)
-                roomSprites[i] = Sprite.Create(scene,
-                    new Rect(i * roomW, 0, roomW, botH),
-                    new Vector2(0.5f, 0.5f));
+            // Bottom rooms
+            var ceoSprite      = Sprite.Create(scene, new Rect(0,          0, roomW, botH), new Vector2(0.5f, 0.5f));
+            var meetingSprite   = Sprite.Create(scene, new Rect(roomW,     0, roomW, botH), new Vector2(0.5f, 0.5f));
+            var researchSprite  = Sprite.Create(scene, new Rect(roomW * 2, 0, roomW, botH), new Vector2(0.5f, 0.5f));
+            var reportsSprite   = Sprite.Create(scene, new Rect(roomW * 3, 0, roomW, botH), new Vector2(0.5f, 0.5f));
 
-            // Apply office image as Panel_Main background
-            ApplySceneBackground("Panel_Main", officeSprite, 0.22f);
+            // Office isometric as Panel_Main background (visible but not overwhelming)
+            ApplySceneBackground("Panel_Main", officeSprite, 0.45f);
 
-            // Apply room images as Panel_Left background (stacked vertically via overlay)
-            ApplySceneBackground("Panel_Left", roomSprites[0], 0.18f);
+            // CEO room as Panel_Left background (behind character list)
+            ApplySceneBackground("Panel_Left", ceoSprite, 0.30f);
+
+            Debug.Log($"[UIManager] GameScene carregado: {W}x{H}");
         }
 
         private void ApplySceneBackground(string panelName, Sprite sprite, float alpha)
