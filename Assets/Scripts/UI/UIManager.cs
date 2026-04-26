@@ -41,6 +41,7 @@ namespace GameIdle
 
         private void Start()
         {
+            LoadCharacterSprites();
             GameManager.Instance.OnMoneyChanged += UpdateMoneyDisplay;
             GameManager.Instance.OnStatsUpdated += UpdateStatsDisplay;
             CharacterManager.Instance.OnCharactersUpdated += RebuildCharacterButtons;
@@ -48,6 +49,36 @@ namespace GameIdle
             prestigeButton.onClick.AddListener(() => prestigePanel.Show());
 
             RefreshAll();
+        }
+
+        private void LoadCharacterSprites()
+        {
+            var sheet = Resources.Load<Texture2D>("CharacterSheet");
+            if (sheet == null) return;
+
+            string[] order = {
+                "dev", "marketing", "designer", "ceo", "manager",
+                "cto", "analista_dados", "suporte_n1", "suporte_n2", "analista_redes",
+                "analista_infra", "escovador_bits", "puxa_saco", "secretaria"
+            };
+
+            int cols = 5, rows = 3;
+            int cellW = sheet.width / cols;
+            int cellH = sheet.height / rows;
+
+            var allChars = Resources.LoadAll<CharacterData>("Characters");
+            var byId = new System.Collections.Generic.Dictionary<string, CharacterData>();
+            foreach (var c in allChars) byId[c.characterId] = c;
+
+            for (int i = 0; i < order.Length; i++)
+            {
+                int col = i % cols;
+                int row = rows - 1 - (i / cols);
+                var rect = new Rect(col * cellW, row * cellH, cellW, cellH);
+                var sprite = Sprite.Create(sheet, rect, new Vector2(0.5f, 0.5f));
+                if (byId.TryGetValue(order[i], out var data))
+                    data.icon = sprite;
+            }
         }
 
         private void OnDestroy()

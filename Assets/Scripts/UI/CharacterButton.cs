@@ -50,7 +50,7 @@ namespace GameIdle
             characterIndex = index;
 
             if (backgroundImage != null)
-                backgroundImage.color = instance.data.tintColor;
+                backgroundImage.color = Color.Lerp(instance.data.tintColor, Color.black, 0.3f);
 
             if (iconImage != null)
                 iconImage.sprite = instance.data.icon != null
