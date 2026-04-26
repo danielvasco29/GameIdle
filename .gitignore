@@ -26,3 +26,6 @@
 *.unitypackage
 *.app
 crashlytics-build.properties
+
+# Claude Code local settings
+.claude/
