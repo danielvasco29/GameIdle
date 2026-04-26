@@ -45,6 +45,9 @@ namespace GameIdle
         {
             mainCanvas = FindFirstObjectByType<Canvas>();
 
+            // Ensure Toast is active regardless of scene state
+            if (toast != null) toast.gameObject.SetActive(true);
+
             LoadCharacterSprites();
             LoadSceneImages();
             GameManager.Instance.OnMoneyChanged += UpdateMoneyDisplay;
@@ -148,13 +151,13 @@ namespace GameIdle
             var researchSprite  = Sprite.Create(scene, new Rect(roomW * 2, 0, roomW, botH), new Vector2(0.5f, 0.5f));
             var reportsSprite   = Sprite.Create(scene, new Rect(roomW * 3, 0, roomW, botH), new Vector2(0.5f, 0.5f));
 
-            // Office isometric as Panel_Main background (visible but not overwhelming)
-            ApplySceneBackground("Panel_Main", officeSprite, 0.45f);
+            // Office isometric as Panel_Main background
+            ApplySceneBackground("Panel_Main", officeSprite, 0.65f);
 
             // CEO room as Panel_Left background (behind character list)
-            ApplySceneBackground("Panel_Left", ceoSprite, 0.30f);
+            ApplySceneBackground("Panel_Left", ceoSprite, 0.45f);
 
-            Debug.Log($"[UIManager] GameScene carregado: {W}x{H}");
+            Debug.Log($"[UIManager] GameScene carregado: {W}x{H}, office=({officeX},{H - topH},{W - officeX},{topH})");
         }
 
         private void ApplySceneBackground(string panelName, Sprite sprite, float alpha)
@@ -181,6 +184,7 @@ namespace GameIdle
             img.color           = new Color(1f, 1f, 1f, alpha);
             img.type            = Image.Type.Simple;
             img.preserveAspect  = false;
+            img.raycastTarget   = false; // don't block clicks from elements behind
         }
 
         // --- Sprites ---
