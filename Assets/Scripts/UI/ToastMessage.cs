@@ -15,11 +15,11 @@ namespace GameIdle
 
         private void Awake()
         {
-            canvasGroup = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
-            canvasGroup.alpha        = 0;
+            canvasGroup = GetComponent<CanvasGroup>();
+            if (canvasGroup == null) canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            canvasGroup.alpha          = 0;
             canvasGroup.blocksRaycasts = false;
-            canvasGroup.interactable  = false;
-            // stay active in hierarchy — visibility controlled by alpha only
+            canvasGroup.interactable   = false;
         }
 
         public void Show(string message)

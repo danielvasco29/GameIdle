@@ -147,29 +147,36 @@ namespace GameIdle
                 new Rect(0, 0, roomW, botH),
                 new Vector2(0.5f, 0.5f));
 
-            // Place backgrounds directly on canvas with anchor-based positioning
-            // so we don't rely on finding panels by name
-            SpawnCanvasBG("OfficeBG", officeSprite, 0.60f,
-                anchorMin: new Vector2(0.24f, 0f), anchorMax: Vector2.one);
-
-            SpawnCanvasBG("CharListBG", ceoSprite, 0.40f,
-                anchorMin: Vector2.zero, anchorMax: new Vector2(0.24f, 1f));
+            // Office goes inside Panel_Main (behind its UI children)
+            // CEO room goes inside Panel_Left (behind character list)
+            InjectBackground("Panel_Main", officeSprite, 0.60f);
+            InjectBackground("Panel_Left", ceoSprite,    0.38f);
         }
 
-        private void SpawnCanvasBG(string goName, Sprite sprite, float alpha,
-                                   Vector2 anchorMin, Vector2 anchorMax)
+        private void InjectBackground(string panelName, Sprite sprite, float alpha)
         {
             if (mainCanvas == null) return;
 
-            var go = new GameObject(goName, typeof(RectTransform), typeof(Image));
-            go.transform.SetParent(mainCanvas.transform, false);
+            // Find panel as direct child of Canvas
+            RectTransform panel = null;
+            foreach (Transform child in mainCanvas.transform)
+                if (child.name == panelName) { panel = child as RectTransform; break; }
 
-            // Insert just above Panel_BG (index 1) so it's behind all UI panels
-            go.transform.SetSiblingIndex(1);
+            if (panel == null)
+            {
+                Debug.LogWarning($"[UIManager] Panel '{panelName}' nao encontrado no Canvas");
+                return;
+            }
+
+            Debug.Log($"[UIManager] Injetando background em '{panelName}'");
+
+            var go = new GameObject("SceneBG", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(panel, false);
+            go.transform.SetAsFirstSibling(); // behind all children of this panel
 
             var rt              = (RectTransform)go.transform;
-            rt.anchorMin        = anchorMin;
-            rt.anchorMax        = anchorMax;
+            rt.anchorMin        = Vector2.zero;
+            rt.anchorMax        = Vector2.one;
             rt.sizeDelta        = Vector2.zero;
             rt.anchoredPosition = Vector2.zero;
 
