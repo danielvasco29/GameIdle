@@ -34,6 +34,7 @@ namespace GameIdle
         private const float UiRefreshInterval = 0.1f;
 
         private Canvas mainCanvas;
+        private RoomSystem roomSystem;
 
         private void Awake()
         {
@@ -47,6 +48,9 @@ namespace GameIdle
 
             // Ensure Toast is active regardless of scene state
             if (toast != null) toast.gameObject.SetActive(true);
+
+            roomSystem = gameObject.AddComponent<RoomSystem>();
+            CeoPanel.Create(mainCanvas);
 
             LoadCharacterSprites();
             LoadSceneImages();
@@ -151,6 +155,16 @@ namespace GameIdle
             // CEO room goes inside Panel_Left (behind character list)
             InjectBackground("Panel_Main", officeSprite, 0.60f);
             InjectBackground("Panel_Left", ceoSprite,    0.38f);
+
+            // Wire room bar at bottom of Panel_Main
+            if (roomSystem != null)
+            {
+                RectTransform panelMain = null;
+                foreach (Transform child in mainCanvas.transform)
+                    if (child.name == "Panel_Main") { panelMain = child as RectTransform; break; }
+                if (panelMain != null)
+                    roomSystem.BuildBar(panelMain, scene, W, H);
+            }
         }
 
         private void InjectBackground(string panelName, Sprite sprite, float alpha)
@@ -186,6 +200,19 @@ namespace GameIdle
             img.type            = Image.Type.Simple;
             img.preserveAspect  = false;
             img.raycastTarget   = false;
+
+            // Dark overlay for text legibility
+            var overlay = new GameObject("BGOverlay", typeof(RectTransform), typeof(Image));
+            overlay.transform.SetParent(panel, false);
+            overlay.transform.SetSiblingIndex(1); // just above SceneBG
+            var ovRt            = (RectTransform)overlay.transform;
+            ovRt.anchorMin      = Vector2.zero;
+            ovRt.anchorMax      = Vector2.one;
+            ovRt.sizeDelta      = Vector2.zero;
+            ovRt.anchoredPosition = Vector2.zero;
+            var ovImg           = overlay.GetComponent<Image>();
+            ovImg.color         = new Color(0f, 0f, 0f, 0.45f);
+            ovImg.raycastTarget = false;
         }
 
         // --- Sprites ---
