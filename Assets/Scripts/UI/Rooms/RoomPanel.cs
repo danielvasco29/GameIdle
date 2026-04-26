@@ -264,15 +264,13 @@ namespace GameIdle
             tmp.text        = text;
             tmp.fontSize    = fontSize;
             tmp.color       = color;
-            tmp.fontStyle   = style;
+            tmp.fontStyle   = outline ? (style | FontStyles.Bold) : style;
             tmp.alignment   = align;
             tmp.raycastTarget = false;
             tmp.overflowMode = TextOverflowModes.Ellipsis;
-            if (outline)
-            {
-                tmp.outlineWidth = 0.25f;
-                tmp.outlineColor = Color.black;
-            }
+            // Avoid tmp.outlineWidth here — it touches m_sharedMaterial
+            // which isn't initialized for runtime-added TMPs and throws
+            // ArgumentNullException ("source"), aborting the caller.
         }
     }
 }

@@ -136,8 +136,6 @@ namespace GameIdle
             tmp.color   = Color.white;
             tmp.fontStyle = FontStyles.Bold;
             tmp.alignment = TextAlignmentOptions.Center;
-            tmp.outlineWidth = 0.25f;
-            tmp.outlineColor = Color.black;
             tmp.raycastTarget = false;
             labels[idx] = tmp;
 
