@@ -26,16 +26,23 @@ namespace GameIdle
             var go = transform.Find(childName);
             if (go == null) return null;
             var tmp = go.GetComponent<TextMeshProUGUI>();
-            if (tmp == null) tmp = go.gameObject.AddComponent<TextMeshProUGUI>();
+            if (tmp == null)
+            {
+                tmp = go.gameObject.AddComponent<TextMeshProUGUI>();
+                tmp.text = "";
+                tmp.fontSize = 4;
+                if (TMPro.TMP_FontAsset.defaultFontAsset != null)
+                    tmp.font = TMPro.TMP_FontAsset.defaultFontAsset;
+            }
             return tmp;
         }
 
         private void AutoFindComponents()
         {
-            if (nameText == null)       nameText       = GetOrAddTMP("NameText");
-            if (levelText == null)      levelText      = GetOrAddTMP("LevelText");
-            if (productionText == null) productionText = GetOrAddTMP("ProductionText");
-            if (costText == null)       costText       = GetOrAddTMP("CostText");
+            nameText       = nameText       ?? GetOrAddTMP("NameText");
+            levelText      = levelText      ?? GetOrAddTMP("LevelText");
+            productionText = productionText ?? GetOrAddTMP("ProductionText");
+            costText       = costText       ?? GetOrAddTMP("CostText");
             if (upgradeButton == null)  upgradeButton  = GetComponentInChildren<Button>(true);
             if (backgroundImage == null)
             {
