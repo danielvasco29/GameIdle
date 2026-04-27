@@ -44,6 +44,9 @@ namespace GameIdle
         private float effectsHUDTimer;
         private const float EffectsHUDInterval = 0.25f;
 
+        // Prestige progress bar (item 7)
+        private Image prestigeProgressBar;
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -68,6 +71,7 @@ namespace GameIdle
             SetupEffectsHUD();
             SetupEquipeHeader();
             ApplyNeonTheme();
+            SetupPrestigeProgressBar();
         }
 
         private void ApplyTitleStyle()
@@ -153,6 +157,8 @@ namespace GameIdle
 
             if (prestigeButton != null)
                 prestigeButton.interactable = canPrestige;
+
+            UpdatePrestigeProgressBar();
         }
 
         private void RebuildCharacterButtons()
@@ -176,6 +182,35 @@ namespace GameIdle
         {
             foreach (var btn in characterButtons)
                 if (btn != null) btn.Refresh();
+        }
+
+        private void SetupPrestigeProgressBar()
+        {
+            if (prestigeButton == null) return;
+            var barGO = new GameObject("PrestigeBar", typeof(RectTransform), typeof(Image));
+            barGO.transform.SetParent(prestigeButton.transform, false);
+            var rt = barGO.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0f, 0f);
+            rt.anchorMax = new Vector2(1f, 0f);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = new Vector2(0f, 4f);
+            prestigeProgressBar              = barGO.GetComponent<Image>();
+            prestigeProgressBar.type         = Image.Type.Filled;
+            prestigeProgressBar.fillMethod   = Image.FillMethod.Horizontal;
+            prestigeProgressBar.raycastTarget = false;
+            UpdatePrestigeProgressBar();
+        }
+
+        private void UpdatePrestigeProgressBar()
+        {
+            if (prestigeProgressBar == null) return;
+            bool ready = GameManager.Instance.CanPrestige();
+            float fill = Mathf.Clamp01(
+                (float)(GameManager.Instance.TotalEarned / GameManager.Instance.GetPrestigeRequirement()));
+            prestigeProgressBar.fillAmount = fill;
+            prestigeProgressBar.color = ready
+                ? new Color(1f, 0.84f, 0f, 1f)
+                : new Color(NeonCyan.r, NeonCyan.g, NeonCyan.b, 0.85f);
         }
 
         private void ApplyNeonTheme()
