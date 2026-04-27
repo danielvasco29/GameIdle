@@ -26,10 +26,11 @@ namespace GameIdle
             character = instance;
             characterIndex = index;
 
-            if (instance.data.icon != null)
+            if (iconImage != null && instance.data.icon != null)
                 iconImage.sprite = instance.data.icon;
 
-            backgroundImage.color = instance.data.tintColor;
+            if (backgroundImage != null)
+                backgroundImage.color = instance.data.tintColor;
 
             upgradeButton.onClick.RemoveAllListeners();
             upgradeButton.onClick.AddListener(OnUpgradeClicked);
@@ -101,6 +102,7 @@ namespace GameIdle
 
         private IEnumerator FlashCoroutine()
         {
+            if (backgroundImage == null) yield break;
             Color baseColor = character.data.tintColor;
             backgroundImage.color = Color.white;
             yield return new WaitForSeconds(0.1f);

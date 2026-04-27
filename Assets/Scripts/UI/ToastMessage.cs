@@ -25,6 +25,7 @@ namespace GameIdle
         public void Show(string message, Color? tintColor = null)
         {
             if (showCoroutine != null) StopCoroutine(showCoroutine);
+            gameObject.SetActive(true);
             showCoroutine = StartCoroutine(ShowRoutine(message, tintColor ?? Color.white));
         }
 
@@ -32,7 +33,6 @@ namespace GameIdle
         {
             messageText.text  = message;
             messageText.color = tintColor;
-            gameObject.SetActive(true);
 
             yield return Fade(0f, 1f, fadeDuration);
             yield return new WaitForSeconds(displayDuration);
