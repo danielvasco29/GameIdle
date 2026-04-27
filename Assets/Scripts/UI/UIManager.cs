@@ -60,6 +60,8 @@ namespace GameIdle
 
         private void Start()
         {
+            AutoFindComponents();
+
             GameManager.Instance.OnMoneyChanged += UpdateMoneyDisplay;
             GameManager.Instance.OnStatsUpdated += UpdateStatsDisplay;
             CharacterManager.Instance.OnCharactersUpdated += RebuildCharacterButtons;
@@ -69,6 +71,38 @@ namespace GameIdle
 
             RefreshAll();
             PolishLayout();
+        }
+
+        private static TextMeshProUGUI GetOrAddSceneTMP(string goName)
+        {
+            var go = GameObject.Find(goName);
+            if (go == null) return null;
+            var tmp = go.GetComponent<TextMeshProUGUI>();
+            if (tmp == null)
+            {
+                tmp = go.AddComponent<TextMeshProUGUI>();
+                tmp.text = "";
+                var refFont = Object.FindFirstObjectByType<TextMeshProUGUI>();
+                if (refFont != null && refFont.font != null) tmp.font = refFont.font;
+            }
+            return tmp;
+        }
+
+        private void AutoFindComponents()
+        {
+            if (moneyText == null)        moneyText        = GetOrAddSceneTMP("MoneyText");
+            if (mpsText == null)          mpsText          = GetOrAddSceneTMP("MpsText");
+            if (prestigeInfoText == null) prestigeInfoText = GetOrAddSceneTMP("PrestigeInfo");
+            if (prestigeButton == null)
+            {
+                var btnGO = GameObject.Find("PrestigeButton");
+                if (btnGO != null) prestigeButton = btnGO.GetComponent<Button>();
+            }
+            if (charactersContent == null)
+            {
+                var contentGO = GameObject.Find("Content");
+                if (contentGO != null) charactersContent = contentGO.transform;
+            }
         }
 
         private void PolishLayout()
