@@ -135,8 +135,19 @@ namespace GameIdle
             SetupEquipeHeader();
             ApplyNeonTheme();
             SetupPrestigeProgressBar();
+            ExpandPanelLeft();
             var pmGO = GameObject.Find("Panel_Main");
             if (pmGO != null) panelMain = pmGO.GetComponent<RectTransform>();
+        }
+
+        private void ExpandPanelLeft()
+        {
+            var panelLeft = GameObject.Find("Panel_Left");
+            if (panelLeft == null) return;
+            var rt = panelLeft.GetComponent<RectTransform>();
+            if (rt == null) return;
+            rt.sizeDelta        = new Vector2(480f, rt.sizeDelta.y);
+            rt.anchoredPosition = new Vector2(240f, rt.anchoredPosition.y);
         }
 
         private void ApplyTitleStyle()

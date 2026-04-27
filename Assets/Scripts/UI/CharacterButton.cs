@@ -73,8 +73,8 @@ namespace GameIdle
             // Garante altura fixa para o VerticalLayoutGroup
             var le = GetComponent<LayoutElement>();
             if (le == null) le = gameObject.AddComponent<LayoutElement>();
-            le.minHeight       = 110;
-            le.preferredHeight = 110;
+            le.minHeight       = 150;
+            le.preferredHeight = 150;
             le.flexibleHeight  = 0;
 
             ApplyCardLayout();
@@ -207,9 +207,9 @@ namespace GameIdle
 
         private void ApplyCardLayout()
         {
-            const float iconSize     = 88f;
-            const float textLeftPad  = iconSize + 16f;
-            const float textRightPad = 12f;
+            const float iconSize     = 130f;
+            const float textLeftPad  = iconSize + 20f;
+            const float textRightPad = 16f;
 
             // Icon: à esquerda, vertical-center
             var iconRT = transform.Find("Icon")?.GetComponent<RectTransform>();
@@ -218,7 +218,7 @@ namespace GameIdle
                 iconRT.anchorMin = new Vector2(0f, 0.5f);
                 iconRT.anchorMax = new Vector2(0f, 0.5f);
                 iconRT.pivot     = new Vector2(0f, 0.5f);
-                iconRT.anchoredPosition = new Vector2(8f, 0f);
+                iconRT.anchoredPosition = new Vector2(10f, 0f);
                 iconRT.sizeDelta = new Vector2(iconSize, iconSize);
             }
 
@@ -226,9 +226,9 @@ namespace GameIdle
             if (nameText != null)
             {
                 SetAnchors(nameText.rectTransform,
-                    new Vector2(0f, 0.55f), new Vector2(0.65f, 1f),
-                    new Vector2(textLeftPad, 0f), new Vector2(0f, -6f));
-                nameText.fontSize  = 18;
+                    new Vector2(0f, 0.6f), new Vector2(0.7f, 1f),
+                    new Vector2(textLeftPad, 0f), new Vector2(0f, -8f));
+                nameText.fontSize  = 26;
                 nameText.fontStyle = FontStyles.Bold;
                 nameText.alignment = TextAlignmentOptions.MidlineLeft;
                 nameText.color     = Color.white;
@@ -239,9 +239,9 @@ namespace GameIdle
             if (levelText != null)
             {
                 SetAnchors(levelText.rectTransform,
-                    new Vector2(0.65f, 0.55f), new Vector2(1f, 1f),
-                    new Vector2(0f, 0f), new Vector2(-textRightPad, -6f));
-                levelText.fontSize  = 14;
+                    new Vector2(0.7f, 0.6f), new Vector2(1f, 1f),
+                    new Vector2(0f, 0f), new Vector2(-textRightPad, -8f));
+                levelText.fontSize  = 20;
                 levelText.fontStyle = FontStyles.Bold;
                 levelText.alignment = TextAlignmentOptions.MidlineRight;
                 levelText.color     = new Color(1f, 1f, 1f, 0.85f);
@@ -251,24 +251,25 @@ namespace GameIdle
             if (productionText != null)
             {
                 SetAnchors(productionText.rectTransform,
-                    new Vector2(0f, 0.25f), new Vector2(0.65f, 0.55f),
+                    new Vector2(0f, 0.3f), new Vector2(0.6f, 0.6f),
                     new Vector2(textLeftPad, 0f), new Vector2(0f, 0f));
-                productionText.fontSize  = 14;
+                productionText.fontSize  = 22;
+                productionText.fontStyle = FontStyles.Bold;
                 productionText.alignment = TextAlignmentOptions.MidlineLeft;
-                productionText.color     = new Color(0.6f, 1f, 0.7f);
+                productionText.color     = new Color(0.55f, 1f, 0.7f);
                 productionText.enableWordWrapping = false;
             }
 
-            // CostText: botão de custo bem destacado, lado direito
+            // CostText: custo bem destacado, lado direito
             if (costText != null)
             {
                 SetAnchors(costText.rectTransform,
-                    new Vector2(0.55f, 0.1f), new Vector2(1f, 0.5f),
+                    new Vector2(0.55f, 0.1f), new Vector2(1f, 0.55f),
                     new Vector2(0f, 0f), new Vector2(-textRightPad, 0f));
-                costText.fontSize  = 18;
+                costText.fontSize  = 28;
                 costText.fontStyle = FontStyles.Bold;
                 costText.alignment = TextAlignmentOptions.MidlineRight;
-                costText.color     = new Color(1f, 0.92f, 0.4f);
+                costText.color     = new Color(1f, 0.92f, 0.35f);
                 costText.enableWordWrapping = false;
             }
         }
