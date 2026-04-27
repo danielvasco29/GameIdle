@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,6 +18,9 @@ namespace GameIdle
         private CharacterInstance character;
         private int characterIndex;
 
+        private Image costProgressBar;
+        private bool wasAffordable;
+
         public void Setup(CharacterInstance instance, int index)
         {
             character = instance;
@@ -30,6 +34,8 @@ namespace GameIdle
             upgradeButton.onClick.RemoveAllListeners();
             upgradeButton.onClick.AddListener(OnUpgradeClicked);
 
+            wasAffordable = false;
+            SetupCostProgressBar();
             Refresh();
         }
 
@@ -52,7 +58,35 @@ namespace GameIdle
                     break;
             }
 
-            upgradeButton.interactable = GameManager.Instance.Money >= character.GetCurrentCost();
+            bool affordable = GameManager.Instance.Money >= character.GetCurrentCost();
+            upgradeButton.interactable = affordable;
+
+            // Item 5: cost progress bar
+            if (costProgressBar != null)
+            {
+                float fill = Mathf.Clamp01((float)(GameManager.Instance.Money / character.GetCurrentCost()));
+                costProgressBar.fillAmount = fill;
+                costProgressBar.color = affordable
+                    ? new Color(1f, 0.85f, 0f, 0.9f)
+                    : new Color(1f, 1f, 1f, 0.25f);
+            }
+
+            wasAffordable = affordable;
+        }
+
+        private void SetupCostProgressBar()
+        {
+            var barGO = new GameObject("CostBar", typeof(RectTransform), typeof(Image));
+            barGO.transform.SetParent(transform, false);
+            var rt = barGO.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0f, 0f);
+            rt.anchorMax = new Vector2(1f, 0f);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = new Vector2(0f, 4f);
+            costProgressBar              = barGO.GetComponent<Image>();
+            costProgressBar.type         = Image.Type.Filled;
+            costProgressBar.fillMethod   = Image.FillMethod.Horizontal;
+            costProgressBar.raycastTarget = false;
         }
 
         private void OnUpgradeClicked() => CharacterManager.Instance.TryUpgrade(characterIndex);
