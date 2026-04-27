@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using FontStyles = TMPro.FontStyles;
 
 namespace GameIdle
 {
@@ -33,6 +34,11 @@ namespace GameIdle
         private float uiRefreshTimer;
         private const float UiRefreshInterval = 0.1f;
 
+        // Polish layout references
+        private static readonly Color NeonGreen  = new(0.45f, 1f,    0.6f);
+        private static readonly Color NeonCyan   = new(0.3f,  0.95f, 1.0f);
+        private static readonly Color NeonOrange = new(1.0f,  0.6f,  0.2f);
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -48,6 +54,41 @@ namespace GameIdle
             prestigeButton.onClick.AddListener(() => prestigePanel.Show());
 
             RefreshAll();
+            PolishLayout();
+        }
+
+        private void PolishLayout()
+        {
+            ApplyTitleStyle();
+        }
+
+        private void ApplyTitleStyle()
+        {
+            var titleGO = GameObject.Find("TitleText");
+            if (titleGO == null) return;
+
+            var tmp = titleGO.GetComponent<TextMeshProUGUI>();
+            if (tmp != null)
+            {
+                tmp.fontSize   = 28;
+                tmp.fontStyle  = FontStyles.Bold;
+                tmp.color      = NeonGreen;
+            }
+
+            // Subtle semi-transparent stripe behind the whole top bar
+            var topBar = titleGO.transform.parent;
+            if (topBar == null) return;
+            var stripeGO = new GameObject("TopBarStripe", typeof(RectTransform), typeof(Image));
+            stripeGO.transform.SetParent(topBar, false);
+            stripeGO.transform.SetAsFirstSibling();
+            var rt  = stripeGO.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            var img = stripeGO.GetComponent<Image>();
+            img.color         = new Color(0.05f, 0.18f, 0.10f, 0.55f);
+            img.raycastTarget = false;
         }
 
         private void OnDestroy()
