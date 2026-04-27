@@ -93,7 +93,19 @@ namespace GameIdle
             costProgressBar.raycastTarget = false;
         }
 
-        private void OnUpgradeClicked() => CharacterManager.Instance.TryUpgrade(characterIndex);
+        private void OnUpgradeClicked()
+        {
+            bool success = CharacterManager.Instance.TryUpgrade(characterIndex);
+            if (success) StartCoroutine(FlashCoroutine());
+        }
+
+        private IEnumerator FlashCoroutine()
+        {
+            Color baseColor = character.data.tintColor;
+            backgroundImage.color = Color.white;
+            yield return new WaitForSeconds(0.1f);
+            backgroundImage.color = baseColor;
+        }
 
         private IEnumerator PulseCoroutine()
         {
