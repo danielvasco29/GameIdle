@@ -21,10 +21,35 @@ namespace GameIdle
         private Image costProgressBar;
         private bool wasAffordable;
 
+        private TextMeshProUGUI GetOrAddTMP(string childName)
+        {
+            var go = transform.Find(childName);
+            if (go == null) return null;
+            var tmp = go.GetComponent<TextMeshProUGUI>();
+            if (tmp == null) tmp = go.gameObject.AddComponent<TextMeshProUGUI>();
+            return tmp;
+        }
+
+        private void AutoFindComponents()
+        {
+            if (nameText == null)       nameText       = GetOrAddTMP("NameText");
+            if (levelText == null)      levelText      = GetOrAddTMP("LevelText");
+            if (productionText == null) productionText = GetOrAddTMP("ProductionText");
+            if (costText == null)       costText       = GetOrAddTMP("CostText");
+            if (upgradeButton == null)  upgradeButton  = GetComponentInChildren<Button>(true);
+            if (backgroundImage == null)
+            {
+                var bg = transform.Find("Background");
+                if (bg != null) backgroundImage = bg.GetComponent<Image>();
+            }
+        }
+
         public void Setup(CharacterInstance instance, int index)
         {
             character = instance;
             characterIndex = index;
+
+            AutoFindComponents();
 
             if (iconImage != null && instance.data.icon != null)
                 iconImage.sprite = instance.data.icon;
@@ -32,8 +57,11 @@ namespace GameIdle
             if (backgroundImage != null)
                 backgroundImage.color = instance.data.tintColor;
 
-            upgradeButton.onClick.RemoveAllListeners();
-            upgradeButton.onClick.AddListener(OnUpgradeClicked);
+            if (upgradeButton != null)
+            {
+                upgradeButton.onClick.RemoveAllListeners();
+                upgradeButton.onClick.AddListener(OnUpgradeClicked);
+            }
 
             wasAffordable = false;
             SetupCostProgressBar();
