@@ -104,21 +104,27 @@ namespace GameIdle
                 if (contentGO != null) charactersContent = contentGO.transform;
             }
 
-            // Garante que o Content tem VerticalLayoutGroup + ContentSizeFitter
+            // Garante que o Content tem GridLayoutGroup 2 colunas + ContentSizeFitter
             if (charactersContent != null)
             {
                 var contentGO = charactersContent.gameObject;
+
+                // Remove VLG legado se existir
                 var vlg = contentGO.GetComponent<VerticalLayoutGroup>();
-                if (vlg == null)
+                if (vlg != null) DestroyImmediate(vlg);
+
+                var glg = contentGO.GetComponent<GridLayoutGroup>();
+                if (glg == null)
                 {
-                    vlg = contentGO.AddComponent<VerticalLayoutGroup>();
-                    vlg.spacing = 8;
-                    vlg.padding = new RectOffset(8, 8, 8, 8);
-                    vlg.childControlWidth   = true;
-                    vlg.childControlHeight  = false;
-                    vlg.childForceExpandWidth = true;
-                    vlg.childForceExpandHeight = false;
+                    glg = contentGO.AddComponent<GridLayoutGroup>();
+                    glg.cellSize        = new Vector2(228f, 160f);
+                    glg.spacing         = new Vector2(8f, 8f);
+                    glg.padding         = new RectOffset(8, 8, 8, 8);
+                    glg.childAlignment  = TextAnchor.UpperLeft;
+                    glg.constraint      = GridLayoutGroup.Constraint.FixedColumnCount;
+                    glg.constraintCount = 2;
                 }
+
                 var csf = contentGO.GetComponent<ContentSizeFitter>();
                 if (csf == null)
                 {

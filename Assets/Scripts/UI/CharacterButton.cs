@@ -70,30 +70,24 @@ namespace GameIdle
 
             AutoFindComponents();
 
-            // Garante altura fixa para o VerticalLayoutGroup
+            // GridLayoutGroup controla o tamanho — LayoutElement serve de fallback
             var le = GetComponent<LayoutElement>();
             if (le == null) le = gameObject.AddComponent<LayoutElement>();
-            le.minHeight       = 150;
-            le.preferredHeight = 150;
+            le.minHeight       = 160;
+            le.preferredHeight = 160;
             le.flexibleHeight  = 0;
 
-            ApplyCardLayout();
-
-            // Cria GO Icon dinamicamente se necessário
+            // Cria Icon antes de ApplyCardLayout para que ele configure o RT
             if (iconImage == null)
             {
                 var iconGO = new GameObject("Icon", typeof(RectTransform), typeof(Image));
                 iconGO.transform.SetParent(transform, false);
-                var irt = iconGO.GetComponent<RectTransform>();
-                irt.anchorMin        = new Vector2(0f, 0.5f);
-                irt.anchorMax        = new Vector2(0f, 0.5f);
-                irt.pivot            = new Vector2(0f, 0.5f);
-                irt.anchoredPosition = new Vector2(8f, 0f);
-                irt.sizeDelta        = new Vector2(72f, 72f);
                 iconImage = iconGO.GetComponent<Image>();
                 iconImage.preserveAspect = true;
                 iconImage.raycastTarget  = false;
             }
+
+            ApplyCardLayout();
 
             if (instance.data.icon != null)
             {
@@ -207,66 +201,67 @@ namespace GameIdle
 
         private void ApplyCardLayout()
         {
-            const float iconSize     = 130f;
-            const float textLeftPad  = iconSize + 20f;
-            const float textRightPad = 16f;
+            // Card: 228x160 (GridLayoutGroup 2 colunas)
+            const float iconSize     = 68f;
+            const float textLeftPad  = iconSize + 10f;
+            const float textRightPad = 8f;
 
             // Icon: à esquerda, vertical-center
             var iconRT = transform.Find("Icon")?.GetComponent<RectTransform>();
             if (iconRT != null)
             {
-                iconRT.anchorMin = new Vector2(0f, 0.5f);
-                iconRT.anchorMax = new Vector2(0f, 0.5f);
-                iconRT.pivot     = new Vector2(0f, 0.5f);
-                iconRT.anchoredPosition = new Vector2(10f, 0f);
-                iconRT.sizeDelta = new Vector2(iconSize, iconSize);
+                iconRT.anchorMin        = new Vector2(0f, 0.5f);
+                iconRT.anchorMax        = new Vector2(0f, 0.5f);
+                iconRT.pivot            = new Vector2(0f, 0.5f);
+                iconRT.anchoredPosition = new Vector2(8f, 0f);
+                iconRT.sizeDelta        = new Vector2(iconSize, iconSize);
             }
 
-            // NameText: top esquerdo (após o ícone)
+            // NameText: topo (após ícone)
             if (nameText != null)
             {
                 SetAnchors(nameText.rectTransform,
-                    new Vector2(0f, 0.6f), new Vector2(0.7f, 1f),
-                    new Vector2(textLeftPad, 0f), new Vector2(0f, -8f));
-                nameText.fontSize  = 26;
+                    new Vector2(0f, 0.62f), new Vector2(0.78f, 1f),
+                    new Vector2(textLeftPad, 0f), new Vector2(0f, -6f));
+                nameText.fontSize  = 17;
                 nameText.fontStyle = FontStyles.Bold;
                 nameText.alignment = TextAlignmentOptions.MidlineLeft;
                 nameText.color     = Color.white;
                 nameText.enableWordWrapping = false;
             }
 
-            // LevelText: top direito
+            // LevelText: topo direito
             if (levelText != null)
             {
                 SetAnchors(levelText.rectTransform,
-                    new Vector2(0.7f, 0.6f), new Vector2(1f, 1f),
-                    new Vector2(0f, 0f), new Vector2(-textRightPad, -8f));
-                levelText.fontSize  = 20;
+                    new Vector2(0.78f, 0.62f), new Vector2(1f, 1f),
+                    new Vector2(0f, 0f), new Vector2(-textRightPad, -6f));
+                levelText.fontSize  = 13;
                 levelText.fontStyle = FontStyles.Bold;
                 levelText.alignment = TextAlignmentOptions.MidlineRight;
-                levelText.color     = new Color(1f, 1f, 1f, 0.85f);
+                levelText.color     = new Color(1f, 1f, 1f, 0.8f);
             }
 
-            // ProductionText: meio (após o ícone)
+            // ProductionText: meio
             if (productionText != null)
             {
                 SetAnchors(productionText.rectTransform,
-                    new Vector2(0f, 0.3f), new Vector2(0.6f, 0.6f),
-                    new Vector2(textLeftPad, 0f), new Vector2(0f, 0f));
-                productionText.fontSize  = 22;
+                    new Vector2(0f, 0.35f), new Vector2(1f, 0.62f),
+                    new Vector2(textLeftPad, 0f), new Vector2(-textRightPad, 0f));
+                productionText.fontSize  = 14;
                 productionText.fontStyle = FontStyles.Bold;
                 productionText.alignment = TextAlignmentOptions.MidlineLeft;
                 productionText.color     = new Color(0.55f, 1f, 0.7f);
                 productionText.enableWordWrapping = false;
             }
 
-            // CostText: custo bem destacado, lado direito
+            // CostText: baixo direito, destaque em dourado
             if (costText != null)
             {
                 SetAnchors(costText.rectTransform,
-                    new Vector2(0.55f, 0.1f), new Vector2(1f, 0.55f),
-                    new Vector2(0f, 0f), new Vector2(-textRightPad, 0f));
-                costText.fontSize  = 28;
+                    new Vector2(0f, 0.05f), new Vector2(1f, 0.38f),
+                    new Vector2(textLeftPad, 0f), new Vector2(-textRightPad, 0f));
+                costText.fontSize  = 19;
                 costText.fontStyle = FontStyles.Bold;
                 costText.alignment = TextAlignmentOptions.MidlineRight;
                 costText.color     = new Color(1f, 0.92f, 0.35f);
