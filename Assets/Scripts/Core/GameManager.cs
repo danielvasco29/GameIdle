@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.ObjectModel;
 
 namespace GameIdle
 {
@@ -98,6 +99,9 @@ namespace GameIdle
                 RecalculateStats();
             }
         }
+
+        public IReadOnlyList<EventEffect> GetActiveEffects() => activeEffects;
+        public double GetPrestigeRequirement() => prestigeRequirement;
 
         public bool CanPrestige() => TotalEarned >= prestigeRequirement;
 

@@ -39,6 +39,11 @@ namespace GameIdle
         private static readonly Color NeonCyan   = new(0.3f,  0.95f, 1.0f);
         private static readonly Color NeonOrange = new(1.0f,  0.6f,  0.2f);
 
+        // Effects HUD (item 2)
+        private GameObject effectsHUD;
+        private float effectsHUDTimer;
+        private const float EffectsHUDInterval = 0.25f;
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -60,6 +65,7 @@ namespace GameIdle
         private void PolishLayout()
         {
             ApplyTitleStyle();
+            SetupEffectsHUD();
         }
 
         private void ApplyTitleStyle()
@@ -113,6 +119,13 @@ namespace GameIdle
                 UpdateMoneyDisplay();
                 RefreshButtonAffordability();
             }
+
+            effectsHUDTimer -= Time.deltaTime;
+            if (effectsHUDTimer <= 0)
+            {
+                effectsHUDTimer = EffectsHUDInterval;
+                RefreshEffectsHUD();
+            }
         }
 
         public void RefreshAll()
@@ -161,6 +174,96 @@ namespace GameIdle
         {
             foreach (var btn in characterButtons)
                 if (btn != null) btn.Refresh();
+        }
+
+        private void SetupEffectsHUD()
+        {
+            var canvas = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
+            if (canvas == null) return;
+
+            effectsHUD = new GameObject("EffectsHUD", typeof(RectTransform), typeof(Image));
+            effectsHUD.transform.SetParent(canvas.transform, false);
+
+            var rt = effectsHUD.GetComponent<RectTransform>();
+            rt.anchorMin        = new Vector2(0.5f, 1f);
+            rt.anchorMax        = new Vector2(0.5f, 1f);
+            rt.pivot            = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, -82f);
+            rt.sizeDelta        = new Vector2(620f, 28f);
+
+            var bg = effectsHUD.GetComponent<Image>();
+            bg.color         = new Color(0f, 0f, 0f, 0.3f);
+            bg.raycastTarget = false;
+
+            var hlg = effectsHUD.AddComponent<HorizontalLayoutGroup>();
+            hlg.spacing              = 6;
+            hlg.padding              = new RectOffset(6, 6, 3, 3);
+            hlg.childAlignment       = TextAnchor.MiddleCenter;
+            hlg.childControlWidth    = false;
+            hlg.childControlHeight   = true;
+            hlg.childForceExpandWidth  = false;
+            hlg.childForceExpandHeight = false;
+
+            effectsHUD.SetActive(false);
+        }
+
+        private void RefreshEffectsHUD()
+        {
+            if (effectsHUD == null) return;
+            var effects = GameManager.Instance.GetActiveEffects();
+
+            for (int i = effectsHUD.transform.childCount - 1; i >= 0; i--)
+                Destroy(effectsHUD.transform.GetChild(i).gameObject);
+
+            if (effects.Count == 0) { effectsHUD.SetActive(false); return; }
+            effectsHUD.SetActive(true);
+
+            foreach (var effect in effects)
+            {
+                Color pillColor = GetEffectPillColor(effect);
+                var pillGO = new GameObject("Pill", typeof(RectTransform), typeof(Image));
+                pillGO.transform.SetParent(effectsHUD.transform, false);
+                pillGO.GetComponent<RectTransform>().sizeDelta = new Vector2(115, 22);
+                var pillImg = pillGO.GetComponent<Image>();
+                pillImg.color         = new Color(pillColor.r, pillColor.g, pillColor.b, 0.65f);
+                pillImg.raycastTarget = false;
+
+                var textGO = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
+                textGO.transform.SetParent(pillGO.transform, false);
+                var textRt = textGO.GetComponent<RectTransform>();
+                textRt.anchorMin = Vector2.zero;
+                textRt.anchorMax = Vector2.one;
+                textRt.offsetMin = new Vector2(3, 0);
+                textRt.offsetMax = new Vector2(-3, 0);
+                var tmp = textGO.GetComponent<TextMeshProUGUI>();
+                tmp.text      = FormatEffectLabel(effect);
+                tmp.fontSize  = 9;
+                tmp.fontStyle = FontStyles.Bold;
+                tmp.color     = Color.white;
+                tmp.alignment = TextAlignmentOptions.Center;
+                tmp.raycastTarget = false;
+            }
+        }
+
+        private static Color GetEffectPillColor(EventEffect e)
+        {
+            if (e.isPermanent)                                         return new Color(1f,   0.84f, 0f);
+            if (e.value < 0)                                           return new Color(1f,   0.3f,  0.3f);
+            if (e.type == EffectType.MultiplierModifier)               return new Color(0.3f, 0.6f,  1f);
+            return new Color(0.3f, 0.9f, 0.4f);
+        }
+
+        private static string FormatEffectLabel(EventEffect e)
+        {
+            string t = e.type switch
+            {
+                EffectType.ProductionModifier => "PROD",
+                EffectType.MultiplierModifier => "MULT",
+                EffectType.MoneyBonus         => "BONUS",
+                _                             => "FX"
+            };
+            string v = e.value >= 0 ? $"+{e.value * 100:F0}%" : $"{e.value * 100:F0}%";
+            return e.isPermanent ? $"{v} {t} ∞" : $"{v} {t} {e.timeRemaining:F0}s";
         }
 
         public void ShowToast(string message) => toast.Show(message);
