@@ -47,6 +47,11 @@ namespace GameIdle
         // Prestige progress bar (item 7)
         private Image prestigeProgressBar;
 
+        // Floating money bursts (item 8)
+        private RectTransform panelMain;
+        private float floatBurstTimer;
+        private const float FloatBurstInterval = 1.5f;
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -72,6 +77,8 @@ namespace GameIdle
             SetupEquipeHeader();
             ApplyNeonTheme();
             SetupPrestigeProgressBar();
+            var pmGO = GameObject.Find("Panel_Main");
+            if (pmGO != null) panelMain = pmGO.GetComponent<RectTransform>();
         }
 
         private void ApplyTitleStyle()
@@ -131,6 +138,16 @@ namespace GameIdle
             {
                 effectsHUDTimer = EffectsHUDInterval;
                 RefreshEffectsHUD();
+            }
+
+            if (panelMain != null && GameManager.Instance.MoneyPerSecond > 0)
+            {
+                floatBurstTimer -= Time.deltaTime;
+                if (floatBurstTimer <= 0)
+                {
+                    floatBurstTimer = FloatBurstInterval;
+                    SpawnFloatingMoney();
+                }
             }
         }
 
@@ -360,6 +377,19 @@ namespace GameIdle
             };
             string v = e.value >= 0 ? $"+{e.value * 100:F0}%" : $"{e.value * 100:F0}%";
             return e.isPermanent ? $"{v} {t} ∞" : $"{v} {t} {e.timeRemaining:F0}s";
+        }
+
+        private void SpawnFloatingMoney()
+        {
+            var go = new GameObject("FloatMoney", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(FloatingText));
+            go.transform.SetParent(panelMain, false);
+            var rt = go.GetComponent<RectTransform>();
+            float halfW = panelMain.rect.width  * 0.35f;
+            float halfH = panelMain.rect.height * 0.35f;
+            rt.anchoredPosition = new Vector2(Random.Range(-halfW, halfW), -halfH);
+            rt.sizeDelta        = new Vector2(160f, 30f);
+            double amount = GameManager.Instance.MoneyPerSecond * FloatBurstInterval;
+            go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(amount)}", NeonGreen);
         }
 
         public void ShowToast(string message) => toast.Show(message);
