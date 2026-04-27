@@ -44,11 +44,22 @@ namespace GameIdle
             levelText      = levelText      ?? GetOrAddTMP("LevelText");
             productionText = productionText ?? GetOrAddTMP("ProductionText");
             costText       = costText       ?? GetOrAddTMP("CostText");
-            if (upgradeButton == null)  upgradeButton  = GetComponentInChildren<Button>(true);
+
+            // Background no root do card (se Image faltar, adiciona)
             if (backgroundImage == null)
             {
-                var bg = transform.Find("Background");
-                if (bg != null) backgroundImage = bg.GetComponent<Image>();
+                backgroundImage = GetComponent<Image>();
+                if (backgroundImage == null)
+                    backgroundImage = gameObject.AddComponent<Image>();
+            }
+
+            // Botão de upgrade no root do card (se Button faltar, adiciona)
+            if (upgradeButton == null)
+            {
+                upgradeButton = GetComponent<Button>();
+                if (upgradeButton == null)
+                    upgradeButton = gameObject.AddComponent<Button>();
+                upgradeButton.targetGraphic = backgroundImage;
             }
         }
 
