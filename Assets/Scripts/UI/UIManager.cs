@@ -67,6 +67,7 @@ namespace GameIdle
             ApplyTitleStyle();
             SetupEffectsHUD();
             SetupEquipeHeader();
+            ApplyNeonTheme();
         }
 
         private void ApplyTitleStyle()
@@ -175,6 +176,23 @@ namespace GameIdle
         {
             foreach (var btn in characterButtons)
                 if (btn != null) btn.Refresh();
+        }
+
+        private void ApplyNeonTheme()
+        {
+            if (moneyText != null) moneyText.color = NeonGreen;
+            if (mpsText   != null) mpsText.color   = NeonCyan;
+
+            // PrestigeButtonLabel is scene-serialized → outline is safe
+            var presLabel = GameObject.Find("PrestigeButtonLabel")?.GetComponent<TextMeshProUGUI>();
+            if (presLabel != null)
+            {
+                presLabel.outlineColor = NeonCyan;
+                presLabel.outlineWidth = 0.15f;
+            }
+
+            var companyInfo = GameObject.Find("CompanyInfo")?.GetComponent<TextMeshProUGUI>();
+            if (companyInfo != null) companyInfo.color = NeonOrange;
         }
 
         private void SetupEquipeHeader()
