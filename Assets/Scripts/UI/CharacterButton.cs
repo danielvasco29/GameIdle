@@ -77,6 +77,22 @@ namespace GameIdle
             le.preferredHeight = 100;
             le.flexibleHeight  = 0;
 
+            // Cria GO Icon dinamicamente se necessário
+            if (iconImage == null && instance.data.icon != null)
+            {
+                var iconGO = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+                iconGO.transform.SetParent(transform, false);
+                var irt = iconGO.GetComponent<RectTransform>();
+                irt.anchorMin        = new Vector2(0f, 0.5f);
+                irt.anchorMax        = new Vector2(0f, 0.5f);
+                irt.pivot            = new Vector2(0f, 0.5f);
+                irt.anchoredPosition = new Vector2(8f, 0f);
+                irt.sizeDelta        = new Vector2(72f, 72f);
+                iconImage = iconGO.GetComponent<Image>();
+                iconImage.preserveAspect = true;
+                iconImage.raycastTarget  = false;
+            }
+
             if (iconImage != null && instance.data.icon != null)
                 iconImage.sprite = instance.data.icon;
 
