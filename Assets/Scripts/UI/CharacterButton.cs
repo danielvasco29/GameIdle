@@ -100,29 +100,39 @@ namespace GameIdle
             }
             else
             {
-                // Placeholder: círculo escuro com inicial do nome
-                iconImage.sprite = null;
-                iconImage.color  = new Color(0f, 0f, 0f, 0.35f);
-                if (transform.Find("Icon/Initial") == null)
+                // Tenta carregar sprite de Resources/Characters/Sprites/{characterId}
+                var fallbackSprite = Resources.Load<Sprite>($"Characters/Sprites/{instance.data.characterId}");
+                if (fallbackSprite != null)
                 {
-                    var initialGO = new GameObject("Initial", typeof(RectTransform), typeof(TextMeshProUGUI));
-                    initialGO.transform.SetParent(iconImage.transform, false);
-                    var trt = initialGO.GetComponent<RectTransform>();
-                    trt.anchorMin = Vector2.zero;
-                    trt.anchorMax = Vector2.one;
-                    trt.offsetMin = Vector2.zero;
-                    trt.offsetMax = Vector2.zero;
-                    var ttmp = initialGO.GetComponent<TextMeshProUGUI>();
-                    ttmp.text          = instance.data.characterName.Length > 0
-                                          ? instance.data.characterName[0].ToString().ToUpper()
-                                          : "?";
-                    ttmp.fontSize      = 42;
-                    ttmp.fontStyle     = FontStyles.Bold;
-                    ttmp.alignment     = TextAlignmentOptions.Center;
-                    ttmp.color         = Color.white;
-                    ttmp.raycastTarget = false;
-                    var refFont = Object.FindFirstObjectByType<TextMeshProUGUI>();
-                    if (refFont != null && refFont.font != null) ttmp.font = refFont.font;
+                    iconImage.sprite = fallbackSprite;
+                    iconImage.color  = Color.white;
+                }
+                else
+                {
+                    // Placeholder: círculo escuro com inicial do nome
+                    iconImage.sprite = null;
+                    iconImage.color  = new Color(0f, 0f, 0f, 0.35f);
+                    if (transform.Find("Icon/Initial") == null)
+                    {
+                        var initialGO = new GameObject("Initial", typeof(RectTransform), typeof(TextMeshProUGUI));
+                        initialGO.transform.SetParent(iconImage.transform, false);
+                        var trt = initialGO.GetComponent<RectTransform>();
+                        trt.anchorMin = Vector2.zero;
+                        trt.anchorMax = Vector2.one;
+                        trt.offsetMin = Vector2.zero;
+                        trt.offsetMax = Vector2.zero;
+                        var ttmp = initialGO.GetComponent<TextMeshProUGUI>();
+                        ttmp.text          = instance.data.characterName.Length > 0
+                                              ? instance.data.characterName[0].ToString().ToUpper()
+                                              : "?";
+                        ttmp.fontSize      = 42;
+                        ttmp.fontStyle     = FontStyles.Bold;
+                        ttmp.alignment     = TextAlignmentOptions.Center;
+                        ttmp.color         = Color.white;
+                        ttmp.raycastTarget = false;
+                        var refFont = Object.FindFirstObjectByType<TextMeshProUGUI>();
+                        if (refFont != null && refFont.font != null) ttmp.font = refFont.font;
+                    }
                 }
             }
 
