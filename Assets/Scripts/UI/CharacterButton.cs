@@ -73,9 +73,11 @@ namespace GameIdle
             // Garante altura fixa para o VerticalLayoutGroup
             var le = GetComponent<LayoutElement>();
             if (le == null) le = gameObject.AddComponent<LayoutElement>();
-            le.minHeight       = 100;
-            le.preferredHeight = 100;
+            le.minHeight       = 110;
+            le.preferredHeight = 110;
             le.flexibleHeight  = 0;
+
+            ApplyCardLayout();
 
             // Cria GO Icon dinamicamente se necessário
             if (iconImage == null)
@@ -193,6 +195,82 @@ namespace GameIdle
                 StartCoroutine(PulseCoroutine());
 
             wasAffordable = affordable;
+        }
+
+        private static void SetAnchors(RectTransform rt, Vector2 aMin, Vector2 aMax, Vector2 oMin, Vector2 oMax)
+        {
+            rt.anchorMin = aMin;
+            rt.anchorMax = aMax;
+            rt.offsetMin = oMin;
+            rt.offsetMax = oMax;
+        }
+
+        private void ApplyCardLayout()
+        {
+            const float iconSize     = 88f;
+            const float textLeftPad  = iconSize + 16f;
+            const float textRightPad = 12f;
+
+            // Icon: à esquerda, vertical-center
+            var iconRT = transform.Find("Icon")?.GetComponent<RectTransform>();
+            if (iconRT != null)
+            {
+                iconRT.anchorMin = new Vector2(0f, 0.5f);
+                iconRT.anchorMax = new Vector2(0f, 0.5f);
+                iconRT.pivot     = new Vector2(0f, 0.5f);
+                iconRT.anchoredPosition = new Vector2(8f, 0f);
+                iconRT.sizeDelta = new Vector2(iconSize, iconSize);
+            }
+
+            // NameText: top esquerdo (após o ícone)
+            if (nameText != null)
+            {
+                SetAnchors(nameText.rectTransform,
+                    new Vector2(0f, 0.55f), new Vector2(0.65f, 1f),
+                    new Vector2(textLeftPad, 0f), new Vector2(0f, -6f));
+                nameText.fontSize  = 18;
+                nameText.fontStyle = FontStyles.Bold;
+                nameText.alignment = TextAlignmentOptions.MidlineLeft;
+                nameText.color     = Color.white;
+                nameText.enableWordWrapping = false;
+            }
+
+            // LevelText: top direito
+            if (levelText != null)
+            {
+                SetAnchors(levelText.rectTransform,
+                    new Vector2(0.65f, 0.55f), new Vector2(1f, 1f),
+                    new Vector2(0f, 0f), new Vector2(-textRightPad, -6f));
+                levelText.fontSize  = 14;
+                levelText.fontStyle = FontStyles.Bold;
+                levelText.alignment = TextAlignmentOptions.MidlineRight;
+                levelText.color     = new Color(1f, 1f, 1f, 0.85f);
+            }
+
+            // ProductionText: meio (após o ícone)
+            if (productionText != null)
+            {
+                SetAnchors(productionText.rectTransform,
+                    new Vector2(0f, 0.25f), new Vector2(0.65f, 0.55f),
+                    new Vector2(textLeftPad, 0f), new Vector2(0f, 0f));
+                productionText.fontSize  = 14;
+                productionText.alignment = TextAlignmentOptions.MidlineLeft;
+                productionText.color     = new Color(0.6f, 1f, 0.7f);
+                productionText.enableWordWrapping = false;
+            }
+
+            // CostText: botão de custo bem destacado, lado direito
+            if (costText != null)
+            {
+                SetAnchors(costText.rectTransform,
+                    new Vector2(0.55f, 0.1f), new Vector2(1f, 0.5f),
+                    new Vector2(0f, 0f), new Vector2(-textRightPad, 0f));
+                costText.fontSize  = 18;
+                costText.fontStyle = FontStyles.Bold;
+                costText.alignment = TextAlignmentOptions.MidlineRight;
+                costText.color     = new Color(1f, 0.92f, 0.4f);
+                costText.enableWordWrapping = false;
+            }
         }
 
         private void SetupCostProgressBar()
