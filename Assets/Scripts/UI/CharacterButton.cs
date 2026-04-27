@@ -44,23 +44,26 @@ namespace GameIdle
         {
             if (character == null) return;
 
-            nameText.text = character.data.characterName;
-            levelText.text = $"Nv. {character.level}";
-            costText.text = $"${NumberFormatter.Format(character.GetCurrentCost())}";
+            if (nameText != null)       nameText.text       = character.data.characterName;
+            if (levelText != null)      levelText.text      = $"Nv. {character.level}";
+            if (costText != null)       costText.text       = $"${NumberFormatter.Format(character.GetCurrentCost())}";
 
-            switch (character.data.type)
+            if (productionText != null)
             {
-                case CharacterType.Production:
-                case CharacterType.Automation:
-                    productionText.text = $"+{NumberFormatter.Format(character.GetCurrentProduction())}/s";
-                    break;
-                case CharacterType.Multiplier:
-                    productionText.text = $"x{character.GetCurrentMultiplier():F2} total";
-                    break;
+                switch (character.data.type)
+                {
+                    case CharacterType.Production:
+                    case CharacterType.Automation:
+                        productionText.text = $"+{NumberFormatter.Format(character.GetCurrentProduction())}/s";
+                        break;
+                    case CharacterType.Multiplier:
+                        productionText.text = $"x{character.GetCurrentMultiplier():F2} total";
+                        break;
+                }
             }
 
             bool affordable = GameManager.Instance.Money >= character.GetCurrentCost();
-            upgradeButton.interactable = affordable;
+            if (upgradeButton != null) upgradeButton.interactable = affordable;
 
             // Item 5: cost progress bar
             if (costProgressBar != null)
