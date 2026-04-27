@@ -59,6 +59,13 @@ namespace GameIdle
 
             AutoFindComponents();
 
+            // Garante altura fixa para o VerticalLayoutGroup
+            var le = GetComponent<LayoutElement>();
+            if (le == null) le = gameObject.AddComponent<LayoutElement>();
+            le.minHeight       = 100;
+            le.preferredHeight = 100;
+            le.flexibleHeight  = 0;
+
             if (iconImage != null && instance.data.icon != null)
                 iconImage.sprite = instance.data.icon;
 

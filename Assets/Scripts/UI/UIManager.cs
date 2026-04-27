@@ -103,6 +103,29 @@ namespace GameIdle
                 var contentGO = GameObject.Find("Content");
                 if (contentGO != null) charactersContent = contentGO.transform;
             }
+
+            // Garante que o Content tem VerticalLayoutGroup + ContentSizeFitter
+            if (charactersContent != null)
+            {
+                var contentGO = charactersContent.gameObject;
+                var vlg = contentGO.GetComponent<VerticalLayoutGroup>();
+                if (vlg == null)
+                {
+                    vlg = contentGO.AddComponent<VerticalLayoutGroup>();
+                    vlg.spacing = 8;
+                    vlg.padding = new RectOffset(8, 8, 8, 8);
+                    vlg.childControlWidth   = true;
+                    vlg.childControlHeight  = false;
+                    vlg.childForceExpandWidth = true;
+                    vlg.childForceExpandHeight = false;
+                }
+                var csf = contentGO.GetComponent<ContentSizeFitter>();
+                if (csf == null)
+                {
+                    csf = contentGO.AddComponent<ContentSizeFitter>();
+                    csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+                }
+            }
         }
 
         private void PolishLayout()
