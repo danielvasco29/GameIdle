@@ -31,11 +31,9 @@ namespace GameIdle
                 tmp = go.gameObject.AddComponent<TextMeshProUGUI>();
                 tmp.text = "";
 
-                var referenceFont = FindObjectOfType<TextMeshProUGUI>();
+                var referenceFont = Object.FindFirstObjectByType<TextMeshProUGUI>();
                 if (referenceFont != null && referenceFont.font != null)
                     tmp.font = referenceFont.font;
-                else if (TMPro.TMP_FontAsset.defaultFontAsset != null)
-                    tmp.font = TMPro.TMP_FontAsset.defaultFontAsset;
             }
             return tmp;
         }
