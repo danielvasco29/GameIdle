@@ -22,15 +22,16 @@ namespace GameIdle
             gameObject.SetActive(false);
         }
 
-        public void Show(string message)
+        public void Show(string message, Color? tintColor = null)
         {
             if (showCoroutine != null) StopCoroutine(showCoroutine);
-            showCoroutine = StartCoroutine(ShowRoutine(message));
+            showCoroutine = StartCoroutine(ShowRoutine(message, tintColor ?? Color.white));
         }
 
-        private IEnumerator ShowRoutine(string message)
+        private IEnumerator ShowRoutine(string message, Color tintColor)
         {
-            messageText.text = message;
+            messageText.text  = message;
+            messageText.color = tintColor;
             gameObject.SetActive(true);
 
             yield return Fade(0f, 1f, fadeDuration);

@@ -392,7 +392,7 @@ namespace GameIdle
             go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(amount)}", NeonGreen);
         }
 
-        public void ShowToast(string message) => toast.Show(message);
+        public void ShowToast(string message, Color? color = null) => toast.Show(message, color);
 
         public void ShowOfflineProgress(double earned, long seconds) =>
             offlinePanel.Show(earned, seconds);
