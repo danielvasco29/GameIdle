@@ -16,8 +16,10 @@ namespace GameIdle
 
         private void Awake()
         {
-            collectButton.onClick.AddListener(OnCollect);
-            watchAdButton.onClick.AddListener(OnWatchAd);
+            if (collectButton != null)
+                collectButton.onClick.AddListener(OnCollect);
+            if (watchAdButton != null)
+                watchAdButton.onClick.AddListener(OnWatchAd);
             gameObject.SetActive(false);
         }
 
@@ -27,11 +29,13 @@ namespace GameIdle
             gameObject.SetActive(true);
 
             TimeSpan time = TimeSpan.FromSeconds(seconds);
-            timeText.text = time.TotalHours >= 1
-                ? $"Você ficou fora por {(int)time.TotalHours}h {time.Minutes}m"
-                : $"Você ficou fora por {(int)time.TotalMinutes}m {time.Seconds}s";
+            if (timeText != null)
+                timeText.text = time.TotalHours >= 1
+                    ? $"Você ficou fora por {(int)time.TotalHours}h {time.Minutes}m"
+                    : $"Você ficou fora por {(int)time.TotalMinutes}m {time.Seconds}s";
 
-            earningsText.text = $"Ganhou offline: ${NumberFormatter.Format(earnings)}";
+            if (earningsText != null)
+                earningsText.text = $"Ganhou offline: ${NumberFormatter.Format(earnings)}";
         }
 
         private void OnCollect()

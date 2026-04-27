@@ -64,7 +64,8 @@ namespace GameIdle
             GameManager.Instance.OnStatsUpdated += UpdateStatsDisplay;
             CharacterManager.Instance.OnCharactersUpdated += RebuildCharacterButtons;
             GameEventSystem.Instance.OnEventTriggered += ShowEventPanel;
-            prestigeButton.onClick.AddListener(() => prestigePanel.Show());
+            if (prestigeButton != null)
+                prestigeButton.onClick.AddListener(() => prestigePanel.Show());
 
             RefreshAll();
             PolishLayout();
@@ -160,17 +161,20 @@ namespace GameIdle
 
         private void UpdateMoneyDisplay()
         {
-            moneyText.text = $"${NumberFormatter.Format(GameManager.Instance.Money)}";
+            if (moneyText != null)
+                moneyText.text = $"${NumberFormatter.Format(GameManager.Instance.Money)}";
         }
 
         private void UpdateStatsDisplay()
         {
-            mpsText.text = $"+{NumberFormatter.Format(GameManager.Instance.MoneyPerSecond)}/s";
+            if (mpsText != null)
+                mpsText.text = $"+{NumberFormatter.Format(GameManager.Instance.MoneyPerSecond)}/s";
 
             bool canPrestige = GameManager.Instance.CanPrestige();
-            prestigeInfoText.text = canPrestige
-                ? "⭐ Prestígio disponível!"
-                : $"Prestígio em: ${NumberFormatter.Format(1_000_000_000.0)}";
+            if (prestigeInfoText != null)
+                prestigeInfoText.text = canPrestige
+                    ? "⭐ Prestígio disponível!"
+                    : $"Prestígio em: ${NumberFormatter.Format(1_000_000_000.0)}";
 
             if (prestigeButton != null)
                 prestigeButton.interactable = canPrestige;
@@ -183,6 +187,8 @@ namespace GameIdle
             foreach (var btn in characterButtons)
                 if (btn != null) Destroy(btn.gameObject);
             characterButtons.Clear();
+
+            if (characterButtonPrefab == null || charactersContent == null) return;
 
             var chars = CharacterManager.Instance.GetAllCharacters();
             for (int i = 0; i < chars.Length; i++)
