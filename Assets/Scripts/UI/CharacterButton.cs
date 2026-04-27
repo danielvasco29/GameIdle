@@ -101,7 +101,10 @@ namespace GameIdle
             else
             {
                 // Tenta carregar sprite de Resources/Characters/Sprites/{characterId}
-                var fallbackSprite = Resources.Load<Sprite>($"Characters/Sprites/{instance.data.characterId}");
+                Sprite fallbackSprite = null;
+                var tex = Resources.Load<Texture2D>($"Characters/Sprites/{instance.data.characterId}");
+                if (tex != null)
+                    fallbackSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
                 if (fallbackSprite != null)
                 {
                     iconImage.sprite = fallbackSprite;
