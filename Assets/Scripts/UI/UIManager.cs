@@ -66,6 +66,7 @@ namespace GameIdle
         {
             ApplyTitleStyle();
             SetupEffectsHUD();
+            SetupEquipeHeader();
         }
 
         private void ApplyTitleStyle()
@@ -174,6 +175,48 @@ namespace GameIdle
         {
             foreach (var btn in characterButtons)
                 if (btn != null) btn.Refresh();
+        }
+
+        private void SetupEquipeHeader()
+        {
+            var panelLeft = GameObject.Find("Panel_Left");
+            if (panelLeft == null) return;
+
+            // Shrink ScrollView top edge to make room
+            var scrollView = panelLeft.transform.Find("ScrollView");
+            if (scrollView != null)
+            {
+                var srt = scrollView.GetComponent<RectTransform>();
+                srt.offsetMax = new Vector2(srt.offsetMax.x, -32f);
+            }
+
+            // 32 px stripe anchored to top of Panel_Left
+            var headerGO = new GameObject("EquipeHeader", typeof(RectTransform), typeof(Image));
+            headerGO.transform.SetParent(panelLeft.transform, false);
+            headerGO.transform.SetAsFirstSibling();
+            var hrt = headerGO.GetComponent<RectTransform>();
+            hrt.anchorMin = new Vector2(0f, 1f);
+            hrt.anchorMax = new Vector2(1f, 1f);
+            hrt.offsetMin = new Vector2(0f, -32f);
+            hrt.offsetMax = Vector2.zero;
+            var himg = headerGO.GetComponent<Image>();
+            himg.color         = new Color(0.12f, 0.08f, 0.04f, 0.92f);
+            himg.raycastTarget = false;
+
+            var labelGO = new GameObject("EquipeLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
+            labelGO.transform.SetParent(headerGO.transform, false);
+            var lrt = labelGO.GetComponent<RectTransform>();
+            lrt.anchorMin = Vector2.zero;
+            lrt.anchorMax = Vector2.one;
+            lrt.offsetMin = Vector2.zero;
+            lrt.offsetMax = Vector2.zero;
+            var ltmp = labelGO.GetComponent<TextMeshProUGUI>();
+            ltmp.text         = "EQUIPE";
+            ltmp.fontSize     = 15;
+            ltmp.fontStyle    = FontStyles.Bold;
+            ltmp.color        = NeonOrange;
+            ltmp.alignment    = TextAlignmentOptions.Center;
+            ltmp.raycastTarget = false;
         }
 
         private void SetupEffectsHUD()
