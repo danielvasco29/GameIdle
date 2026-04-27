@@ -71,6 +71,10 @@ namespace GameIdle
                     : new Color(1f, 1f, 1f, 0.25f);
             }
 
+            // Item 11: first-affordable pulse (level 0 only)
+            if (affordable && !wasAffordable && character.level == 0)
+                StartCoroutine(PulseCoroutine());
+
             wasAffordable = affordable;
         }
 
@@ -90,5 +94,28 @@ namespace GameIdle
         }
 
         private void OnUpgradeClicked() => CharacterManager.Instance.TryUpgrade(characterIndex);
+
+        private IEnumerator PulseCoroutine()
+        {
+            const float duration = 0.3f;
+            const float half     = duration * 0.5f;
+            Vector3 baseScale    = transform.localScale;
+            Vector3 bigScale     = baseScale * 1.15f;
+            float elapsed = 0f;
+            while (elapsed < half)
+            {
+                elapsed += Time.deltaTime;
+                transform.localScale = Vector3.Lerp(baseScale, bigScale, elapsed / half);
+                yield return null;
+            }
+            elapsed = 0f;
+            while (elapsed < half)
+            {
+                elapsed += Time.deltaTime;
+                transform.localScale = Vector3.Lerp(bigScale, baseScale, elapsed / half);
+                yield return null;
+            }
+            transform.localScale = baseScale;
+        }
     }
 }
