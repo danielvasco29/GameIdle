@@ -339,16 +339,44 @@ namespace GameIdle
         private void OnUpgradeClicked()
         {
             bool success = CharacterManager.Instance.TryUpgrade(characterIndex);
-            if (success) StartCoroutine(FlashCoroutine());
+            if (success) StartCoroutine(UpgradeEffect());
         }
 
-        private IEnumerator FlashCoroutine()
+        private IEnumerator UpgradeEffect()
         {
-            if (backgroundImage == null) yield break;
-            Color baseColor = character.data.tintColor;
-            backgroundImage.color = Color.white;
-            yield return new WaitForSeconds(0.1f);
-            backgroundImage.color = baseColor;
+            // Flash branco no background
+            if (backgroundImage != null)
+            {
+                Color baseColor = character.data.tintColor;
+                backgroundImage.color = Color.white;
+                yield return new WaitForSeconds(0.08f);
+                backgroundImage.color = baseColor;
+            }
+
+            // "NÍVEL X!" flutuando no centro do card
+            SpawnBurstText($"NÍVEL {character.level}!", new Color(1f, 0.92f, 0.35f), 26f, Vector2.zero);
+
+            // Burst de estrelas douradas em posições aleatórias
+            for (int i = 0; i < 5; i++)
+            {
+                var offset = new Vector2(Random.Range(-75f, 75f), Random.Range(-25f, 25f));
+                SpawnBurstText("✦", new Color(1f, 0.82f, 0.1f), 18f, offset);
+                yield return null;
+            }
+
+            // Pulse de escala no card
+            StartCoroutine(PulseCoroutine());
+        }
+
+        private void SpawnBurstText(string text, Color color, float fontSize, Vector2 offset)
+        {
+            var go = new GameObject("Burst",
+                typeof(RectTransform), typeof(TextMeshProUGUI), typeof(FloatingText));
+            go.transform.SetParent(transform, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(220f, 55f);
+            rt.anchoredPosition = offset;
+            go.GetComponent<FloatingText>().Init(text, color, fontSize);
         }
 
         private IEnumerator PulseCoroutine()

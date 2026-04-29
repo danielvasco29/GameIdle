@@ -7,12 +7,12 @@ namespace GameIdle
     [RequireComponent(typeof(TextMeshProUGUI))]
     public class FloatingText : MonoBehaviour
     {
-        public void Init(string text, Color color)
+        public void Init(string text, Color color, float fontSize = 20f)
         {
             var label = GetComponent<TextMeshProUGUI>();
             label.text        = text;
             label.color       = color;
-            label.fontSize    = 20;
+            label.fontSize    = fontSize;
             label.fontStyle   = TMPro.FontStyles.Bold;
             label.alignment   = TextAlignmentOptions.Center;
             label.raycastTarget = false;
