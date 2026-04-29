@@ -19,6 +19,8 @@ namespace GameIdle
         private int characterIndex;
 
         private Image costProgressBar;
+        private Image glowOverlay;
+        private Coroutine glowCoroutine;
         private bool wasAffordable;
 
         private TextMeshProUGUI GetOrAddTMP(string childName)
@@ -146,6 +148,7 @@ namespace GameIdle
 
             wasAffordable = false;
             SetupCostProgressBar();
+            SetupGlowOverlay();
             Refresh();
         }
 
@@ -184,7 +187,22 @@ namespace GameIdle
                     : new Color(1f, 1f, 1f, 0.25f);
             }
 
-            // Item 11: first-affordable pulse (level 0 only)
+            // Glow dourado quando pode comprar
+            if (glowOverlay != null)
+            {
+                if (affordable && !wasAffordable)
+                {
+                    if (glowCoroutine != null) StopCoroutine(glowCoroutine);
+                    glowCoroutine = StartCoroutine(GlowPulseCoroutine());
+                }
+                else if (!affordable && wasAffordable)
+                {
+                    if (glowCoroutine != null) { StopCoroutine(glowCoroutine); glowCoroutine = null; }
+                    glowOverlay.color = new Color(1f, 0.85f, 0f, 0f);
+                }
+            }
+
+            // Pulse de escala na primeira vez acessível (nível 0)
             if (affordable && !wasAffordable && character.level == 0)
                 StartCoroutine(PulseCoroutine());
 
@@ -266,6 +284,40 @@ namespace GameIdle
                 costText.alignment = TextAlignmentOptions.MidlineRight;
                 costText.color     = new Color(1f, 0.92f, 0.35f);
                 costText.enableWordWrapping = false;
+            }
+        }
+
+        private void SetupGlowOverlay()
+        {
+            var go = new GameObject("GlowOverlay", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(transform, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+            glowOverlay = go.GetComponent<Image>();
+            glowOverlay.color = new Color(1f, 0.85f, 0f, 0f);
+            glowOverlay.raycastTarget = false;
+        }
+
+        private IEnumerator GlowPulseCoroutine()
+        {
+            while (true)
+            {
+                float e = 0f;
+                while (e < 0.6f)
+                {
+                    e += Time.deltaTime;
+                    if (glowOverlay) glowOverlay.color = new Color(1f, 0.85f, 0f, Mathf.Lerp(0f, 0.28f, e / 0.6f));
+                    yield return null;
+                }
+                e = 0f;
+                while (e < 0.6f)
+                {
+                    e += Time.deltaTime;
+                    if (glowOverlay) glowOverlay.color = new Color(1f, 0.85f, 0f, Mathf.Lerp(0.28f, 0f, e / 0.6f));
+                    yield return null;
+                }
             }
         }
 

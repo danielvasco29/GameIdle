@@ -105,6 +105,9 @@ namespace GameIdle
 
         public bool CanPrestige() => TotalEarned >= prestigeRequirement;
 
+        public double GetTapValue() => System.Math.Max(1.0, MoneyPerSecond * 0.5);
+        public void Tap() => AddMoney(GetTapValue());
+
         public void Prestige()
         {
             if (!CanPrestige()) return;
