@@ -74,6 +74,16 @@ namespace GameIdle
             return true;
         }
 
+        public (CharacterInstance next, CharacterInstance via) GetNextUnlock()
+        {
+            for (int i = 1; i < characters.Length; i++)
+            {
+                if (!characters[i].isUnlocked)
+                    return (characters[i], characters[i - 1]);
+            }
+            return (null, null);
+        }
+
         public void ResetAll()
         {
             foreach (var c in characters) c.level = 0;
