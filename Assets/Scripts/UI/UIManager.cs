@@ -58,6 +58,12 @@ namespace GameIdle
         private TextMeshProUGUI nextUnlockCostText;
         private Image nextUnlockBar;
 
+        // Stats do Panel_Main
+        private TextMeshProUGUI statMpsText;
+        private TextMeshProUGUI statMultText;
+        private TextMeshProUGUI statTotalText;
+        private TextMeshProUGUI statPrestigeText;
+
         // Contador suave de dinheiro
         private double displayedMoney;
 
@@ -150,6 +156,7 @@ namespace GameIdle
             SetupPrestigeProgressBar();
             ExpandPanelLeft();
             SetupTapButton();
+            SetupMainStats();
             SetupNextUnlockBanner();
         }
 
@@ -540,6 +547,7 @@ namespace GameIdle
 
             UpdatePrestigeProgressBar();
             UpdateTapValueText();
+            RefreshMainStats();
         }
 
         private void RebuildCharacterButtons()
@@ -566,6 +574,60 @@ namespace GameIdle
         {
             foreach (var btn in characterButtons)
                 if (btn != null) btn.Refresh();
+        }
+
+        // ── Stats Panel_Main ─────────────────────────────────────────────────
+
+        private void SetupMainStats()
+        {
+            if (panelMain == null) return;
+
+            // Card de stats no topo do Panel_Main
+            var cardGO = new GameObject("StatsCard", typeof(RectTransform), typeof(Image));
+            cardGO.transform.SetParent(panelMain, false);
+            var crt = cardGO.GetComponent<RectTransform>();
+            crt.anchorMin = new Vector2(0f, 1f);
+            crt.anchorMax = new Vector2(1f, 1f);
+            crt.offsetMin = new Vector2(12f, -108f);
+            crt.offsetMax = new Vector2(-12f, -8f);
+            cardGO.GetComponent<Image>().color = new Color(0.08f, 0.12f, 0.18f, 0.88f);
+            cardGO.GetComponent<Image>().raycastTarget = false;
+
+            // Linha 1: MPS (esquerda) + Multiplicador (direita)
+            statMpsText = CreateBannerLabel(cardGO.transform, "StatMPS",
+                new Vector2(0f, 0.5f), new Vector2(0.58f, 1f),
+                new Vector2(10f, 0f), new Vector2(0f, -4f),
+                "", 16, NeonCyan, TextAlignmentOptions.MidlineLeft);
+
+            statMultText = CreateBannerLabel(cardGO.transform, "StatMult",
+                new Vector2(0.58f, 0.5f), new Vector2(1f, 1f),
+                Vector2.zero, new Vector2(-10f, -4f),
+                "", 15, new Color(1f, 0.92f, 0.35f), TextAlignmentOptions.MidlineRight);
+
+            // Linha 2: Total ganho (esquerda) + Prestígio (direita)
+            statTotalText = CreateBannerLabel(cardGO.transform, "StatTotal",
+                new Vector2(0f, 0f), new Vector2(0.58f, 0.5f),
+                new Vector2(10f, 4f), new Vector2(0f, 0f),
+                "", 13, new Color(1f, 1f, 1f, 0.65f), TextAlignmentOptions.MidlineLeft);
+
+            statPrestigeText = CreateBannerLabel(cardGO.transform, "StatPrestige",
+                new Vector2(0.58f, 0f), new Vector2(1f, 0.5f),
+                Vector2.zero, new Vector2(-10f, 0f),
+                "", 13, NeonOrange, TextAlignmentOptions.MidlineRight);
+
+            RefreshMainStats();
+        }
+
+        private void RefreshMainStats()
+        {
+            if (statMpsText == null) return;
+            statMpsText.text = $"+{NumberFormatter.Format(GameManager.Instance.MoneyPerSecond)}/s";
+            double mult = CharacterManager.Instance.GetTotalMultiplier()
+                          * GameManager.Instance.PrestigeMultiplier;
+            statMultText.text  = $"x{mult:F2} mult";
+            statTotalText.text = $"Total: ${NumberFormatter.Format(GameManager.Instance.TotalEarned)}";
+            int pc = GameManager.Instance.PrestigeCount;
+            statPrestigeText.text = pc > 0 ? $"⭐ Prestígio x{pc}" : "";
         }
 
         // ── Próximo Desbloqueio ───────────────────────────────────────────────
