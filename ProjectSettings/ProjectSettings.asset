@@ -168,6 +168,7 @@ PlayerSettings:
   switchEnableNetworkAnalysis: 0
   switchNetworkAnalysisPort: 7201
   switchUseNewInput: 0
+  activeInputHandler: 0
   switchApplicationID: 0x01004b9000490000
   switchNSODependencies:
   switchTitleNames_0:
