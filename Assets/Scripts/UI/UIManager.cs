@@ -199,7 +199,7 @@ namespace GameIdle
             lRT.anchorMax = Vector2.one;
             lRT.offsetMin = lRT.offsetMax = Vector2.zero;
             var lTMP = labelGO.GetComponent<TextMeshProUGUI>();
-            lTMP.text = "TRABALHAR\n\U0001F4BB";
+            lTMP.text = "TRABALHAR\n[ >_ ]";
             lTMP.fontSize = 24;
             lTMP.fontStyle = FontStyles.Bold;
             lTMP.color = Color.white;
