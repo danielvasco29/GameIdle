@@ -80,7 +80,7 @@ namespace GameIdle
             GameManager.Instance.OnStatsUpdated += UpdateStatsDisplay;
             CharacterManager.Instance.OnCharactersUpdated += RebuildCharacterButtons;
             GameEventSystem.Instance.OnEventTriggered += ShowEventPanel;
-            if (prestigeButton != null)
+            if (prestigeButton != null && prestigePanel != null)
                 prestigeButton.onClick.AddListener(() => prestigePanel.Show());
 
             RefreshAll();
@@ -564,6 +564,7 @@ namespace GameIdle
                 if (!chars[i].isUnlocked) continue;
                 var go = Instantiate(characterButtonPrefab, charactersContent);
                 var btn = go.GetComponent<CharacterButton>();
+                if (btn == null) { Debug.LogError("CharacterButton script missing on prefab!"); Destroy(go); continue; }
                 btn.Setup(chars[i], i);
                 characterButtons.Add(btn);
             }
