@@ -18,12 +18,14 @@ namespace GameIdle
 
         private void Awake()
         {
-            watchAdButton.onClick.AddListener(OnWatchAdClicked);
+            if (watchAdButton != null)
+                watchAdButton.onClick.AddListener(OnWatchAdClicked);
             gameObject.SetActive(false);
         }
 
         public void Show(EventData eventData)
         {
+            if (titleText == null || descriptionText == null) return;
             currentEvent = eventData;
             gameObject.SetActive(true);
 

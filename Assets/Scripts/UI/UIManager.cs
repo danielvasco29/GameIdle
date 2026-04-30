@@ -97,7 +97,7 @@ namespace GameIdle
             {
                 tmp = go.AddComponent<TextMeshProUGUI>();
                 tmp.text = "";
-                var refFont = Object.FindFirstObjectByType<TextMeshProUGUI>();
+                var refFont = Object.FindAnyObjectByType<TextMeshProUGUI>();
                 if (refFont != null && refFont.font != null) tmp.font = refFont.font;
             }
             return tmp;
@@ -539,7 +539,7 @@ namespace GameIdle
             bool canPrestige = GameManager.Instance.CanPrestige();
             if (prestigeInfoText != null)
                 prestigeInfoText.text = canPrestige
-                    ? "⭐ Prestígio disponível!"
+                    ? "[*] Prestígio disponível!"
                     : $"Prestígio em: ${NumberFormatter.Format(1_000_000_000.0)}";
 
             if (prestigeButton != null)
@@ -627,7 +627,7 @@ namespace GameIdle
             statMultText.text  = $"x{mult:F2} mult";
             statTotalText.text = $"Total: ${NumberFormatter.Format(GameManager.Instance.TotalEarned)}";
             int pc = GameManager.Instance.PrestigeCount;
-            statPrestigeText.text = pc > 0 ? $"⭐ Prestígio x{pc}" : "";
+            statPrestigeText.text = pc > 0 ? $"[P] Prestígio x{pc}" : "";
         }
 
         // ── Próximo Desbloqueio ───────────────────────────────────────────────
@@ -712,7 +712,7 @@ namespace GameIdle
             var tmp = go.GetComponent<TextMeshProUGUI>();
             tmp.text = text; tmp.fontSize = fontSize; tmp.fontStyle = FontStyles.Bold;
             tmp.color = color; tmp.alignment = align;
-            tmp.enableWordWrapping = false; tmp.raycastTarget = false;
+            tmp.textWrappingMode = TextWrappingModes.NoWrap; tmp.raycastTarget = false;
             return tmp;
         }
 
@@ -727,7 +727,7 @@ namespace GameIdle
                 if (nextUnlockBar != null) nextUnlockBar.fillAmount = 1f;
                 return;
             }
-            nextUnlockNameText.text = $"\U0001F512 {next.data.characterName}";
+            nextUnlockNameText.text = $">> {next.data.characterName}";
             double cost = via.GetCurrentCost();
             if (nextUnlockCostText != null)
                 nextUnlockCostText.text = $"${NumberFormatter.Format(cost)}";

@@ -33,7 +33,7 @@ namespace GameIdle
                 tmp = go.gameObject.AddComponent<TextMeshProUGUI>();
                 tmp.text = "";
 
-                var referenceFont = Object.FindFirstObjectByType<TextMeshProUGUI>();
+                var referenceFont = Object.FindAnyObjectByType<TextMeshProUGUI>();
                 if (referenceFont != null && referenceFont.font != null)
                     tmp.font = referenceFont.font;
             }
@@ -131,7 +131,7 @@ namespace GameIdle
                         ttmp.alignment     = TextAlignmentOptions.Center;
                         ttmp.color         = Color.white;
                         ttmp.raycastTarget = false;
-                        var refFont = Object.FindFirstObjectByType<TextMeshProUGUI>();
+                        var refFont = Object.FindAnyObjectByType<TextMeshProUGUI>();
                         if (refFont != null && refFont.font != null) ttmp.font = refFont.font;
                     }
                 }
@@ -245,7 +245,7 @@ namespace GameIdle
                 nameText.fontStyle = FontStyles.Bold;
                 nameText.alignment = TextAlignmentOptions.MidlineLeft;
                 nameText.color     = Color.white;
-                nameText.enableWordWrapping = false;
+                nameText.textWrappingMode = TextWrappingModes.NoWrap;
             }
 
             // LevelText: topo direito
@@ -270,7 +270,7 @@ namespace GameIdle
                 productionText.fontStyle = FontStyles.Bold;
                 productionText.alignment = TextAlignmentOptions.MidlineLeft;
                 productionText.color     = new Color(0.55f, 1f, 0.7f);
-                productionText.enableWordWrapping = false;
+                productionText.textWrappingMode = TextWrappingModes.NoWrap;
             }
 
             // CostText: baixo direito, destaque em dourado
@@ -283,7 +283,7 @@ namespace GameIdle
                 costText.fontStyle = FontStyles.Bold;
                 costText.alignment = TextAlignmentOptions.MidlineRight;
                 costText.color     = new Color(1f, 0.92f, 0.35f);
-                costText.enableWordWrapping = false;
+                costText.textWrappingMode = TextWrappingModes.NoWrap;
             }
         }
 
