@@ -39,10 +39,8 @@ namespace GameIdle
             {
                 int idx = i;
                 var go = Instantiate(choiceButtonPrefab, choicesContainer);
-                go.GetComponent<EventChoiceButton>().Setup(
-                    eventData.choices[i],
-                    () => OnChoiceSelected(idx)
-                );
+                var choiceBtn = go.GetComponent<EventChoiceButton>() ?? go.AddComponent<EventChoiceButton>();
+                choiceBtn.Setup(eventData.choices[i], () => OnChoiceSelected(idx));
                 spawnedChoices.Add(go);
             }
         }

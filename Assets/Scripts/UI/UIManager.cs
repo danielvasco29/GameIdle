@@ -571,8 +571,7 @@ namespace GameIdle
             {
                 if (!chars[i].isUnlocked) continue;
                 var go = Instantiate(characterButtonPrefab, charactersContent);
-                var btn = go.GetComponent<CharacterButton>();
-                if (btn == null) { Debug.LogError("CharacterButton script missing on prefab!"); Destroy(go); continue; }
+                var btn = go.GetComponent<CharacterButton>() ?? go.AddComponent<CharacterButton>();
                 btn.Setup(chars[i], i);
                 characterButtons.Add(btn);
             }

@@ -13,8 +13,11 @@ namespace GameIdle
 
         public void Setup(EventChoiceData choice, Action onClicked)
         {
-            choiceText.text = choice.text;
-            effectText.text = choice.effectDescription;
+            choiceText = choiceText ?? GetComponentInChildren<TextMeshProUGUI>();
+            button     = button     ?? GetComponent<Button>() ?? gameObject.AddComponent<Button>();
+
+            if (choiceText != null) choiceText.text = choice.text;
+            if (effectText != null) effectText.text  = choice.effectDescription;
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(() => onClicked?.Invoke());
         }
