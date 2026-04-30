@@ -168,6 +168,14 @@ namespace GameIdle
             if (pmGO == null) return;
             panelMain = pmGO.GetComponent<RectTransform>();
 
+            // Destroy stale objects left in the backup scene from a previous play session
+            for (int i = pmGO.transform.childCount - 1; i >= 0; i--)
+            {
+                string n = pmGO.transform.GetChild(i).name;
+                if (n == "PanelBG" || n == "TapButton" || n == "TapValue")
+                    DestroyImmediate(pmGO.transform.GetChild(i).gameObject);
+            }
+
             // Fundo escuro para o painel principal
             var bgGO = new GameObject("PanelBG", typeof(RectTransform), typeof(Image));
             bgGO.transform.SetParent(pmGO.transform, false);
@@ -582,6 +590,10 @@ namespace GameIdle
         private void SetupMainStats()
         {
             if (panelMain == null) return;
+
+            // Remove stale StatsCard from backup scene
+            var stale = panelMain.Find("StatsCard");
+            if (stale != null) DestroyImmediate(stale.gameObject);
 
             // Card de stats no topo do Panel_Main
             var cardGO = new GameObject("StatsCard", typeof(RectTransform), typeof(Image));

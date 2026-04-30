@@ -175,7 +175,7 @@ namespace GameIdle
             }
 
             bool affordable = GameManager.Instance.Money >= character.GetCurrentCost();
-            if (upgradeButton != null) upgradeButton.interactable = affordable;
+            // Button always stays interactable — OnUpgradeClicked handles the not-enough-money case
 
             // Item 5: cost progress bar
             if (costProgressBar != null)
@@ -339,7 +339,10 @@ namespace GameIdle
         private void OnUpgradeClicked()
         {
             bool success = CharacterManager.Instance.TryUpgrade(characterIndex);
-            if (success) StartCoroutine(UpgradeEffect());
+            if (success)
+                StartCoroutine(UpgradeEffect());
+            else
+                UIManager.Instance.ShowToast("Dinheiro insuficiente!", new Color(1f, 0.3f, 0.3f));
         }
 
         private IEnumerator UpgradeEffect()
