@@ -10,7 +10,7 @@ namespace GameIdle
     {
         public static GameManager Instance { get; private set; }
 
-        public double Money { get; private set; }
+        public double Money { get; private set; } = 10.0;
         public double MoneyPerSecond { get; private set; }
         public double TotalEarned { get; private set; }
         public double PrestigeMultiplier { get; private set; } = 1.0;
@@ -113,7 +113,7 @@ namespace GameIdle
             if (!CanPrestige()) return;
             PrestigeCount++;
             PrestigeMultiplier = 1.0 + PrestigeCount * 0.5;
-            Money = 0;
+            Money = 10;
             TotalEarned = 0;
             activeEffects.Clear();
             CharacterManager.Instance.ResetAll();
