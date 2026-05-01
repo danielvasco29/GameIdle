@@ -21,6 +21,9 @@ namespace GameIdle
 
         private readonly List<EventEffect> activeEffects = new();
 
+        private float saveTimer;
+        private const float SaveInterval = 30f;
+
         public event Action OnMoneyChanged;
         public event Action OnStatsUpdated;
 
@@ -45,6 +48,13 @@ namespace GameIdle
             TickEffects(Time.deltaTime);
             if (MoneyPerSecond > 0)
                 AddMoney(MoneyPerSecond * Time.deltaTime);
+
+            saveTimer += Time.deltaTime;
+            if (saveTimer >= SaveInterval)
+            {
+                saveTimer = 0f;
+                SaveSystem.Save();
+            }
         }
 
         public void AddMoney(double amount)

@@ -71,6 +71,7 @@ namespace GameIdle
 
             GameManager.Instance.RecalculateStats();
             OnCharactersUpdated?.Invoke();
+            SaveSystem.Save();
             return true;
         }
 

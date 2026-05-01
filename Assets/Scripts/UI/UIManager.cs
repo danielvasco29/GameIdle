@@ -690,13 +690,29 @@ namespace GameIdle
 
         private void RebuildCharacterButtons()
         {
+            var chars = CharacterManager.Instance.GetAllCharacters();
+
+            // Count how many are now unlocked
+            int unlocked = 0;
+            for (int i = 0; i < chars.Length; i++)
+                if (chars[i].isUnlocked) unlocked++;
+
+            // If the count hasn't changed just refresh labels — no destroy/create needed
+            if (unlocked == characterButtons.Count && characterButtons.Count > 0)
+            {
+                foreach (var btn in characterButtons)
+                    if (btn != null) btn.Refresh();
+                RefreshNextUnlockBanner();
+                return;
+            }
+
+            // New character unlocked (or reset after prestige) — full rebuild
             foreach (var btn in characterButtons)
                 if (btn != null) Destroy(btn.gameObject);
             characterButtons.Clear();
 
             if (characterButtonPrefab == null || charactersContent == null) return;
 
-            var chars = CharacterManager.Instance.GetAllCharacters();
             for (int i = 0; i < chars.Length; i++)
             {
                 if (!chars[i].isUnlocked) continue;
