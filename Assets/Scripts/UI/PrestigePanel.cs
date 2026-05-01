@@ -13,6 +13,17 @@ namespace GameIdle
 
         private void Awake()
         {
+            // Button GUIDs may be broken in scene — find by name and add component as fallback.
+            if (confirmButton == null)
+            {
+                var go = GameObject.Find("ConfirmButton") ?? transform.Find("ConfirmButton")?.gameObject;
+                if (go != null) confirmButton = go.GetComponent<Button>() ?? go.AddComponent<Button>();
+            }
+            if (cancelButton == null)
+            {
+                var go = GameObject.Find("CancelButton") ?? transform.Find("CancelButton")?.gameObject;
+                if (go != null) cancelButton = go.GetComponent<Button>() ?? go.AddComponent<Button>();
+            }
             if (confirmButton != null) confirmButton.onClick.AddListener(OnConfirmClicked);
             if (cancelButton != null)  cancelButton.onClick.AddListener(() => gameObject.SetActive(false));
             gameObject.SetActive(false);

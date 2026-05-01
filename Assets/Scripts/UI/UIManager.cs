@@ -113,10 +113,7 @@ namespace GameIdle
             if (prestigeButton != null)
             {
                 prestigeButton.onClick.RemoveAllListeners();
-                if (prestigePanel != null)
-                    prestigeButton.onClick.AddListener(() => prestigePanel.Show());
-                else
-                    prestigeButton.onClick.AddListener(OnPrestigeDirectClick);
+                prestigeButton.onClick.AddListener(OnPrestigeDirectClick);
             }
 
             RefreshAll();
