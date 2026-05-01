@@ -82,12 +82,21 @@ namespace GameIdle
             if (canvas != null && canvas.GetComponent<GraphicRaycaster>() == null)
                 canvas.gameObject.AddComponent<GraphicRaycaster>();
 
-            // EventSystem + StandaloneInputModule – create if none exists.
-            if (UnityEngine.EventSystems.EventSystem.current == null)
+            // Ensure a working EventSystem + StandaloneInputModule.
+            // In Unity 6 with com.unity.inputsystem installed, the scene's
+            // StandaloneInputModule GUID may not resolve → no UI input at all.
+            var es = UnityEngine.EventSystems.EventSystem.current;
+            if (es == null)
             {
                 var esGO = new GameObject("EventSystem");
-                esGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
+                es = esGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
                 esGO.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+            }
+            else if (es.GetComponent<UnityEngine.EventSystems.StandaloneInputModule>() == null)
+            {
+                // The existing EventSystem may have a missing-script input module;
+                // add StandaloneInputModule so the old Input Manager can drive UI.
+                es.gameObject.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
             }
         }
 
