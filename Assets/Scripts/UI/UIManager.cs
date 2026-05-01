@@ -71,6 +71,24 @@ namespace GameIdle
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
+            EnsureInputComponents();
+        }
+
+        private void EnsureInputComponents()
+        {
+            // GraphicRaycaster GUID in scene may reference old built-in assembly;
+            // ensure one always exists on the Canvas so UI buttons can receive clicks.
+            var canvas = GetComponent<Canvas>() ?? GetComponentInParent<Canvas>();
+            if (canvas != null && canvas.GetComponent<GraphicRaycaster>() == null)
+                canvas.gameObject.AddComponent<GraphicRaycaster>();
+
+            // EventSystem + StandaloneInputModule – create if none exists.
+            if (UnityEngine.EventSystems.EventSystem.current == null)
+            {
+                var esGO = new GameObject("EventSystem");
+                esGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
+                esGO.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+            }
         }
 
         private void Start()
@@ -747,8 +765,8 @@ namespace GameIdle
                 nextUnlockBar.fillAmount = Mathf.Clamp01((float)(GameManager.Instance.Money / cost));
         }
 
-        public void ShowToast(string message, Color? color = null) => toast.Show(message, color);
-        public void ShowOfflineProgress(double earned, long seconds) => offlinePanel.Show(earned, seconds);
+        public void ShowToast(string message, Color? color = null) { if (toast != null) toast.Show(message, color); }
+        public void ShowOfflineProgress(double earned, long seconds) { if (offlinePanel != null) offlinePanel.Show(earned, seconds); }
         public void ShowEventPanel(EventData eventData) => eventPanel.Show(eventData);
     }
 }

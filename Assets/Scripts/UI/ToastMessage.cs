@@ -31,6 +31,8 @@ namespace GameIdle
 
         private IEnumerator ShowRoutine(string message, Color tintColor)
         {
+            if (messageText == null) messageText = GetComponentInChildren<TextMeshProUGUI>();
+            if (messageText == null) { gameObject.SetActive(false); yield break; }
             messageText.text  = message;
             messageText.color = tintColor;
 
