@@ -67,6 +67,9 @@ namespace GameIdle
         // Contador suave de dinheiro
         private double displayedMoney;
 
+        // Cached TMP font to avoid repeated FindAnyObjectByType calls
+        private TMP_FontAsset cachedFont;
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -115,7 +118,15 @@ namespace GameIdle
             PolishLayout();
         }
 
-        private static TextMeshProUGUI GetOrAddSceneTMP(string goName)
+        private TMP_FontAsset GetCachedFont()
+        {
+            if (cachedFont != null) return cachedFont;
+            var existing = Object.FindAnyObjectByType<TextMeshProUGUI>();
+            if (existing != null && existing.font != null) cachedFont = existing.font;
+            return cachedFont;
+        }
+
+        private TextMeshProUGUI GetOrAddSceneTMP(string goName)
         {
             var go = GameObject.Find(goName);
             if (go == null) return null;
@@ -124,8 +135,8 @@ namespace GameIdle
             {
                 tmp = go.AddComponent<TextMeshProUGUI>();
                 tmp.text = "";
-                var refFont = Object.FindAnyObjectByType<TextMeshProUGUI>();
-                if (refFont != null && refFont.font != null) tmp.font = refFont.font;
+                var f = GetCachedFont();
+                if (f != null) tmp.font = f;
             }
             return tmp;
         }
@@ -181,6 +192,7 @@ namespace GameIdle
             SetupEquipeHeader();
             ApplyNeonTheme();
             SetupPrestigeProgressBar();
+            StylePrestigeButton();
             ExpandPanelLeft();
             SetupTapButton();
             SetupMainStats();
@@ -321,8 +333,10 @@ namespace GameIdle
             if (panelLeft == null) return;
             var rt = panelLeft.GetComponent<RectTransform>();
             if (rt == null) return;
-            rt.sizeDelta        = new Vector2(480f, rt.sizeDelta.y);
-            rt.anchoredPosition = new Vector2(240f, rt.anchoredPosition.y);
+            // 520px gives the 2-column grid (228×2 + spacing + padding) room
+            // to clear the vertical scrollbar (~15px) without being clipped.
+            rt.sizeDelta        = new Vector2(520f, rt.sizeDelta.y);
+            rt.anchoredPosition = new Vector2(260f, rt.anchoredPosition.y);
         }
 
         private void ApplyTitleStyle()
@@ -491,6 +505,34 @@ namespace GameIdle
             prestigeProgressBar.color = ready
                 ? new Color(1f, 0.84f, 0f, 1f)
                 : new Color(NeonCyan.r, NeonCyan.g, NeonCyan.b, 0.85f);
+        }
+
+        private void StylePrestigeButton()
+        {
+            if (prestigeButton == null) return;
+            var img = prestigeButton.GetComponent<Image>();
+            if (img == null) img = prestigeButton.gameObject.AddComponent<Image>();
+            img.color = new Color(0.6f, 0.1f, 0.8f, 1f);
+            prestigeButton.targetGraphic = img;
+
+            var rt = prestigeButton.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchorMin = new Vector2(0f, 0f);
+                rt.anchorMax = new Vector2(1f, 0f);
+                rt.offsetMin = new Vector2(12f, 8f);
+                rt.offsetMax = new Vector2(-12f, 58f);
+            }
+
+            var label = prestigeButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (label != null)
+            {
+                label.text      = "PRESTÍGIO ★";
+                label.fontSize  = 18;
+                label.fontStyle = FontStyles.Bold;
+                label.color     = Color.white;
+                label.alignment = TextAlignmentOptions.Center;
+            }
         }
 
         // ── Floating Money ────────────────────────────────────────────────────

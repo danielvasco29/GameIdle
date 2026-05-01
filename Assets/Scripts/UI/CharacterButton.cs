@@ -23,6 +23,8 @@ namespace GameIdle
         private Coroutine glowCoroutine;
         private bool wasAffordable;
 
+        private static TMP_FontAsset sharedFont;
+
         private TextMeshProUGUI GetOrAddTMP(string childName)
         {
             var go = transform.Find(childName);
@@ -32,10 +34,12 @@ namespace GameIdle
             {
                 tmp = go.gameObject.AddComponent<TextMeshProUGUI>();
                 tmp.text = "";
-
-                var referenceFont = Object.FindAnyObjectByType<TextMeshProUGUI>();
-                if (referenceFont != null && referenceFont.font != null)
-                    tmp.font = referenceFont.font;
+                if (sharedFont == null)
+                {
+                    var ref2 = Object.FindAnyObjectByType<TextMeshProUGUI>();
+                    if (ref2 != null && ref2.font != null) sharedFont = ref2.font;
+                }
+                if (sharedFont != null) tmp.font = sharedFont;
             }
             return tmp;
         }
@@ -131,8 +135,8 @@ namespace GameIdle
                         ttmp.alignment     = TextAlignmentOptions.Center;
                         ttmp.color         = Color.white;
                         ttmp.raycastTarget = false;
-                        var refFont = Object.FindAnyObjectByType<TextMeshProUGUI>();
-                        if (refFont != null && refFont.font != null) ttmp.font = refFont.font;
+                        if (sharedFont == null) { var rf = Object.FindAnyObjectByType<TextMeshProUGUI>(); if (rf?.font != null) sharedFont = rf.font; }
+                        if (sharedFont != null) ttmp.font = sharedFont;
                     }
                 }
             }
