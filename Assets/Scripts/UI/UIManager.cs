@@ -155,13 +155,17 @@ namespace GameIdle
             if (prestigeButton == null)
             {
                 var btnGO = GameObject.Find("PrestigeButton");
-                if (btnGO != null) prestigeButton = btnGO.GetComponent<Button>();
+                if (btnGO != null)
+                    prestigeButton = btnGO.GetComponent<Button>() ?? btnGO.AddComponent<Button>();
             }
             if (charactersContent == null)
             {
                 var contentGO = GameObject.Find("Content");
                 if (contentGO != null) charactersContent = contentGO.transform;
             }
+
+            // Ensure ScrollRect exists on ScrollView (GUID may be broken in scene).
+            EnsureScrollRect();
 
             if (charactersContent != null)
             {
@@ -187,6 +191,46 @@ namespace GameIdle
                 {
                     csf = contentGO.AddComponent<ContentSizeFitter>();
                     csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+                }
+            }
+        }
+
+        private void EnsureScrollRect()
+        {
+            var scrollViewGO = GameObject.Find("ScrollView");
+            if (scrollViewGO == null) return;
+
+            var sr = scrollViewGO.GetComponent<ScrollRect>();
+            if (sr == null) sr = scrollViewGO.AddComponent<ScrollRect>();
+
+            // Wire viewport and content if not already set
+            var viewport = scrollViewGO.transform.Find("Viewport");
+            if (viewport == null) viewport = scrollViewGO.transform; // fallback
+
+            var content = viewport.Find("Content") ?? scrollViewGO.transform.Find("Content");
+
+            if (sr.viewport == null && viewport != null)
+                sr.viewport = viewport.GetComponent<RectTransform>();
+            if (sr.content == null && content != null)
+                sr.content = content.GetComponent<RectTransform>();
+
+            sr.horizontal = false;
+            sr.vertical   = true;
+            sr.scrollSensitivity = 30f;
+            if (sr.movementType == ScrollRect.MovementType.Unrestricted)
+                sr.movementType = ScrollRect.MovementType.Clamped;
+
+            // Viewport needs a Mask to clip children
+            if (viewport != null && viewport != scrollViewGO.transform)
+            {
+                var mask = viewport.GetComponent<Mask>();
+                if (mask == null) mask = viewport.gameObject.AddComponent<Mask>();
+                mask.showMaskGraphic = false;
+                var maskImg = viewport.GetComponent<Image>();
+                if (maskImg == null)
+                {
+                    maskImg = viewport.gameObject.AddComponent<Image>();
+                    maskImg.color = Color.white;
                 }
             }
         }
