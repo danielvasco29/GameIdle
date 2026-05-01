@@ -110,8 +110,14 @@ namespace GameIdle
             GameManager.Instance.OnStatsUpdated += UpdateStatsDisplay;
             CharacterManager.Instance.OnCharactersUpdated += RebuildCharacterButtons;
             GameEventSystem.Instance.OnEventTriggered += ShowEventPanel;
-            if (prestigeButton != null && prestigePanel != null)
-                prestigeButton.onClick.AddListener(() => prestigePanel.Show());
+            if (prestigeButton != null)
+            {
+                prestigeButton.onClick.RemoveAllListeners();
+                if (prestigePanel != null)
+                    prestigeButton.onClick.AddListener(() => prestigePanel.Show());
+                else
+                    prestigeButton.onClick.AddListener(OnPrestigeDirectClick);
+            }
 
             RefreshAll();
             displayedMoney = GameManager.Instance.Money;
@@ -168,12 +174,12 @@ namespace GameIdle
                 if (glg == null)
                 {
                     glg = contentGO.AddComponent<GridLayoutGroup>();
-                    glg.cellSize        = new Vector2(210f, 155f);
-                    glg.spacing         = new Vector2(6f, 6f);
-                    glg.padding         = new RectOffset(6, 6, 6, 6);
+                    glg.cellSize        = new Vector2(460f, 120f);
+                    glg.spacing         = new Vector2(0f, 6f);
+                    glg.padding         = new RectOffset(8, 8, 6, 6);
                     glg.childAlignment  = TextAnchor.UpperLeft;
                     glg.constraint      = GridLayoutGroup.Constraint.FixedColumnCount;
-                    glg.constraintCount = 2;
+                    glg.constraintCount = 1;
                 }
 
                 var csf = contentGO.GetComponent<ContentSizeFitter>();
@@ -606,6 +612,13 @@ namespace GameIdle
                     SpawnFloatingMoney();
                 }
             }
+        }
+
+        private void OnPrestigeDirectClick()
+        {
+            if (!GameManager.Instance.CanPrestige()) { ShowToast("Prestígio requer $1B total!", new Color(1f,0.4f,0.4f)); return; }
+            GameManager.Instance.Prestige();
+            ShowToast("Prestígio realizado! Multiplicador aumentado.", new Color(1f, 0.84f, 0f));
         }
 
         public void RefreshAll()

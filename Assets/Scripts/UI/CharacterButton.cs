@@ -79,8 +79,8 @@ namespace GameIdle
             // GridLayoutGroup controla o tamanho — LayoutElement serve de fallback
             var le = GetComponent<LayoutElement>();
             if (le == null) le = gameObject.AddComponent<LayoutElement>();
-            le.minHeight       = 155;
-            le.preferredHeight = 155;
+            le.minHeight       = 120;
+            le.preferredHeight = 120;
             le.flexibleHeight  = 0;
 
             // Cria Icon antes de ApplyCardLayout para que ele configure o RT
