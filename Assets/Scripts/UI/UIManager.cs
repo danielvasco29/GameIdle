@@ -168,9 +168,9 @@ namespace GameIdle
                 if (glg == null)
                 {
                     glg = contentGO.AddComponent<GridLayoutGroup>();
-                    glg.cellSize        = new Vector2(228f, 160f);
-                    glg.spacing         = new Vector2(8f, 8f);
-                    glg.padding         = new RectOffset(8, 8, 8, 8);
+                    glg.cellSize        = new Vector2(210f, 155f);
+                    glg.spacing         = new Vector2(6f, 6f);
+                    glg.padding         = new RectOffset(6, 6, 6, 6);
                     glg.childAlignment  = TextAnchor.UpperLeft;
                     glg.constraint      = GridLayoutGroup.Constraint.FixedColumnCount;
                     glg.constraintCount = 2;
@@ -510,29 +510,36 @@ namespace GameIdle
         private void StylePrestigeButton()
         {
             if (prestigeButton == null) return;
+
+            // Ensure a visible Image background (GUID in scene may be broken).
             var img = prestigeButton.GetComponent<Image>();
             if (img == null) img = prestigeButton.gameObject.AddComponent<Image>();
-            img.color = new Color(0.6f, 0.1f, 0.8f, 1f);
+            img.color = new Color(0.55f, 0.1f, 0.8f, 1f);
             prestigeButton.targetGraphic = img;
+            // NOTE: do NOT touch RectTransform — the scene anchors are already correct.
 
-            var rt = prestigeButton.GetComponent<RectTransform>();
-            if (rt != null)
+            // Ensure visible label (TMP GUID in scene may be broken).
+            var labelGO = prestigeButton.transform.Find("PrestigeButtonLabel");
+            TextMeshProUGUI label = labelGO != null
+                ? (labelGO.GetComponent<TextMeshProUGUI>() ?? labelGO.gameObject.AddComponent<TextMeshProUGUI>())
+                : null;
+            if (label == null)
             {
-                rt.anchorMin = new Vector2(0f, 0f);
-                rt.anchorMax = new Vector2(1f, 0f);
-                rt.offsetMin = new Vector2(12f, 8f);
-                rt.offsetMax = new Vector2(-12f, 58f);
+                var go = new GameObject("PrestigeButtonLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
+                go.transform.SetParent(prestigeButton.transform, false);
+                var lrt = go.GetComponent<RectTransform>();
+                lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
+                lrt.offsetMin = lrt.offsetMax = Vector2.zero;
+                label = go.GetComponent<TextMeshProUGUI>();
             }
-
-            var label = prestigeButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (label != null)
-            {
-                label.text      = "PRESTÍGIO ★";
-                label.fontSize  = 18;
-                label.fontStyle = FontStyles.Bold;
-                label.color     = Color.white;
-                label.alignment = TextAlignmentOptions.Center;
-            }
+            label.text      = "PRESTÍGIO ★";
+            label.fontSize  = 18;
+            label.fontStyle = FontStyles.Bold;
+            label.color     = Color.white;
+            label.alignment = TextAlignmentOptions.Center;
+            label.raycastTarget = false;
+            var f = GetCachedFont();
+            if (f != null) label.font = f;
         }
 
         // ── Floating Money ────────────────────────────────────────────────────
