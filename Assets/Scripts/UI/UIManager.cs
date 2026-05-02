@@ -70,6 +70,12 @@ namespace GameIdle
         // Cached TMP font to avoid repeated FindAnyObjectByType calls
         private TMP_FontAsset cachedFont;
 
+        // Prestige button label (cached to avoid Find every frame)
+        private TextMeshProUGUI prestigeButtonLabel;
+
+        // Ranking panel
+        private RankingPanel rankingPanel;
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -244,6 +250,48 @@ namespace GameIdle
             SetupTapButton();
             SetupMainStats();
             SetupNextUnlockBanner();
+            SetupRankingPanel();
+        }
+
+        private void SetupRankingPanel()
+        {
+            var canvas = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
+            if (canvas == null) return;
+
+            // Panel
+            var panelGO = new GameObject("RankingPanel", typeof(RectTransform));
+            panelGO.transform.SetParent(canvas.transform, false);
+            rankingPanel = panelGO.AddComponent<RankingPanel>();
+
+            // Trophy button — top-right corner
+            var btnGO = new GameObject("RankingButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            btnGO.transform.SetParent(canvas.transform, false);
+            var brt = btnGO.GetComponent<RectTransform>();
+            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
+            brt.anchoredPosition = new Vector2(-8f, -8f);
+            brt.sizeDelta = new Vector2(52f, 32f);
+            btnGO.GetComponent<Image>().color = new Color(0.15f, 0.1f, 0.3f, 0.9f);
+            btnGO.GetComponent<Button>().onClick.AddListener(OpenRanking);
+
+            var lblGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            lblGO.transform.SetParent(btnGO.transform, false);
+            var lrt = lblGO.GetComponent<RectTransform>();
+            lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
+            lrt.offsetMin = lrt.offsetMax = Vector2.zero;
+            var ltmp = lblGO.GetComponent<TextMeshProUGUI>();
+            ltmp.text = "TOP";
+            ltmp.fontSize = 13;
+            ltmp.fontStyle = FontStyles.Bold;
+            ltmp.color = new Color(1f, 0.84f, 0f);
+            ltmp.alignment = TextAlignmentOptions.Center;
+            ltmp.raycastTarget = false;
+            var ff = GetCachedFont();
+            if (ff != null) ltmp.font = ff;
+        }
+
+        private void OpenRanking()
+        {
+            if (rankingPanel != null) rankingPanel.Open();
         }
 
         // ── Tap Button ────────────────────────────────────────────────────────
@@ -558,14 +606,15 @@ namespace GameIdle
         {
             if (prestigeButton == null) return;
 
-            // Ensure a visible Image background (GUID in scene may be broken).
             var img = prestigeButton.GetComponent<Image>();
             if (img == null) img = prestigeButton.gameObject.AddComponent<Image>();
             img.color = new Color(0.55f, 0.1f, 0.8f, 1f);
             prestigeButton.targetGraphic = img;
-            // NOTE: do NOT touch RectTransform — the scene anchors are already correct.
 
-            // Ensure visible label (TMP GUID in scene may be broken).
+            // Compact height — keep horizontal anchors from scene, just clamp height.
+            var rt = prestigeButton.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(rt.sizeDelta.x, 52f);
+
             var labelGO = prestigeButton.transform.Find("PrestigeButtonLabel");
             TextMeshProUGUI label = labelGO != null
                 ? (labelGO.GetComponent<TextMeshProUGUI>() ?? labelGO.gameObject.AddComponent<TextMeshProUGUI>())
@@ -579,14 +628,40 @@ namespace GameIdle
                 lrt.offsetMin = lrt.offsetMax = Vector2.zero;
                 label = go.GetComponent<TextMeshProUGUI>();
             }
-            label.text      = "PRESTÍGIO ★";
-            label.fontSize  = 18;
+            label.fontSize  = 14;
             label.fontStyle = FontStyles.Bold;
             label.color     = Color.white;
             label.alignment = TextAlignmentOptions.Center;
             label.raycastTarget = false;
             var f = GetCachedFont();
             if (f != null) label.font = f;
+            prestigeButtonLabel = label;
+
+            RefreshPrestigeLabel();
+        }
+
+        private void RefreshPrestigeLabel()
+        {
+            if (prestigeButtonLabel == null)
+            {
+                var go = prestigeButton?.transform.Find("PrestigeButtonLabel");
+                if (go != null) prestigeButtonLabel = go.GetComponent<TextMeshProUGUI>();
+            }
+            if (prestigeButtonLabel == null || GameManager.Instance == null) return;
+
+            int count       = GameManager.Instance.PrestigeCount;
+            double nextMult = 1.0 + (count + 1) * 0.5;
+            bool ready      = GameManager.Instance.CanPrestige();
+
+            prestigeButtonLabel.text = ready
+                ? $"PRESTÍGIO ★\n#{count} → x{nextMult:F1}"
+                : $"PRESTÍGIO\n#{count} → x{nextMult:F1}";
+
+            var img = prestigeButton?.GetComponent<Image>();
+            if (img != null)
+                img.color = ready
+                    ? new Color(0.8f, 0.2f, 1.0f, 1f)
+                    : new Color(0.55f, 0.1f, 0.8f, 1f);
         }
 
         // ── Floating Money ────────────────────────────────────────────────────
@@ -684,6 +759,7 @@ namespace GameIdle
                 prestigeButton.interactable = canPrestige;
 
             UpdatePrestigeProgressBar();
+            RefreshPrestigeLabel();
             UpdateTapValueText();
             RefreshMainStats();
         }

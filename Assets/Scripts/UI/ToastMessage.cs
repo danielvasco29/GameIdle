@@ -18,29 +18,35 @@ namespace GameIdle
             canvasGroup = GetComponent<CanvasGroup>();
             if (canvasGroup == null)
                 canvasGroup = gameObject.AddComponent<CanvasGroup>();
-            canvasGroup.alpha = 0;
-            gameObject.SetActive(false);
+            canvasGroup.alpha = 0f;
+            canvasGroup.blocksRaycasts = false;
+            canvasGroup.interactable = false;
+            // Keep gameObject active — StartCoroutine requires activeInHierarchy.
+            // If the parent is inactive SetActive(true) on the child still leaves
+            // activeInHierarchy = false, so we never deactivate.
         }
 
         public void Show(string message, Color? tintColor = null)
         {
             if (showCoroutine != null) StopCoroutine(showCoroutine);
-            gameObject.SetActive(true);
             showCoroutine = StartCoroutine(ShowRoutine(message, tintColor ?? Color.white));
         }
 
         private IEnumerator ShowRoutine(string message, Color tintColor)
         {
             if (messageText == null) messageText = GetComponentInChildren<TextMeshProUGUI>();
-            if (messageText == null) { gameObject.SetActive(false); yield break; }
+            if (messageText == null) yield break;
             messageText.text  = message;
             messageText.color = tintColor;
+            canvasGroup.blocksRaycasts = true;
+            canvasGroup.interactable   = true;
 
             yield return Fade(0f, 1f, fadeDuration);
             yield return new WaitForSeconds(displayDuration);
             yield return Fade(1f, 0f, fadeDuration);
 
-            gameObject.SetActive(false);
+            canvasGroup.blocksRaycasts = false;
+            canvasGroup.interactable   = false;
         }
 
         private IEnumerator Fade(float from, float to, float duration)

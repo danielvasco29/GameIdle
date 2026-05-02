@@ -128,8 +128,9 @@ namespace GameIdle
             activeEffects.Clear();
             CharacterManager.Instance.ResetAll();
             RecalculateStats();
+            RankingPanel.AddRecord(PrestigeCount);
             UIManager.Instance.RefreshAll();
-            UIManager.Instance.ShowToast($"Prestígio! Multiplicador: x{PrestigeMultiplier:F1}",
+            UIManager.Instance.ShowToast($"Prestígio #{PrestigeCount}! Multiplicador: x{PrestigeMultiplier:F1}",
                 new UnityEngine.Color(1f, 0.84f, 0f));
             SaveSystem.Save();
         }

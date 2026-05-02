@@ -21,4 +21,18 @@ namespace GameIdle
         public long lastLoginTimestamp;
         public List<CharacterSaveData> characters = new();
     }
+
+    [Serializable]
+    public class PrestigeRecord
+    {
+        public string playerName;
+        public int prestigeCount;
+        public string date;
+    }
+
+    [Serializable]
+    public class RankingData
+    {
+        public List<PrestigeRecord> records = new();
+    }
 }
