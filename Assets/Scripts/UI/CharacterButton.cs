@@ -58,6 +58,10 @@ namespace GameIdle
             productionText = productionText ?? GetOrAddTMP("ProductionText");
             costText       = costText       ?? GetOrAddTMP("CostText");
 
+            // UpgradeLabel is a legacy prefab child ("UPGRADE" text) that overlaps CostText.
+            var upgradeLabel = transform.Find("UpgradeLabel");
+            if (upgradeLabel != null) upgradeLabel.gameObject.SetActive(false);
+
             // Background no root do card (se Image faltar, adiciona)
             if (backgroundImage == null)
             {
@@ -177,9 +181,9 @@ namespace GameIdle
         {
             if (character == null) return;
 
-            if (nameText != null)       nameText.text       = character.data.characterName;
-            if (levelText != null)      levelText.text      = $"Nv. {character.level}";
-            if (costText != null)       costText.text       = $"${NumberFormatter.Format(character.GetCurrentCost())}";
+            if (nameText != null)       { nameText.text       = character.data.characterName;                                       nameText.ForceMeshUpdate(); }
+            if (levelText != null)      { levelText.text      = $"Nv. {character.level}";                                          levelText.ForceMeshUpdate(); }
+            if (costText != null)       { costText.text       = $"${NumberFormatter.Format(character.GetCurrentCost())}";           costText.ForceMeshUpdate(); }
 
             if (productionText != null)
             {
@@ -246,6 +250,7 @@ namespace GameIdle
             // NameText: topo (após ícone)
             if (nameText != null)
             {
+                nameText.enabled = true;
                 SetAnchors(nameText.rectTransform,
                     new Vector2(0f, 0.62f), new Vector2(0.78f, 1f),
                     new Vector2(textLeftPad, 0f), new Vector2(0f, -6f));
@@ -254,23 +259,28 @@ namespace GameIdle
                 nameText.alignment = TextAlignmentOptions.MidlineLeft;
                 nameText.color     = Color.white;
                 nameText.textWrappingMode = TextWrappingModes.NoWrap;
+                nameText.overflowMode = TextOverflowModes.Ellipsis;
             }
 
             // LevelText: topo direito
             if (levelText != null)
             {
+                levelText.enabled = true;
                 SetAnchors(levelText.rectTransform,
                     new Vector2(0.78f, 0.62f), new Vector2(1f, 1f),
                     new Vector2(0f, 0f), new Vector2(-textRightPad, -6f));
                 levelText.fontSize  = 13;
                 levelText.fontStyle = FontStyles.Bold;
                 levelText.alignment = TextAlignmentOptions.MidlineRight;
-                levelText.color     = new Color(1f, 1f, 1f, 0.8f);
+                levelText.color     = new Color(1f, 1f, 1f, 0.85f);
+                levelText.textWrappingMode = TextWrappingModes.NoWrap;
+                levelText.overflowMode = TextOverflowModes.Ellipsis;
             }
 
             // ProductionText: meio
             if (productionText != null)
             {
+                productionText.enabled = true;
                 SetAnchors(productionText.rectTransform,
                     new Vector2(0f, 0.35f), new Vector2(1f, 0.62f),
                     new Vector2(textLeftPad, 0f), new Vector2(-textRightPad, 0f));
@@ -279,11 +289,13 @@ namespace GameIdle
                 productionText.alignment = TextAlignmentOptions.MidlineLeft;
                 productionText.color     = new Color(0.55f, 1f, 0.7f);
                 productionText.textWrappingMode = TextWrappingModes.NoWrap;
+                productionText.overflowMode = TextOverflowModes.Ellipsis;
             }
 
-            // CostText: baixo direito, destaque em dourado
+            // CostText: baixo, destaque em dourado
             if (costText != null)
             {
+                costText.enabled = true;
                 SetAnchors(costText.rectTransform,
                     new Vector2(0f, 0.05f), new Vector2(1f, 0.38f),
                     new Vector2(textLeftPad, 0f), new Vector2(-textRightPad, 0f));
@@ -292,6 +304,7 @@ namespace GameIdle
                 costText.alignment = TextAlignmentOptions.MidlineRight;
                 costText.color     = new Color(1f, 0.92f, 0.35f);
                 costText.textWrappingMode = TextWrappingModes.NoWrap;
+                costText.overflowMode = TextOverflowModes.Ellipsis;
             }
         }
 
@@ -299,6 +312,8 @@ namespace GameIdle
         {
             var go = new GameObject("GlowOverlay", typeof(RectTransform), typeof(Image));
             go.transform.SetParent(transform, false);
+            // Must be first sibling so it renders BEHIND all text elements.
+            go.transform.SetAsFirstSibling();
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = Vector2.zero;
             rt.anchorMax = Vector2.one;

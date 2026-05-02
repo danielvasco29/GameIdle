@@ -28,6 +28,14 @@ namespace GameIdle
 
         public void Show(string message, Color? tintColor = null)
         {
+            // Lazy init in case Awake() was skipped because m_IsActive=0 in the scene file.
+            if (canvasGroup == null)
+            {
+                canvasGroup = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+                canvasGroup.alpha = 0f;
+                canvasGroup.blocksRaycasts = false;
+                canvasGroup.interactable = false;
+            }
             if (showCoroutine != null) StopCoroutine(showCoroutine);
             showCoroutine = StartCoroutine(ShowRoutine(message, tintColor ?? Color.white));
         }

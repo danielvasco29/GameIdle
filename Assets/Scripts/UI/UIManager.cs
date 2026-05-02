@@ -263,14 +263,14 @@ namespace GameIdle
             panelGO.transform.SetParent(canvas.transform, false);
             rankingPanel = panelGO.AddComponent<RankingPanel>();
 
-            // Trophy button — top-right corner
+            // Ranking button — top-right corner, large enough to tap
             var btnGO = new GameObject("RankingButton", typeof(RectTransform), typeof(Image), typeof(Button));
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
             brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
-            brt.anchoredPosition = new Vector2(-8f, -8f);
-            brt.sizeDelta = new Vector2(52f, 32f);
-            btnGO.GetComponent<Image>().color = new Color(0.15f, 0.1f, 0.3f, 0.9f);
+            brt.anchoredPosition = new Vector2(-6f, -6f);
+            brt.sizeDelta = new Vector2(80f, 44f);
+            btnGO.GetComponent<Image>().color = new Color(0.12f, 0.08f, 0.28f, 0.95f);
             btnGO.GetComponent<Button>().onClick.AddListener(OpenRanking);
 
             var lblGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -279,8 +279,8 @@ namespace GameIdle
             lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
             lrt.offsetMin = lrt.offsetMax = Vector2.zero;
             var ltmp = lblGO.GetComponent<TextMeshProUGUI>();
-            ltmp.text = "TOP";
-            ltmp.fontSize = 13;
+            ltmp.text = "TOP\nRANKING";
+            ltmp.fontSize = 11;
             ltmp.fontStyle = FontStyles.Bold;
             ltmp.color = new Color(1f, 0.84f, 0f);
             ltmp.alignment = TextAlignmentOptions.Center;
@@ -611,9 +611,16 @@ namespace GameIdle
             img.color = new Color(0.55f, 0.1f, 0.8f, 1f);
             prestigeButton.targetGraphic = img;
 
-            // Compact height — keep horizontal anchors from scene, just clamp height.
+            // Collapse the vertical stretch (anchorMin.y != anchorMax.y in scene) to a
+            // single point at the bottom so sizeDelta.y becomes the true fixed height.
             var rt = prestigeButton.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(rt.sizeDelta.x, 52f);
+            float anchorX0 = rt.anchorMin.x; // keep horizontal anchors from scene
+            float anchorX1 = rt.anchorMax.x;
+            rt.anchorMin        = new Vector2(anchorX0, 0f);
+            rt.anchorMax        = new Vector2(anchorX1, 0f);
+            rt.pivot            = new Vector2(0.5f, 0f);
+            rt.sizeDelta        = new Vector2(0f, 52f);   // 52 px tall, full width between anchors
+            rt.anchoredPosition = new Vector2(0f, 10f);   // 10 px from bottom of parent
 
             var labelGO = prestigeButton.transform.Find("PrestigeButtonLabel");
             TextMeshProUGUI label = labelGO != null
@@ -969,7 +976,16 @@ namespace GameIdle
                 nextUnlockBar.fillAmount = Mathf.Clamp01((float)(GameManager.Instance.Money / cost));
         }
 
-        public void ShowToast(string message, Color? color = null) { if (toast != null) toast.Show(message, color); }
+        public void ShowToast(string message, Color? color = null)
+        {
+            if (toast == null) return;
+            // Toast is saved as inactive in the scene (m_IsActive=0).
+            // Activate it and every ancestor so activeInHierarchy=true,
+            // which is required for StartCoroutine to work.
+            var t = toast.transform;
+            while (t != null) { if (!t.gameObject.activeSelf) t.gameObject.SetActive(true); t = t.parent; }
+            toast.Show(message, color);
+        }
         public void ShowOfflineProgress(double earned, long seconds) { if (offlinePanel != null) offlinePanel.Show(earned, seconds); }
         public void ShowEventPanel(EventData eventData) => eventPanel.Show(eventData);
     }
