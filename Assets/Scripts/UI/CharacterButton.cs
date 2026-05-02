@@ -20,10 +20,21 @@ namespace GameIdle
 
         private Image costProgressBar;
         private Image glowOverlay;
-        private Coroutine glowCoroutine;
         private bool wasAffordable;
 
         private static TMP_FontAsset sharedFont;
+
+        private static TMP_FontAsset ResolveFont()
+        {
+            if (sharedFont != null) return sharedFont;
+            sharedFont = TMP_Settings.defaultFontAsset;
+            if (sharedFont == null)
+            {
+                var rf = Object.FindAnyObjectByType<TextMeshProUGUI>();
+                if (rf != null && rf.font != null) sharedFont = rf.font;
+            }
+            return sharedFont;
+        }
 
         private TextMeshProUGUI GetOrAddTMP(string childName)
         {
@@ -34,13 +45,9 @@ namespace GameIdle
             {
                 tmp = go.gameObject.AddComponent<TextMeshProUGUI>();
                 tmp.text = "";
-                if (sharedFont == null)
-                {
-                    var ref2 = Object.FindAnyObjectByType<TextMeshProUGUI>();
-                    if (ref2 != null && ref2.font != null) sharedFont = ref2.font;
-                }
-                if (sharedFont != null) tmp.font = sharedFont;
             }
+            var f = ResolveFont();
+            if (f != null) tmp.font = f;
             return tmp;
         }
 
@@ -66,6 +73,16 @@ namespace GameIdle
                 if (upgradeButton == null)
                     upgradeButton = gameObject.AddComponent<Button>();
                 upgradeButton.targetGraphic = backgroundImage;
+            }
+
+            // Ensure every label has the correct font (even if already existed in prefab)
+            var f = ResolveFont();
+            if (f != null)
+            {
+                if (nameText       != null) nameText.font       = f;
+                if (levelText      != null) levelText.font      = f;
+                if (productionText != null) productionText.font = f;
+                if (costText       != null) costText.font       = f;
             }
         }
 
@@ -135,8 +152,8 @@ namespace GameIdle
                         ttmp.alignment     = TextAlignmentOptions.Center;
                         ttmp.color         = Color.white;
                         ttmp.raycastTarget = false;
-                        if (sharedFont == null) { var rf = Object.FindAnyObjectByType<TextMeshProUGUI>(); if (rf?.font != null) sharedFont = rf.font; }
-                        if (sharedFont != null) ttmp.font = sharedFont;
+                        var fi = ResolveFont();
+                        if (fi != null) ttmp.font = fi;
                     }
                 }
             }
@@ -191,24 +208,11 @@ namespace GameIdle
                     : new Color(1f, 1f, 1f, 0.25f);
             }
 
-            // Glow dourado quando pode comprar
+            // Subtle border highlight when affordable
             if (glowOverlay != null)
-            {
-                if (affordable && !wasAffordable)
-                {
-                    if (glowCoroutine != null) StopCoroutine(glowCoroutine);
-                    glowCoroutine = StartCoroutine(GlowPulseCoroutine());
-                }
-                else if (!affordable && wasAffordable)
-                {
-                    if (glowCoroutine != null) { StopCoroutine(glowCoroutine); glowCoroutine = null; }
-                    glowOverlay.color = new Color(1f, 0.85f, 0f, 0f);
-                }
-            }
-
-            // Pulse de escala na primeira vez acessível (nível 0)
-            if (affordable && !wasAffordable && character.level == 0)
-                StartCoroutine(PulseCoroutine());
+                glowOverlay.color = affordable
+                    ? new Color(1f, 0.85f, 0f, 0.12f)
+                    : new Color(0f, 0f, 0f, 0f);
 
             wasAffordable = affordable;
         }
@@ -304,27 +308,6 @@ namespace GameIdle
             glowOverlay.raycastTarget = false;
         }
 
-        private IEnumerator GlowPulseCoroutine()
-        {
-            while (true)
-            {
-                float e = 0f;
-                while (e < 0.6f)
-                {
-                    e += Time.deltaTime;
-                    if (glowOverlay) glowOverlay.color = new Color(1f, 0.85f, 0f, Mathf.Lerp(0f, 0.28f, e / 0.6f));
-                    yield return null;
-                }
-                e = 0f;
-                while (e < 0.6f)
-                {
-                    e += Time.deltaTime;
-                    if (glowOverlay) glowOverlay.color = new Color(1f, 0.85f, 0f, Mathf.Lerp(0.28f, 0f, e / 0.6f));
-                    yield return null;
-                }
-            }
-        }
-
         private void SetupCostProgressBar()
         {
             var barGO = new GameObject("CostBar", typeof(RectTransform), typeof(Image));
@@ -351,39 +334,16 @@ namespace GameIdle
 
         private IEnumerator UpgradeEffect()
         {
-            // Flash branco no background
+            // Brief bright flash on background
             if (backgroundImage != null)
             {
                 Color baseColor = character.data.tintColor;
-                backgroundImage.color = Color.white;
-                yield return new WaitForSeconds(0.08f);
+                var bright = Color.Lerp(baseColor, Color.white, 0.6f);
+                float t = 0f;
+                while (t < 0.12f) { t += Time.deltaTime; backgroundImage.color = Color.Lerp(bright, baseColor, t / 0.12f); yield return null; }
                 backgroundImage.color = baseColor;
             }
-
-            // "NÍVEL X!" flutuando no centro do card
-            SpawnBurstText($"NÍVEL {character.level}!", new Color(1f, 0.92f, 0.35f), 26f, Vector2.zero);
-
-            // Burst de estrelas douradas em posições aleatórias
-            for (int i = 0; i < 5; i++)
-            {
-                var offset = new Vector2(Random.Range(-75f, 75f), Random.Range(-25f, 25f));
-                SpawnBurstText("✦", new Color(1f, 0.82f, 0.1f), 18f, offset);
-                yield return null;
-            }
-
-            // Pulse de escala no card
             StartCoroutine(PulseCoroutine());
-        }
-
-        private void SpawnBurstText(string text, Color color, float fontSize, Vector2 offset)
-        {
-            var go = new GameObject("Burst",
-                typeof(RectTransform), typeof(TextMeshProUGUI), typeof(FloatingText));
-            go.transform.SetParent(transform, false);
-            var rt = go.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(220f, 55f);
-            rt.anchoredPosition = offset;
-            go.GetComponent<FloatingText>().Init(text, color, fontSize);
         }
 
         private IEnumerator PulseCoroutine()
