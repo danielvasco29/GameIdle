@@ -789,9 +789,15 @@ namespace GameIdle
                 return;
             }
 
-            // New character unlocked (or reset after prestige) — full rebuild
+            // New character unlocked (or reset after prestige) — full rebuild.
+            // SetParent(null) removes old buttons from the layout group immediately
+            // so deferred Destroy() doesn't leave ghost cards visible for one frame.
             foreach (var btn in characterButtons)
-                if (btn != null) Destroy(btn.gameObject);
+            {
+                if (btn == null) continue;
+                btn.transform.SetParent(null);
+                Destroy(btn.gameObject);
+            }
             characterButtons.Clear();
 
             if (characterButtonPrefab == null || charactersContent == null) return;

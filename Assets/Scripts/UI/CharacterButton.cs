@@ -7,13 +7,15 @@ namespace GameIdle
 {
     public class CharacterButton : MonoBehaviour
     {
-        [SerializeField] private TextMeshProUGUI nameText;
-        [SerializeField] private TextMeshProUGUI levelText;
-        [SerializeField] private TextMeshProUGUI productionText;
-        [SerializeField] private TextMeshProUGUI costText;
-        [SerializeField] private Button upgradeButton;
-        [SerializeField] private Image iconImage;
-        [SerializeField] private Image backgroundImage;
+        // These fields are populated at runtime — prefab TMP children are discarded
+        // in AutoFindComponents() because their serialized state is often broken.
+        private TextMeshProUGUI nameText;
+        private TextMeshProUGUI levelText;
+        private TextMeshProUGUI productionText;
+        private TextMeshProUGUI costText;
+        private Button upgradeButton;
+        private Image iconImage;
+        private Image backgroundImage;
 
         private CharacterInstance character;
         private int characterIndex;
@@ -21,6 +23,7 @@ namespace GameIdle
         private Image costProgressBar;
         private Image glowOverlay;
         private bool wasAffordable;
+        private Coroutine pulseCoroutine;
 
         private static TMP_FontAsset sharedFont;
 
@@ -36,33 +39,40 @@ namespace GameIdle
             return sharedFont;
         }
 
-        private TextMeshProUGUI GetOrAddTMP(string childName)
+        private TextMeshProUGUI CreateLabel(string goName)
         {
-            var go = transform.Find(childName);
-            if (go == null) return null;
+            var go = new GameObject(goName, typeof(RectTransform), typeof(TextMeshProUGUI));
+            go.transform.SetParent(transform, false);
             var tmp = go.GetComponent<TextMeshProUGUI>();
-            if (tmp == null)
-            {
-                tmp = go.gameObject.AddComponent<TextMeshProUGUI>();
-                tmp.text = "";
-            }
             var f = ResolveFont();
             if (f != null) tmp.font = f;
+            tmp.raycastTarget = false;
             return tmp;
         }
 
         private void AutoFindComponents()
         {
-            nameText       = nameText       ?? GetOrAddTMP("NameText");
-            levelText      = levelText      ?? GetOrAddTMP("LevelText");
-            productionText = productionText ?? GetOrAddTMP("ProductionText");
-            costText       = costText       ?? GetOrAddTMP("CostText");
+            // Discard ALL prefab text children — their serialized TMP state is often
+            // broken (null font, wrong color). We always create fresh instances.
+            for (int i = transform.childCount - 1; i >= 0; i--)
+            {
+                var child = transform.GetChild(i);
+                switch (child.name)
+                {
+                    case "NameText": case "LevelText":
+                    case "ProductionText": case "CostText":
+                    case "UpgradeLabel":
+                        child.SetParent(null); // remove from layout immediately
+                        Destroy(child.gameObject);
+                        break;
+                }
+            }
 
-            // UpgradeLabel is a legacy prefab child ("UPGRADE" text) that overlaps CostText.
-            var upgradeLabel = transform.Find("UpgradeLabel");
-            if (upgradeLabel != null) upgradeLabel.gameObject.SetActive(false);
+            nameText       = CreateLabel("NameText");
+            levelText      = CreateLabel("LevelText");
+            productionText = CreateLabel("ProductionText");
+            costText       = CreateLabel("CostText");
 
-            // Background no root do card (se Image faltar, adiciona)
             if (backgroundImage == null)
             {
                 backgroundImage = GetComponent<Image>();
@@ -70,23 +80,12 @@ namespace GameIdle
                     backgroundImage = gameObject.AddComponent<Image>();
             }
 
-            // Botão de upgrade no root do card (se Button faltar, adiciona)
             if (upgradeButton == null)
             {
                 upgradeButton = GetComponent<Button>();
                 if (upgradeButton == null)
                     upgradeButton = gameObject.AddComponent<Button>();
                 upgradeButton.targetGraphic = backgroundImage;
-            }
-
-            // Ensure every label has the correct font (even if already existed in prefab)
-            var f = ResolveFont();
-            if (f != null)
-            {
-                if (nameText       != null) nameText.font       = f;
-                if (levelText      != null) levelText.font      = f;
-                if (productionText != null) productionText.font = f;
-                if (costText       != null) costText.font       = f;
             }
         }
 
@@ -97,14 +96,11 @@ namespace GameIdle
 
             AutoFindComponents();
 
-            // GridLayoutGroup controla o tamanho — LayoutElement serve de fallback
-            var le = GetComponent<LayoutElement>();
-            if (le == null) le = gameObject.AddComponent<LayoutElement>();
+            var le = GetComponent<LayoutElement>() ?? gameObject.AddComponent<LayoutElement>();
             le.minHeight       = 120;
             le.preferredHeight = 120;
             le.flexibleHeight  = 0;
 
-            // Cria Icon antes de ApplyCardLayout para que ele configure o RT
             if (iconImage == null)
             {
                 var iconGO = new GameObject("Icon", typeof(RectTransform), typeof(Image));
@@ -123,19 +119,14 @@ namespace GameIdle
             }
             else
             {
-                // Tenta carregar sprite de Resources/Characters/Sprites/{characterId}
-                Sprite fallbackSprite = null;
                 var tex = Resources.Load<Texture2D>($"Characters/Sprites/{instance.data.characterId}");
                 if (tex != null)
-                    fallbackSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
-                if (fallbackSprite != null)
                 {
-                    iconImage.sprite = fallbackSprite;
+                    iconImage.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
                     iconImage.color  = Color.white;
                 }
                 else
                 {
-                    // Placeholder: círculo escuro com inicial do nome
                     iconImage.sprite = null;
                     iconImage.color  = new Color(0f, 0f, 0f, 0.35f);
                     if (transform.Find("Icon/Initial") == null)
@@ -143,18 +134,15 @@ namespace GameIdle
                         var initialGO = new GameObject("Initial", typeof(RectTransform), typeof(TextMeshProUGUI));
                         initialGO.transform.SetParent(iconImage.transform, false);
                         var trt = initialGO.GetComponent<RectTransform>();
-                        trt.anchorMin = Vector2.zero;
-                        trt.anchorMax = Vector2.one;
-                        trt.offsetMin = Vector2.zero;
-                        trt.offsetMax = Vector2.zero;
+                        trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
+                        trt.offsetMin = trt.offsetMax = Vector2.zero;
                         var ttmp = initialGO.GetComponent<TextMeshProUGUI>();
-                        ttmp.text          = instance.data.characterName.Length > 0
-                                              ? instance.data.characterName[0].ToString().ToUpper()
-                                              : "?";
-                        ttmp.fontSize      = 42;
-                        ttmp.fontStyle     = FontStyles.Bold;
-                        ttmp.alignment     = TextAlignmentOptions.Center;
-                        ttmp.color         = Color.white;
+                        ttmp.text      = instance.data.characterName.Length > 0
+                                          ? instance.data.characterName[0].ToString().ToUpper() : "?";
+                        ttmp.fontSize  = 42;
+                        ttmp.fontStyle = FontStyles.Bold;
+                        ttmp.alignment = TextAlignmentOptions.Center;
+                        ttmp.color     = Color.white;
                         ttmp.raycastTarget = false;
                         var fi = ResolveFont();
                         if (fi != null) ttmp.font = fi;
@@ -181,62 +169,53 @@ namespace GameIdle
         {
             if (character == null) return;
 
-            if (nameText != null)       { nameText.text       = character.data.characterName;                                       nameText.ForceMeshUpdate(); }
-            if (levelText != null)      { levelText.text      = $"Nv. {character.level}";                                          levelText.ForceMeshUpdate(); }
-            if (costText != null)       { costText.text       = $"${NumberFormatter.Format(character.GetCurrentCost())}";           costText.ForceMeshUpdate(); }
+            if (nameText       != null) { nameText.text       = character.data.characterName;                          nameText.ForceMeshUpdate(); }
+            if (levelText      != null) { levelText.text      = $"Nv. {character.level}";                             levelText.ForceMeshUpdate(); }
+            if (costText       != null) { costText.text       = $"${NumberFormatter.Format(character.GetCurrentCost())}"; costText.ForceMeshUpdate(); }
 
             if (productionText != null)
             {
-                switch (character.data.type)
+                productionText.text = character.data.type switch
                 {
-                    case CharacterType.Production:
-                    case CharacterType.Automation:
-                        productionText.text = $"+{NumberFormatter.Format(character.GetCurrentProduction())}/s";
-                        break;
-                    case CharacterType.Multiplier:
-                        productionText.text = $"x{character.GetCurrentMultiplier():F2} total";
-                        break;
-                }
+                    CharacterType.Multiplier => $"x{character.GetCurrentMultiplier():F2} total",
+                    _                        => $"+{NumberFormatter.Format(character.GetCurrentProduction())}/s"
+                };
+                productionText.ForceMeshUpdate();
             }
 
             bool affordable = GameManager.Instance.Money >= character.GetCurrentCost();
-            // Button always stays interactable — OnUpgradeClicked handles the not-enough-money case
 
-            // Item 5: cost progress bar
+            if (backgroundImage != null && affordable != wasAffordable)
+            {
+                var c = character.data.tintColor;
+                backgroundImage.color = affordable ? Color.Lerp(c, Color.white, 0.08f) : c;
+            }
+
             if (costProgressBar != null)
             {
                 float fill = Mathf.Clamp01((float)(GameManager.Instance.Money / character.GetCurrentCost()));
                 costProgressBar.fillAmount = fill;
-                costProgressBar.color = affordable
-                    ? new Color(1f, 0.85f, 0f, 0.9f)
-                    : new Color(1f, 1f, 1f, 0.25f);
+                costProgressBar.color = affordable ? new Color(1f, 0.85f, 0f, 0.9f) : new Color(1f, 1f, 1f, 0.25f);
             }
 
-            // Subtle border highlight when affordable
             if (glowOverlay != null)
-                glowOverlay.color = affordable
-                    ? new Color(1f, 0.85f, 0f, 0.12f)
-                    : new Color(0f, 0f, 0f, 0f);
+                glowOverlay.color = affordable ? new Color(1f, 0.85f, 0f, 0.12f) : new Color(0f, 0f, 0f, 0f);
 
             wasAffordable = affordable;
         }
 
         private static void SetAnchors(RectTransform rt, Vector2 aMin, Vector2 aMax, Vector2 oMin, Vector2 oMax)
         {
-            rt.anchorMin = aMin;
-            rt.anchorMax = aMax;
-            rt.offsetMin = oMin;
-            rt.offsetMax = oMax;
+            rt.anchorMin = aMin; rt.anchorMax = aMax;
+            rt.offsetMin = oMin; rt.offsetMax = oMax;
         }
 
         private void ApplyCardLayout()
         {
-            // Card: 228x160 (GridLayoutGroup 2 colunas)
-            const float iconSize     = 68f;
-            const float textLeftPad  = iconSize + 10f;
-            const float textRightPad = 8f;
+            const float iconSize    = 68f;
+            const float leftPad     = iconSize + 10f;  // 78px
+            const float rightPad    = 8f;
 
-            // Icon: à esquerda, vertical-center
             var iconRT = transform.Find("Icon")?.GetComponent<RectTransform>();
             if (iconRT != null)
             {
@@ -247,60 +226,47 @@ namespace GameIdle
                 iconRT.sizeDelta        = new Vector2(iconSize, iconSize);
             }
 
-            // NameText: topo (após ícone)
             if (nameText != null)
             {
-                nameText.enabled = true;
                 SetAnchors(nameText.rectTransform,
                     new Vector2(0f, 0.62f), new Vector2(0.78f, 1f),
-                    new Vector2(textLeftPad, 0f), new Vector2(0f, -6f));
-                nameText.fontSize  = 17;
-                nameText.fontStyle = FontStyles.Bold;
+                    new Vector2(leftPad, 0f), new Vector2(0f, -4f));
+                nameText.fontSize  = 17; nameText.fontStyle = FontStyles.Bold;
                 nameText.alignment = TextAlignmentOptions.MidlineLeft;
                 nameText.color     = Color.white;
                 nameText.textWrappingMode = TextWrappingModes.NoWrap;
                 nameText.overflowMode = TextOverflowModes.Ellipsis;
             }
 
-            // LevelText: topo direito
             if (levelText != null)
             {
-                levelText.enabled = true;
                 SetAnchors(levelText.rectTransform,
                     new Vector2(0.78f, 0.62f), new Vector2(1f, 1f),
-                    new Vector2(0f, 0f), new Vector2(-textRightPad, -6f));
-                levelText.fontSize  = 13;
-                levelText.fontStyle = FontStyles.Bold;
+                    new Vector2(0f, 0f), new Vector2(-rightPad, -4f));
+                levelText.fontSize  = 13; levelText.fontStyle = FontStyles.Bold;
                 levelText.alignment = TextAlignmentOptions.MidlineRight;
                 levelText.color     = new Color(1f, 1f, 1f, 0.85f);
                 levelText.textWrappingMode = TextWrappingModes.NoWrap;
-                levelText.overflowMode = TextOverflowModes.Ellipsis;
             }
 
-            // ProductionText: meio
             if (productionText != null)
             {
-                productionText.enabled = true;
                 SetAnchors(productionText.rectTransform,
                     new Vector2(0f, 0.35f), new Vector2(1f, 0.62f),
-                    new Vector2(textLeftPad, 0f), new Vector2(-textRightPad, 0f));
-                productionText.fontSize  = 14;
-                productionText.fontStyle = FontStyles.Bold;
+                    new Vector2(leftPad, 0f), new Vector2(-rightPad, 0f));
+                productionText.fontSize  = 14; productionText.fontStyle = FontStyles.Bold;
                 productionText.alignment = TextAlignmentOptions.MidlineLeft;
                 productionText.color     = new Color(0.55f, 1f, 0.7f);
                 productionText.textWrappingMode = TextWrappingModes.NoWrap;
                 productionText.overflowMode = TextOverflowModes.Ellipsis;
             }
 
-            // CostText: baixo, destaque em dourado
             if (costText != null)
             {
-                costText.enabled = true;
                 SetAnchors(costText.rectTransform,
                     new Vector2(0f, 0.05f), new Vector2(1f, 0.38f),
-                    new Vector2(textLeftPad, 0f), new Vector2(-textRightPad, 0f));
-                costText.fontSize  = 19;
-                costText.fontStyle = FontStyles.Bold;
+                    new Vector2(leftPad, 0f), new Vector2(-rightPad, 0f));
+                costText.fontSize  = 19; costText.fontStyle = FontStyles.Bold;
                 costText.alignment = TextAlignmentOptions.MidlineRight;
                 costText.color     = new Color(1f, 0.92f, 0.35f);
                 costText.textWrappingMode = TextWrappingModes.NoWrap;
@@ -312,11 +278,9 @@ namespace GameIdle
         {
             var go = new GameObject("GlowOverlay", typeof(RectTransform), typeof(Image));
             go.transform.SetParent(transform, false);
-            // Must be first sibling so it renders BEHIND all text elements.
-            go.transform.SetAsFirstSibling();
+            go.transform.SetAsFirstSibling(); // renders behind all text
             var rt = go.GetComponent<RectTransform>();
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
             rt.offsetMin = rt.offsetMax = Vector2.zero;
             glowOverlay = go.GetComponent<Image>();
             glowOverlay.color = new Color(1f, 0.85f, 0f, 0f);
@@ -328,11 +292,9 @@ namespace GameIdle
             var barGO = new GameObject("CostBar", typeof(RectTransform), typeof(Image));
             barGO.transform.SetParent(transform, false);
             var rt = barGO.GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0f, 0f);
-            rt.anchorMax = new Vector2(1f, 0f);
-            rt.offsetMin = Vector2.zero;
-            rt.offsetMax = new Vector2(0f, 4f);
-            costProgressBar              = barGO.GetComponent<Image>();
+            rt.anchorMin = new Vector2(0f, 0f); rt.anchorMax = new Vector2(1f, 0f);
+            rt.offsetMin = Vector2.zero; rt.offsetMax = new Vector2(0f, 4f);
+            costProgressBar = barGO.GetComponent<Image>();
             costProgressBar.type         = Image.Type.Filled;
             costProgressBar.fillMethod   = Image.FillMethod.Horizontal;
             costProgressBar.raycastTarget = false;
@@ -349,39 +311,39 @@ namespace GameIdle
 
         private IEnumerator UpgradeEffect()
         {
-            // Brief bright flash on background
             if (backgroundImage != null)
             {
-                Color baseColor = character.data.tintColor;
-                var bright = Color.Lerp(baseColor, Color.white, 0.6f);
+                Color base0 = character.data.tintColor;
+                var bright = Color.Lerp(base0, Color.white, 0.6f);
                 float t = 0f;
-                while (t < 0.12f) { t += Time.deltaTime; backgroundImage.color = Color.Lerp(bright, baseColor, t / 0.12f); yield return null; }
-                backgroundImage.color = baseColor;
+                while (t < 0.12f) { t += Time.deltaTime; backgroundImage.color = Color.Lerp(bright, base0, t / 0.12f); yield return null; }
+                backgroundImage.color = base0;
             }
-            StartCoroutine(PulseCoroutine());
+            if (pulseCoroutine != null) StopCoroutine(pulseCoroutine);
+            pulseCoroutine = StartCoroutine(PulseCoroutine());
         }
 
         private IEnumerator PulseCoroutine()
         {
             const float duration = 0.3f;
             const float half     = duration * 0.5f;
-            Vector3 baseScale    = transform.localScale;
-            Vector3 bigScale     = baseScale * 1.15f;
+            transform.localScale = Vector3.one; // always start from 1
             float elapsed = 0f;
             while (elapsed < half)
             {
                 elapsed += Time.deltaTime;
-                transform.localScale = Vector3.Lerp(baseScale, bigScale, elapsed / half);
+                transform.localScale = Vector3.Lerp(Vector3.one, Vector3.one * 1.15f, elapsed / half);
                 yield return null;
             }
             elapsed = 0f;
             while (elapsed < half)
             {
                 elapsed += Time.deltaTime;
-                transform.localScale = Vector3.Lerp(bigScale, baseScale, elapsed / half);
+                transform.localScale = Vector3.Lerp(Vector3.one * 1.15f, Vector3.one, elapsed / half);
                 yield return null;
             }
-            transform.localScale = baseScale;
+            transform.localScale = Vector3.one;
+            pulseCoroutine = null;
         }
     }
 }
