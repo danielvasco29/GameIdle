@@ -21,6 +21,7 @@ namespace GameIdle
         private Image costProgressBar;
         private Image glowOverlay;
         private bool wasAffordable;
+        private Coroutine activeUpgradeEffect;
 
         private static TMP_FontAsset sharedFont;
 
@@ -90,6 +91,8 @@ namespace GameIdle
         {
             character = instance;
             characterIndex = index;
+            transform.localScale = Vector3.one;
+            activeUpgradeEffect = null;
 
             AutoFindComponents();
 
@@ -327,7 +330,11 @@ namespace GameIdle
         {
             bool success = CharacterManager.Instance.TryUpgrade(characterIndex);
             if (success)
-                StartCoroutine(UpgradeEffect());
+            {
+                if (activeUpgradeEffect != null) StopCoroutine(activeUpgradeEffect);
+                transform.localScale = Vector3.one;
+                activeUpgradeEffect = StartCoroutine(UpgradeEffect());
+            }
             else
                 UIManager.Instance.ShowToast("Dinheiro insuficiente!", new Color(1f, 0.3f, 0.3f));
         }
@@ -350,7 +357,7 @@ namespace GameIdle
         {
             const float duration = 0.3f;
             const float half     = duration * 0.5f;
-            Vector3 baseScale    = transform.localScale;
+            Vector3 baseScale    = Vector3.one;
             Vector3 bigScale     = baseScale * 1.15f;
             float elapsed = 0f;
             while (elapsed < half)
