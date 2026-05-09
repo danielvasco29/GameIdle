@@ -168,19 +168,23 @@ namespace GameIdle
             {
                 var contentGO = charactersContent.gameObject;
 
-                var vlg = contentGO.GetComponent<VerticalLayoutGroup>();
-                if (vlg != null) DestroyImmediate(vlg);
-
+                // Remove GLG — cards use VLG so they fill the panel width dynamically.
+                // Fixed GLG cell width (460px) clips level/cost text when the viewport
+                // is narrower than the cell (Panel_Left starts at 380px = 363px viewport).
                 var glg = contentGO.GetComponent<GridLayoutGroup>();
-                if (glg == null)
+                if (glg != null) DestroyImmediate(glg);
+
+                var vlg = contentGO.GetComponent<VerticalLayoutGroup>();
+                if (vlg == null)
                 {
-                    glg = contentGO.AddComponent<GridLayoutGroup>();
-                    glg.cellSize        = new Vector2(460f, 120f);
-                    glg.spacing         = new Vector2(0f, 6f);
-                    glg.padding         = new RectOffset(8, 8, 6, 6);
-                    glg.childAlignment  = TextAnchor.UpperLeft;
-                    glg.constraint      = GridLayoutGroup.Constraint.FixedColumnCount;
-                    glg.constraintCount = 1;
+                    vlg = contentGO.AddComponent<VerticalLayoutGroup>();
+                    vlg.spacing              = 6f;
+                    vlg.padding              = new RectOffset(8, 8, 6, 6);
+                    vlg.childAlignment       = TextAnchor.UpperLeft;
+                    vlg.childForceExpandWidth  = true;
+                    vlg.childForceExpandHeight = false;
+                    vlg.childControlWidth    = true;
+                    vlg.childControlHeight   = false;
                 }
 
                 var csf = contentGO.GetComponent<ContentSizeFitter>();
@@ -706,9 +710,12 @@ namespace GameIdle
                 return;
             }
 
-            // New character unlocked (or reset after prestige) — full rebuild
-            foreach (var btn in characterButtons)
-                if (btn != null) Destroy(btn.gameObject);
+            // New character unlocked (or reset after prestige) — full rebuild.
+            // Destroy ALL children of the container (not just the tracked list) to
+            // prevent duplicate buttons from orphaned GameObjects created during crashes.
+            if (charactersContent != null)
+                foreach (Transform child in charactersContent)
+                    Destroy(child.gameObject);
             characterButtons.Clear();
 
             if (characterButtonPrefab == null || charactersContent == null) return;
