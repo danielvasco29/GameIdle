@@ -184,7 +184,7 @@ namespace GameIdle
                     vlg.childForceExpandWidth  = true;
                     vlg.childForceExpandHeight = false;
                     vlg.childControlWidth    = true;
-                    vlg.childControlHeight   = true;
+                    vlg.childControlHeight   = false;
                 }
 
                 var csf = contentGO.GetComponent<ContentSizeFitter>();

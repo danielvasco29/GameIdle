@@ -99,7 +99,11 @@ namespace GameIdle
 
             AutoFindComponents();
 
-            // GridLayoutGroup controla o tamanho — LayoutElement serve de fallback
+            // Force the card's own RectTransform height to 120px so VLG (childControlHeight=false)
+            // uses the correct size without triggering a ContentSizeFitter layout loop.
+            var rt = GetComponent<RectTransform>();
+            if (rt != null) rt.sizeDelta = new Vector2(rt.sizeDelta.x, 120f);
+
             var le = GetComponent<LayoutElement>();
             if (le == null) le = gameObject.AddComponent<LayoutElement>();
             le.minHeight       = 120;
