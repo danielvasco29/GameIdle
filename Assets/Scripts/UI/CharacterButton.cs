@@ -21,7 +21,6 @@ namespace GameIdle
         private Image costProgressBar;
         private Image glowOverlay;
         private bool wasAffordable;
-        private Coroutine activeUpgradeEffect;
 
         private static TMP_FontAsset sharedFont;
 
@@ -54,36 +53,41 @@ namespace GameIdle
 
         private void AutoFindComponents()
         {
-            nameText       = nameText       ?? GetOrAddTMP("NameText");
-            levelText      = levelText      ?? GetOrAddTMP("LevelText");
-            productionText = productionText ?? GetOrAddTMP("ProductionText");
-            costText       = costText       ?? GetOrAddTMP("CostText");
+            // Always resolve by child name to bypass Unity fake-null / ?? operator issues
+            // with serialized prefab references that may not deserialize correctly.
+            nameText       = GetOrAddTMP("NameText")       ?? nameText;
+            levelText      = GetOrAddTMP("LevelText")      ?? levelText;
+            productionText = GetOrAddTMP("ProductionText") ?? productionText;
+            costText       = GetOrAddTMP("CostText")       ?? costText;
 
-            // Background no root do card (se Image faltar, adiciona)
-            if (backgroundImage == null)
+            // Hide orphan prefab child that overlaps CostText area
+            var upgradeLabel = transform.Find("UpgradeLabel");
+            if (upgradeLabel != null) upgradeLabel.gameObject.SetActive(false);
+
+            // Background on root
+            if (!backgroundImage)
             {
                 backgroundImage = GetComponent<Image>();
-                if (backgroundImage == null)
+                if (!backgroundImage)
                     backgroundImage = gameObject.AddComponent<Image>();
             }
 
-            // Botão de upgrade no root do card (se Button faltar, adiciona)
-            if (upgradeButton == null)
+            // Upgrade button on root
+            if (!upgradeButton)
             {
                 upgradeButton = GetComponent<Button>();
-                if (upgradeButton == null)
+                if (!upgradeButton)
                     upgradeButton = gameObject.AddComponent<Button>();
                 upgradeButton.targetGraphic = backgroundImage;
             }
 
-            // Ensure every label has the correct font (even if already existed in prefab)
             var f = ResolveFont();
             if (f != null)
             {
-                if (nameText       != null) nameText.font       = f;
-                if (levelText      != null) levelText.font      = f;
-                if (productionText != null) productionText.font = f;
-                if (costText       != null) costText.font       = f;
+                if (nameText)       nameText.font       = f;
+                if (levelText)      levelText.font      = f;
+                if (productionText) productionText.font = f;
+                if (costText)       costText.font       = f;
             }
         }
 
@@ -92,7 +96,6 @@ namespace GameIdle
             character = instance;
             characterIndex = index;
             transform.localScale = Vector3.one;
-            activeUpgradeEffect = null;
 
             AutoFindComponents();
 
@@ -328,12 +331,12 @@ namespace GameIdle
 
         private void OnUpgradeClicked()
         {
+            if (!this) return;
             bool success = CharacterManager.Instance.TryUpgrade(characterIndex);
             if (success)
             {
-                if (activeUpgradeEffect != null) StopCoroutine(activeUpgradeEffect);
                 transform.localScale = Vector3.one;
-                activeUpgradeEffect = StartCoroutine(UpgradeEffect());
+                StartCoroutine(UpgradeEffect());
             }
             else
                 UIManager.Instance.ShowToast("Dinheiro insuficiente!", new Color(1f, 0.3f, 0.3f));
