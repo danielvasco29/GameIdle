@@ -311,33 +311,13 @@ namespace GameIdle
             var f = GetCachedFont(); if (f != null) mlt.font = f;
         }
 
-        // Moves the floating "Prestígio disponível" text out of the office view
-        // and docks it as a slim banner at the bottom of the main panel.
+        // The floating "Prestígio disponível" text used to overlap the prestige
+        // button at the bottom. We hide it — the prestige button label now
+        // carries the goal/gem info on its own.
         private void StylePrestigeNotice()
         {
-            if (prestigeInfoText == null || panelMain == null) return;
-
-            // Navy pill background
-            var pill = new GameObject("PrestigeNoticeBG", typeof(RectTransform), typeof(Image));
-            pill.transform.SetParent(panelMain, false);
-            var brt = pill.GetComponent<RectTransform>();
-            brt.anchorMin = new Vector2(0.5f, 0f); brt.anchorMax = new Vector2(0.5f, 0f);
-            brt.pivot = new Vector2(0.5f, 0f);
-            brt.anchoredPosition = new Vector2(0f, 12f);
-            brt.sizeDelta = new Vector2(440f, 34f);
-            var pImg = pill.GetComponent<Image>();
-            pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
-            pImg.color = new Color(NavyDark.r, NavyDark.g, NavyDark.b, 0.82f);
-            pImg.raycastTarget = false;
-
-            prestigeInfoText.transform.SetParent(pill.transform, false);
-            var rt = prestigeInfoText.rectTransform;
-            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-            prestigeInfoText.fontSize  = 16;
-            prestigeInfoText.fontStyle = FontStyles.Bold;
-            prestigeInfoText.color     = GoldColor;
-            prestigeInfoText.alignment = TextAlignmentOptions.Center;
+            if (prestigeInfoText != null)
+                prestigeInfoText.gameObject.SetActive(false);
         }
 
         private void SetupRankingPanel()
@@ -875,6 +855,7 @@ namespace GameIdle
 
             var img = prestigeButton.GetComponent<Image>();
             if (img == null) img = prestigeButton.gameObject.AddComponent<Image>();
+            img.sprite = Rounded(); img.type = Image.Type.Sliced;
             img.color = NavyCard;
             prestigeButton.targetGraphic = img;
 
@@ -928,8 +909,8 @@ namespace GameIdle
             bool ready      = GameManager.Instance.CanPrestige();
 
             prestigeButtonLabel.text = ready
-                ? $"PRESTIGIAR  +{GameManager.Instance.GetPrestigeGemReward()} gemas\n#{count} → x{nextMult:F1}"
-                : $"PRESTÍGIO\n#{count} → x{nextMult:F1}";
+                ? $"PRESTIGIAR  •  +{GameManager.Instance.GetPrestigeGemReward()} gemas\n<size=80%>#{count} → x{nextMult:F1}</size>"
+                : $"PRESTÍGIO  •  meta ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}\n<size=80%>#{count} → x{nextMult:F1}</size>";
 
             var img = prestigeButton?.GetComponent<Image>();
             if (img != null)
