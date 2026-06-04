@@ -61,115 +61,90 @@ namespace GameIdle
 
         private const int Rate = 44100;
 
-        // Warm tone: sine + small amount of 2nd/3rd harmonic + soft attack + exponential decay.
-        private static float WarmTone(float freq, float t, float attack)
+        // Woody percussive "tock" (wood-block / marimba style): a pitched body
+        // with fast exponential decay plus a tiny noise transient for the attack.
+        // Sums into `data` starting at sample `start`, so several can be layered.
+        private static void RenderTock(float[] data, int start, float freq, float decay, float vol)
         {
-            float env  = (1f - Mathf.Exp(-t / Mathf.Max(attack, 0.001f))) // attack
-                       * Mathf.Exp(-t * 6f);                               // decay
-            float phase = 2f * Mathf.PI * freq * t;
-            return (Mathf.Sin(phase)                     // fundamental
-                  + 0.30f * Mathf.Sin(2f * phase)        // 2nd harmonic (warms it up)
-                  + 0.10f * Mathf.Sin(3f * phase))       // 3rd harmonic (slight body)
-                  * env;
+            for (int i = start; i < data.Length; i++)
+            {
+                float t   = (float)(i - start) / Rate;
+                float env = Mathf.Exp(-t * decay);
+                if (env < 0.0008f) break;
+                // Fundamental + a slightly-flat lower partial → hollow "wood" body
+                float body  = Mathf.Sin(2f * Mathf.PI * freq * t)
+                            + 0.5f * Mathf.Sin(2f * Mathf.PI * freq * 0.92f * t);
+                // Brief noise burst for the "t" attack of the tock
+                float trans = t < 0.0025f
+                            ? (1f - t / 0.0025f) * (Random.value * 2f - 1f) * 0.45f
+                            : 0f;
+                data[i] += (body * 0.5f + trans) * env * vol;
+            }
         }
 
-        // Short "tock" click — muffled low thud, no harsh overtones.
+        // Tap (TRABALHAR): a keyboard / old-typewriter keystroke — fits the
+        // dev-office theme. Built from a low-passed noise "clack", a low "thock"
+        // body (the key bottoming out) and a tiny metallic tick (typewriter).
         private AudioClip MakeClick()
         {
-            int n = Rate / 20; // 50 ms
+            int n = Rate * 7 / 100; // 70 ms
             var data = new float[n];
+            float lp = 0f; // one-pole low-pass state to tame the noise hiss
             for (int i = 0; i < n; i++)
             {
-                float t   = (float)i / Rate;
-                float env = Mathf.Exp(-t * 55f);
-                // Two slightly-detuned tones for a natural thud
-                data[i] = (Mathf.Sin(2f * Mathf.PI * 420f * t)
-                          + 0.5f * Mathf.Sin(2f * Mathf.PI * 390f * t)) * env * 0.5f;
+                float t = (float)i / Rate;
+
+                // Noise clack — sharp, very fast decay
+                float raw = Random.value * 2f - 1f;
+                lp = Mathf.Lerp(lp, raw, 0.55f);
+                float clack = lp * Mathf.Exp(-t * 95f);
+
+                // Low thock body (key hitting bottom)
+                float body = Mathf.Sin(2f * Mathf.PI * 175f * t) * Mathf.Exp(-t * 60f);
+
+                // Tiny high metallic tick (typewriter character striking)
+                float tick = Mathf.Sin(2f * Mathf.PI * 2500f * t) * Mathf.Exp(-t * 220f);
+
+                data[i] = (clack * 0.55f + body * 0.45f + tick * 0.18f) * 0.7f;
             }
             return Make("click", data);
         }
 
-        // Rising sweep with warm harmonics — feels like a coin being collected.
+        // Coin pickup: bright, short tock.
         private AudioClip MakeCoin()
         {
-            float dur = 0.18f;
-            int n = (int)(dur * Rate);
-            var data = new float[n];
-            float phase1 = 0, phase2 = 0;
-            for (int i = 0; i < n; i++)
-            {
-                float t    = (float)i / n;
-                float freq = Mathf.Lerp(600f, 1400f, Mathf.Pow(t, 0.5f));
-                float env  = Mathf.Exp(-t * 4.5f) * (1f - Mathf.Pow(t, 2f));
-                float dt   = 1f / Rate;
-                phase1 += 2f * Mathf.PI * freq * dt;
-                phase2 += 2f * Mathf.PI * (freq * 1.5f) * dt; // perfect fifth on top
-                data[i] = (0.7f * Mathf.Sin(phase1) + 0.3f * Mathf.Sin(phase2)) * env * 0.45f;
-            }
+            var data = new float[Rate * 9 / 100];
+            RenderTock(data, 0, 820f, 52f, 0.5f);
             return Make("coin", data);
         }
 
-        // Soft, short "pip" — plays on every employee upgrade (incl. x10/Max),
-        // so it must stay quiet and unobtrusive. Single warm mid note, fast decay.
+        // Employee upgrade: a crisp tock a bit brighter than the tap, so the two
+        // are distinguishable. Fires often (x10/Max) → kept short and tight.
         private AudioClip MakeBuy()
         {
-            float dur = 0.07f;
-            int n = (int)(dur * Rate);
-            var data = new float[n];
-            for (int i = 0; i < n; i++)
-            {
-                float t = (float)i / Rate;
-                // 523 Hz (C5) with a gentle attack and quick decay → soft pluck
-                float env = (1f - Mathf.Exp(-t / 0.004f)) * Mathf.Exp(-t * 26f);
-                float phase = 2f * Mathf.PI * 523f * t;
-                data[i] = (Mathf.Sin(phase) + 0.2f * Mathf.Sin(2f * phase)) * env * 0.5f;
-            }
+            var data = new float[Rate * 9 / 100];
+            RenderTock(data, 0, 640f, 56f, 0.55f);
             return Make("buy", data);
         }
 
-        // Triumphant 4-note arpeggio (major chord) — rewarding prestige feeling.
+        // Prestige: an ascending wooden run (xylophone-like) — still the same tock
+        // timbre, but a rising figure that reads as a reward.
         private AudioClip MakePrestige()
         {
-            // C5-E5-G5-C6 major arpeggio
-            float[] freqs    = { 523f, 659f, 784f, 1047f };
-            float[] durs     = { 0.10f, 0.10f, 0.10f, 0.22f };
-            float overlap    = 0.04f; // notes bleed slightly into each other for richness
-
-            int totalSamples = 0;
-            foreach (var d in durs) totalSamples += (int)((d + overlap) * Rate);
-            var data = new float[totalSamples];
-
-            int offset = 0;
+            float[] freqs = { 523f, 659f, 784f, 988f, 1175f }; // rising pentatonic-ish run
+            var data = new float[Rate * 60 / 100]; // 600 ms
+            const float step = 0.072f;
             for (int k = 0; k < freqs.Length; k++)
-            {
-                int noteSamples = (int)((durs[k] + overlap) * Rate);
-                for (int i = 0; i < noteSamples && (offset + i) < totalSamples; i++)
-                {
-                    float t = (float)i / Rate;
-                    data[offset + i] += WarmTone(freqs[k], t, 0.010f) * 0.55f;
-                }
-                offset += (int)(durs[k] * Rate);
-            }
+                RenderTock(data, (int)(k * step * Rate), freqs[k], 17f, 0.55f);
             return Make("prestige", data);
         }
 
-        // Low descending buzz — clearly "wrong" but not harsh.
+        // Not enough money: two low descending tocks — a wooden "uh-oh".
         private AudioClip MakeError()
         {
-            float dur = 0.22f;
-            int n = (int)(dur * Rate);
-            var data = new float[n];
-            float phase = 0;
-            for (int i = 0; i < n; i++)
-            {
-                float t    = (float)i / Rate;
-                float freq = Mathf.Lerp(280f, 160f, t / dur); // descend
-                float env  = Mathf.Exp(-t * 8f);
-                phase += 2f * Mathf.PI * freq / Rate;
-                // Slight square-wave character (buzzy) without being pure square (harsh)
-                float s = Mathf.Sin(phase);
-                data[i] = Mathf.Lerp(s, Mathf.Sign(s), 0.3f) * env * 0.40f;
-            }
+            var data = new float[Rate * 30 / 100]; // 300 ms
+            RenderTock(data, 0,                    200f, 26f, 0.55f);
+            RenderTock(data, (int)(0.11f * Rate),  150f, 24f, 0.55f);
             return Make("error", data);
         }
 
