@@ -247,6 +247,7 @@ namespace GameIdle
                 levelText.alignment = TextAlignmentOptions.MidlineRight;
                 levelText.color     = new Color(1f, 1f, 1f, 0.85f);
                 levelText.textWrappingMode = TextWrappingModes.NoWrap;
+                levelText.overflowMode = TextOverflowModes.Ellipsis;
             }
 
             if (productionText != null)
