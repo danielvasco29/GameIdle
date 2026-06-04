@@ -376,6 +376,7 @@ namespace GameIdle
         {
             if (character == null) return;
 
+            bool maxedOut  = character.IsAtSafeCap();
             int buyCount   = CharacterManager.Instance.GetPurchaseCount(characterIndex);
             double buyCost = CharacterManager.Instance.GetPurchaseCost(characterIndex);
 
@@ -383,9 +384,11 @@ namespace GameIdle
             if (levelText != null)      { levelText.text      = $"Nv. {character.level}";      levelText.ForceMeshUpdate(); }
             if (costText != null)
             {
-                costText.text = buyCount > 1
-                    ? $"${NumberFormatter.Format(buyCost)}\n<size=62%><color=#9fb2c9>x{buyCount} níveis</color></size>"
-                    : $"${NumberFormatter.Format(buyCost)}";
+                costText.text = maxedOut
+                    ? "MÁX"
+                    : buyCount > 1
+                        ? $"${NumberFormatter.Format(buyCost)}\n<size=62%><color=#9fb2c9>x{buyCount} níveis</color></size>"
+                        : $"${NumberFormatter.Format(buyCost)}";
                 costText.ForceMeshUpdate();
             }
 
@@ -399,7 +402,7 @@ namespace GameIdle
                 productionText.ForceMeshUpdate();
             }
 
-            bool affordable = GameManager.Instance.Money >= buyCost;
+            bool affordable = !maxedOut && buyCount >= 1 && GameManager.Instance.Money >= buyCost;
 
             if (backgroundImage != null)
                 backgroundImage.color = affordable ? CardColorReady : CardColor;

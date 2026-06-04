@@ -35,6 +35,29 @@ namespace GameIdle
             return Math.Max(0, n);
         }
 
+        // Multiplier characters scale as multiplier^level, which overflows a
+        // double once the level gets large. Cap their level so the resulting
+        // multiplier stays finite and sane (no more "x∞" from a single Máx buy).
+        private const double MultiplierCeiling = 1e30;
+
+        public int SafeMaxLevel()
+        {
+            if (data.type != CharacterType.Multiplier || data.multiplier <= 1.0)
+                return int.MaxValue;
+            return (int)Math.Floor(Math.Log(MultiplierCeiling) / Math.Log(data.multiplier));
+        }
+
+        public bool IsAtSafeCap() => level >= SafeMaxLevel();
+
+        // Clamp a requested purchase so it never pushes a multiplier past the cap.
+        public int ClampPurchaseCount(int count)
+        {
+            if (count <= 0) return 0;
+            int cap = SafeMaxLevel();
+            if (cap == int.MaxValue) return count;     // producers: no cap needed
+            return Math.Max(0, Math.Min(count, cap - level));
+        }
+
         // Production formula: baseProduction * level
         public double GetCurrentProduction() =>
             data.type == CharacterType.Multiplier ? 0.0 : data.baseProduction * level;

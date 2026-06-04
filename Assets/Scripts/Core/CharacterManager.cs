@@ -64,9 +64,11 @@ namespace GameIdle
         public int GetPurchaseCount(int index)
         {
             if (index < 0 || index >= characters.Length) return 0;
-            if (BuyAmount == -1)
-                return Math.Max(1, characters[index].GetMaxAffordable(GameManager.Instance.Money));
-            return BuyAmount;
+            var c = characters[index];
+            int count = BuyAmount == -1
+                ? c.GetMaxAffordable(GameManager.Instance.Money)
+                : BuyAmount;
+            return c.ClampPurchaseCount(count); // keep multipliers finite
         }
 
         // Total cost for the resolved purchase count above.
@@ -84,6 +86,7 @@ namespace GameIdle
             int count = BuyAmount == -1
                 ? character.GetMaxAffordable(GameManager.Instance.Money)
                 : BuyAmount;
+            count = character.ClampPurchaseCount(count); // keep multipliers finite
             if (count < 1) return false;
 
             double cost = character.GetCostForLevels(count);
@@ -134,7 +137,9 @@ namespace GameIdle
                 {
                     if (characters[i].data.characterId == saved.characterId)
                     {
-                        characters[i].level = saved.level;
+                        // Clamp multiplier characters to a safe level — repairs
+                        // old saves whose multiplier had overflowed to Infinity.
+                        characters[i].level = Math.Min(saved.level, characters[i].SafeMaxLevel());
                         if (saved.level > 0 && i + 1 < characters.Length)
                             characters[i + 1].isUnlocked = true;
                         break;

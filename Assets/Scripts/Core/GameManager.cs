@@ -62,8 +62,11 @@ namespace GameIdle
 
         public void AddMoney(double amount)
         {
+            if (!double.IsFinite(amount)) return;
             Money += amount;
             TotalEarned += amount;
+            if (!double.IsFinite(Money)) Money = double.MaxValue;
+            if (!double.IsFinite(TotalEarned)) TotalEarned = double.MaxValue;
             OnMoneyChanged?.Invoke();
         }
 
@@ -87,9 +90,10 @@ namespace GameIdle
             }
 
             multiplier = Math.Max(0.01, multiplier);
-            MoneyPerSecond = baseProduction * multiplier
-                             * PrestigeMultiplier * GemShop.GetPrestigeBonus()
-                             * GemShop.GetProductionMult();
+            double mps = baseProduction * multiplier
+                         * PrestigeMultiplier * GemShop.GetPrestigeBonus()
+                         * GemShop.GetProductionMult();
+            MoneyPerSecond = double.IsFinite(mps) ? mps : double.MaxValue;
             OnStatsUpdated?.Invoke();
         }
 
