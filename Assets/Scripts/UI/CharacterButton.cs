@@ -25,7 +25,7 @@ namespace GameIdle
 
         // Runtime-generated UI sprites (no dependency on Unity built-in resources)
         private static Sprite GetCircleSprite()  => UiSpriteFactory.Circle();
-        private static Sprite GetRoundedSprite() => UiSpriteFactory.Box();
+        private static Sprite GetRoundedSprite() => UiSpriteFactory.RoundedBox();
 
         private CharacterInstance character;
         private int characterIndex;
@@ -272,9 +272,9 @@ namespace GameIdle
 
         private void ApplyCardLayout()
         {
-            const float avatarW  = 96f;  // 10px margin + 76px avatar
-            const float rightW   = 110f;
-            const float pad      = 8f;
+            const float avatarW   = 96f;  // 10px margin + 76px avatar
+            const float rightW    = 124f;
+            const float rightInset = 18f; // clears the vertical scrollbar on the right
 
             if (nameText != null)
             {
@@ -313,10 +313,10 @@ namespace GameIdle
             {
                 SetAnchors(levelText.rectTransform,
                     new Vector2(1f, 0.55f), new Vector2(1f, 1f),
-                    new Vector2(-rightW + pad, 0f), new Vector2(-pad, -4f));
+                    new Vector2(-rightW, 0f), new Vector2(-rightInset, -6f));
                 levelText.fontSize  = 12;
                 levelText.fontStyle = FontStyles.Bold;
-                levelText.alignment = TextAlignmentOptions.BottomRight;
+                levelText.alignment = TextAlignmentOptions.TopRight;
                 levelText.color     = BlueAccent;
                 levelText.textWrappingMode = TextWrappingModes.NoWrap;
                 levelText.overflowMode     = TextOverflowModes.Ellipsis;
@@ -326,11 +326,11 @@ namespace GameIdle
             if (costText != null)
             {
                 SetAnchors(costText.rectTransform,
-                    new Vector2(1f, 0f), new Vector2(1f, 0.58f),
-                    new Vector2(-rightW + pad, 4f), new Vector2(-pad, 0f));
-                costText.fontSize  = 17;
+                    new Vector2(1f, 0f), new Vector2(1f, 0.55f),
+                    new Vector2(-rightW, 6f), new Vector2(-rightInset, 0f));
+                costText.fontSize  = 18;
                 costText.fontStyle = FontStyles.Bold;
-                costText.alignment = TextAlignmentOptions.MidlineRight;
+                costText.alignment = TextAlignmentOptions.BottomRight;
                 costText.color     = GoldColor;
                 costText.textWrappingMode = TextWrappingModes.NoWrap;
                 costText.overflowMode     = TextOverflowModes.Ellipsis;

@@ -61,6 +61,8 @@ namespace GameIdle
         // Tap button
         private RectTransform tapButtonRT;
         private TextMeshProUGUI tapValueText;
+        private Image tapFaceImg;
+        private Image tapGlowImg;
 
         // Próximo desbloqueio
         private TextMeshProUGUI nextUnlockNameText;
@@ -92,7 +94,7 @@ namespace GameIdle
 
         // Runtime-generated UI sprites (no dependency on Unity built-in resources)
         private static Sprite Circle()  => UiSpriteFactory.Circle();
-        private static Sprite Rounded() => UiSpriteFactory.Box();
+        private static Sprite Rounded() => UiSpriteFactory.RoundedBox();
 
         private void Awake()
         {
@@ -196,16 +198,13 @@ namespace GameIdle
                 if (vlg != null) DestroyImmediate(vlg);
 
                 var glg = contentGO.GetComponent<GridLayoutGroup>();
-                if (glg == null)
-                {
-                    glg = contentGO.AddComponent<GridLayoutGroup>();
-                    glg.cellSize        = new Vector2(460f, 120f);
-                    glg.spacing         = new Vector2(0f, 6f);
-                    glg.padding         = new RectOffset(8, 8, 6, 6);
-                    glg.childAlignment  = TextAnchor.UpperLeft;
-                    glg.constraint      = GridLayoutGroup.Constraint.FixedColumnCount;
-                    glg.constraintCount = 1;
-                }
+                if (glg == null) glg = contentGO.AddComponent<GridLayoutGroup>();
+                glg.cellSize        = new Vector2(460f, 112f);
+                glg.spacing         = new Vector2(0f, 9f);
+                glg.padding         = new RectOffset(10, 10, 10, 10);
+                glg.childAlignment  = TextAnchor.UpperCenter;
+                glg.constraint      = GridLayoutGroup.Constraint.FixedColumnCount;
+                glg.constraintCount = 1;
 
                 var csf = contentGO.GetComponent<ContentSizeFitter>();
                 if (csf == null)
@@ -394,7 +393,7 @@ namespace GameIdle
             for (int i = pmGO.transform.childCount - 1; i >= 0; i--)
             {
                 string n = pmGO.transform.GetChild(i).name;
-                if (n == "PanelBG" || n == "TapButton" || n == "TapValue")
+                if (n == "PanelBG" || n == "TapButton" || n == "TapValue" || n == "TapValuePill")
                     DestroyImmediate(pmGO.transform.GetChild(i).gameObject);
             }
 
@@ -422,30 +421,43 @@ namespace GameIdle
             }
             bgImg.raycastTarget = false;
 
-            // Botão principal
-            var tapGO = new GameObject("TapButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            // Botão principal — container só com o Button; as camadas visuais
+            // são filhas para podermos empilhar brilho/sombra/face/brilho-topo.
+            var tapGO = new GameObject("TapButton", typeof(RectTransform), typeof(Button));
             tapGO.transform.SetParent(pmGO.transform, false);
             tapButtonRT = tapGO.GetComponent<RectTransform>();
             tapButtonRT.anchorMin = tapButtonRT.anchorMax = tapButtonRT.pivot = new Vector2(0.5f, 0.5f);
             tapButtonRT.anchoredPosition = new Vector2(0f, 50f);
-            tapButtonRT.sizeDelta = new Vector2(220f, 220f);
-            var tapImg = tapGO.GetComponent<Image>();
-            tapImg.sprite = Rounded(); tapImg.type = Image.Type.Sliced;
-            tapImg.color = GreenBtn;
+            tapButtonRT.sizeDelta = new Vector2(228f, 228f);
             var tapBtn = tapGO.GetComponent<Button>();
-            tapBtn.targetGraphic = tapImg;
 
-            // Drop shadow behind button (offset down/right)
-            var shadowGO = new GameObject("Shadow", typeof(RectTransform), typeof(Image));
-            shadowGO.transform.SetParent(tapGO.transform, false);
-            shadowGO.transform.SetAsFirstSibling();
-            var shRT = shadowGO.GetComponent<RectTransform>();
-            shRT.anchorMin = Vector2.zero; shRT.anchorMax = Vector2.one;
-            shRT.offsetMin = new Vector2(-2f, -10f); shRT.offsetMax = new Vector2(6f, -2f);
-            var shImg = shadowGO.GetComponent<Image>();
-            shImg.sprite = Rounded(); shImg.type = Image.Type.Sliced;
-            shImg.color = new Color(0f, 0f, 0f, 0.35f);
-            shImg.raycastTarget = false;
+            Image AddLayer(string name, Vector2 offMin, Vector2 offMax, Color col, bool ray)
+            {
+                var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+                go.transform.SetParent(tapGO.transform, false);
+                var rt = go.GetComponent<RectTransform>();
+                rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+                rt.offsetMin = offMin; rt.offsetMax = offMax;
+                var im = go.GetComponent<Image>();
+                im.sprite = Rounded(); im.type = Image.Type.Sliced;
+                im.color = col; im.raycastTarget = ray;
+                return im;
+            }
+
+            // back → front
+            tapGlowImg = AddLayer("Glow",   new Vector2(-26f, -26f), new Vector2(26f, 26f),
+                                  new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.22f), false);
+            AddLayer("Shadow", new Vector2(-3f, -14f), new Vector2(9f, -3f), new Color(0f, 0f, 0f, 0.38f), false);
+            AddLayer("Border", new Vector2(-3f, -3f), new Vector2(3f, 3f), new Color(0.13f, 0.46f, 0.21f, 1f), false);
+            tapFaceImg = AddLayer("Face", Vector2.zero, Vector2.zero, GreenBtn, true);
+            tapBtn.targetGraphic = tapFaceImg;
+
+            // Brilho no topo (sheen) — meia altura superior, bem suave
+            var sheen = AddLayer("Sheen", Vector2.zero, Vector2.zero, new Color(1f, 1f, 1f, 0.10f), false);
+            sheen.rectTransform.anchorMin = new Vector2(0f, 0.5f);
+            sheen.rectTransform.anchorMax = new Vector2(1f, 1f);
+            sheen.rectTransform.offsetMin = new Vector2(10f, 4f);
+            sheen.rectTransform.offsetMax = new Vector2(-10f, -10f);
 
             var labelGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGO.transform.SetParent(tapGO.transform, false);
@@ -454,26 +466,37 @@ namespace GameIdle
             lRT.anchorMax = Vector2.one;
             lRT.offsetMin = lRT.offsetMax = Vector2.zero;
             var lTMP = labelGO.GetComponent<TextMeshProUGUI>();
-            lTMP.text = "TRABALHAR\n[ >_ ]";
-            lTMP.fontSize = 26;
+            lTMP.text = "<size=30>TRABALHAR</size>\n<size=20><color=#d4f0d8>[ >_ ]</color></size>";
             lTMP.fontStyle = FontStyles.Bold;
             lTMP.color = Color.white;
             lTMP.alignment = TextAlignmentOptions.Center;
             lTMP.raycastTarget = false;
+            var lf = GetCachedFont(); if (lf != null) lTMP.font = lf;
 
-            // Texto "+$X / tap" abaixo do botão
+            // Pílula dourada com o valor por clique, logo abaixo do botão
+            var pillGO = new GameObject("TapValuePill", typeof(RectTransform), typeof(Image));
+            pillGO.transform.SetParent(pmGO.transform, false);
+            var pillRT = pillGO.GetComponent<RectTransform>();
+            pillRT.anchorMin = pillRT.anchorMax = pillRT.pivot = new Vector2(0.5f, 0.5f);
+            pillRT.anchoredPosition = new Vector2(0f, -82f);
+            pillRT.sizeDelta = new Vector2(220f, 38f);
+            var pillImg = pillGO.GetComponent<Image>();
+            pillImg.sprite = Rounded(); pillImg.type = Image.Type.Sliced;
+            pillImg.color = new Color(0f, 0f, 0f, 0.45f);
+            pillImg.raycastTarget = false;
+
             var tvGO = new GameObject("TapValue", typeof(RectTransform), typeof(TextMeshProUGUI));
-            tvGO.transform.SetParent(pmGO.transform, false);
+            tvGO.transform.SetParent(pillGO.transform, false);
             var tvRT = tvGO.GetComponent<RectTransform>();
-            tvRT.anchorMin = tvRT.anchorMax = tvRT.pivot = new Vector2(0.5f, 0.5f);
-            tvRT.anchoredPosition = new Vector2(0f, -75f);
-            tvRT.sizeDelta = new Vector2(280f, 36f);
+            tvRT.anchorMin = Vector2.zero; tvRT.anchorMax = Vector2.one;
+            tvRT.offsetMin = tvRT.offsetMax = Vector2.zero;
             tapValueText = tvGO.GetComponent<TextMeshProUGUI>();
-            tapValueText.fontSize = 20;
+            tapValueText.fontSize = 19;
             tapValueText.fontStyle = FontStyles.Bold;
             tapValueText.color = GoldColor;
             tapValueText.alignment = TextAlignmentOptions.Center;
             tapValueText.raycastTarget = false;
+            var tf = GetCachedFont(); if (tf != null) tapValueText.font = tf;
             UpdateTapValueText();
 
             tapBtn.onClick.AddListener(OnTapClicked);
@@ -546,16 +569,29 @@ namespace GameIdle
 
         private IEnumerator PulseTapButton()
         {
-            if (tapButtonRT == null) yield break;
-            var img = tapButtonRT.GetComponent<Image>();
+            if (tapFaceImg == null) yield break;
             var c1  = GreenBtn;
             var c2  = new Color(0.31f, 0.85f, 0.43f, 1f);
-            while (tapButtonRT != null && img != null)
+            var g1  = new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.16f);
+            var g2  = new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.42f);
+            while (tapFaceImg != null)
             {
                 float e = 0f;
-                while (e < 0.9f) { e += Time.deltaTime; img.color = Color.Lerp(c1, c2, e / 0.9f); yield return null; }
+                while (e < 0.9f)
+                {
+                    e += Time.deltaTime; float t = e / 0.9f;
+                    tapFaceImg.color = Color.Lerp(c1, c2, t);
+                    if (tapGlowImg != null) tapGlowImg.color = Color.Lerp(g1, g2, t);
+                    yield return null;
+                }
                 e = 0f;
-                while (e < 0.9f) { e += Time.deltaTime; img.color = Color.Lerp(c2, c1, e / 0.9f); yield return null; }
+                while (e < 0.9f)
+                {
+                    e += Time.deltaTime; float t = e / 0.9f;
+                    tapFaceImg.color = Color.Lerp(c2, c1, t);
+                    if (tapGlowImg != null) tapGlowImg.color = Color.Lerp(g2, g1, t);
+                    yield return null;
+                }
             }
         }
 
@@ -661,7 +697,7 @@ namespace GameIdle
             grt.sizeDelta = new Vector2(18f, 18f);
             grt.localRotation = Quaternion.Euler(0f, 0f, 45f);
             var gImg = gemGO.GetComponent<Image>();
-            gImg.sprite = Rounded(); gImg.type = Image.Type.Sliced;
+            gImg.sprite = UiSpriteFactory.Box(); gImg.type = Image.Type.Simple;
             gImg.color  = new Color(0.32f, 0.85f, 1f, 1f);
             gImg.raycastTarget = false;
 

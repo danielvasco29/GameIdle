@@ -14,7 +14,7 @@ namespace GameIdle
         private static readonly Color TextSec  = new(0.624f, 0.698f, 0.788f, 1f);
 
         private static Sprite Circle()  => UiSpriteFactory.Circle();
-        private static Sprite Rounded() => UiSpriteFactory.Box();
+        private static Sprite Rounded() => UiSpriteFactory.RoundedBox();
 
         private TMP_FontAsset font;
         private TextMeshProUGUI gemBalanceText;
@@ -171,7 +171,7 @@ namespace GameIdle
             girt.sizeDelta = new Vector2(13f, 13f);
             girt.localRotation = Quaternion.Euler(0f, 0f, 45f);
             var giImg = gemIcon.GetComponent<Image>();
-            giImg.sprite = Rounded(); giImg.type = Image.Type.Sliced;
+            giImg.sprite = UiSpriteFactory.Box(); giImg.type = Image.Type.Simple;
             giImg.color = GemCyan;
             giImg.raycastTarget = false;
 
