@@ -13,9 +13,8 @@ namespace GameIdle
         private static readonly Color GemCyan  = new(0.32f, 0.85f, 1f, 1f);
         private static readonly Color TextSec  = new(0.624f, 0.698f, 0.788f, 1f);
 
-        private static Sprite circle, rounded;
-        private static Sprite Circle()  => circle  ??= Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
-        private static Sprite Rounded() => rounded ??= Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+        private static Sprite Circle()  => UiSpriteFactory.Circle();
+        private static Sprite Rounded() => UiSpriteFactory.Box();
 
         private TMP_FontAsset font;
         private TextMeshProUGUI gemBalanceText;

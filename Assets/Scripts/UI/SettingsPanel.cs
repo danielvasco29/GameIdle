@@ -12,8 +12,7 @@ namespace GameIdle
         private static readonly Color Red      = new(0.78f, 0.22f, 0.22f, 1f);
         private static readonly Color TextSec  = new(0.624f, 0.698f, 0.788f, 1f);
 
-        private static Sprite rounded;
-        private static Sprite Rounded() => rounded ??= Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+        private static Sprite Rounded() => UiSpriteFactory.Box();
 
         private TMP_FontAsset font;
         private GameObject confirmOverlay;

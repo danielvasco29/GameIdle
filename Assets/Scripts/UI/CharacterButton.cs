@@ -23,19 +23,9 @@ namespace GameIdle
         private readonly Image[] tierDots = new Image[5];
         private int tierCount;
 
-        // Built-in Unity UI sprites — always available at runtime
-        private static Sprite circleSprite;
-        private static Sprite roundedSprite;
-        private static Sprite GetCircleSprite()
-        {
-            if (circleSprite == null) circleSprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
-            return circleSprite;
-        }
-        private static Sprite GetRoundedSprite()
-        {
-            if (roundedSprite == null) roundedSprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
-            return roundedSprite;
-        }
+        // Runtime-generated UI sprites (no dependency on Unity built-in resources)
+        private static Sprite GetCircleSprite()  => UiSpriteFactory.Circle();
+        private static Sprite GetRoundedSprite() => UiSpriteFactory.Box();
 
         private CharacterInstance character;
         private int characterIndex;

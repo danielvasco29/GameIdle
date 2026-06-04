@@ -90,19 +90,9 @@ namespace GameIdle
         private GemShopPanel gemShopPanel;
         private SettingsPanel settingsPanel;
 
-        // Built-in Unity UI sprites (always available at runtime)
-        private static Sprite circleSprite;
-        private static Sprite roundedSprite;
-        private static Sprite Circle()
-        {
-            if (circleSprite == null) circleSprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
-            return circleSprite;
-        }
-        private static Sprite Rounded()
-        {
-            if (roundedSprite == null) roundedSprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
-            return roundedSprite;
-        }
+        // Runtime-generated UI sprites (no dependency on Unity built-in resources)
+        private static Sprite Circle()  => UiSpriteFactory.Circle();
+        private static Sprite Rounded() => UiSpriteFactory.Box();
 
         private void Awake()
         {
@@ -292,10 +282,12 @@ namespace GameIdle
             var shopGO = new GameObject("GemShopPanel", typeof(RectTransform));
             shopGO.transform.SetParent(canvas.transform, false);
             gemShopPanel = shopGO.AddComponent<GemShopPanel>();
+            shopGO.SetActive(false); // ensure it never blocks raycasts while closed
 
             var setGO = new GameObject("SettingsPanel", typeof(RectTransform));
             setGO.transform.SetParent(canvas.transform, false);
             settingsPanel = setGO.AddComponent<SettingsPanel>();
+            setGO.SetActive(false);
 
             // Settings (menu) button — top-left corner
             var btnGO = new GameObject("MenuButton", typeof(RectTransform), typeof(Image), typeof(Button));
