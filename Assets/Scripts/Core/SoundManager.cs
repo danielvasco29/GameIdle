@@ -53,7 +53,7 @@ namespace GameIdle
 
         public void PlayClick()    => PlayClip(clickClip,    Random.Range(0.97f, 1.04f), 0.55f);
         public void PlayCoin()     => PlayClip(coinClip,     Random.Range(0.95f, 1.08f), 0.45f);
-        public void PlayBuy()      => PlayClip(buyClip,      1f, 0.65f);
+        public void PlayBuy()      => PlayClip(buyClip,      Random.Range(0.98f, 1.03f), 0.35f);
         public void PlayPrestige() => PlayClip(prestigeClip, 1f, 0.70f);
         public void PlayError()    => PlayClip(errorClip,    1f, 0.50f);
 
@@ -109,21 +109,20 @@ namespace GameIdle
             return Make("coin", data);
         }
 
-        // Friendly two-note "ding-dong" purchase confirmation.
+        // Soft, short "pip" — plays on every employee upgrade (incl. x10/Max),
+        // so it must stay quiet and unobtrusive. Single warm mid note, fast decay.
         private AudioClip MakeBuy()
         {
-            float[] freqs = { 660f, 990f };
-            float noteDur = 0.10f;
-            int perNote = (int)(noteDur * Rate);
-            int n = perNote * freqs.Length;
+            float dur = 0.07f;
+            int n = (int)(dur * Rate);
             var data = new float[n];
-            for (int k = 0; k < freqs.Length; k++)
+            for (int i = 0; i < n; i++)
             {
-                for (int i = 0; i < perNote; i++)
-                {
-                    float t = (float)i / Rate;
-                    data[k * perNote + i] = WarmTone(freqs[k], t, 0.008f) * 0.55f;
-                }
+                float t = (float)i / Rate;
+                // 523 Hz (C5) with a gentle attack and quick decay → soft pluck
+                float env = (1f - Mathf.Exp(-t / 0.004f)) * Mathf.Exp(-t * 26f);
+                float phase = 2f * Mathf.PI * 523f * t;
+                data[i] = (Mathf.Sin(phase) + 0.2f * Mathf.Sin(2f * phase)) * env * 0.5f;
             }
             return Make("buy", data);
         }
