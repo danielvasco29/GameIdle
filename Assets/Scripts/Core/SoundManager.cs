@@ -8,9 +8,6 @@ namespace GameIdle
     {
         public static SoundManager Instance { get; private set; }
 
-        private AudioSource src;
-        private AudioClip clickClip, buyClip, prestigeClip, errorClip, coinClip;
-
         public static bool Muted { get; private set; }
         public static void ToggleMute() => Muted = !Muted;
 
@@ -24,6 +21,10 @@ namespace GameIdle
             }
             return Instance;
         }
+
+#if UNITY_MODULE_AUDIO
+        private AudioSource src;
+        private AudioClip clickClip, buyClip, prestigeClip, errorClip, coinClip;
 
         private void Awake()
         {
@@ -114,5 +115,19 @@ namespace GameIdle
             clip.SetData(data, 0);
             return clip;
         }
+
+#else
+        private void Awake()
+        {
+            if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+            Instance = this;
+        }
+
+        public void PlayClick()    { }
+        public void PlayCoin()     { }
+        public void PlayBuy()      { }
+        public void PlayPrestige() { }
+        public void PlayError()    { }
+#endif
     }
 }
