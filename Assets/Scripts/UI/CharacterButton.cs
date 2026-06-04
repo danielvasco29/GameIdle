@@ -11,7 +11,6 @@ namespace GameIdle
         private TextMeshProUGUI levelText;
         private TextMeshProUGUI productionText;
         private TextMeshProUGUI costText;
-        private TextMeshProUGUI starsText;
         private Button upgradeButton;
         private Image iconImage;
         private Image backgroundImage;
@@ -20,6 +19,23 @@ namespace GameIdle
         private Image costProgressBar;
         private bool wasAffordable;
         private Coroutine pulseCoroutine;
+
+        private readonly Image[] tierDots = new Image[5];
+        private int tierCount;
+
+        // Built-in Unity UI sprites — always available at runtime
+        private static Sprite circleSprite;
+        private static Sprite roundedSprite;
+        private static Sprite GetCircleSprite()
+        {
+            if (circleSprite == null) circleSprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
+            return circleSprite;
+        }
+        private static Sprite GetRoundedSprite()
+        {
+            if (roundedSprite == null) roundedSprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+            return roundedSprite;
+        }
 
         private CharacterInstance character;
         private int characterIndex;
@@ -68,6 +84,7 @@ namespace GameIdle
                 {
                     case "NameText": case "LevelText": case "ProductionText":
                     case "CostText": case "StarsText": case "UpgradeLabel":
+                    case "TierDots":
                         child.SetParent(null);
                         Destroy(child.gameObject);
                         break;
@@ -78,7 +95,6 @@ namespace GameIdle
             levelText      = CreateLabel("LevelText");
             productionText = CreateLabel("ProductionText");
             costText       = CreateLabel("CostText");
-            starsText      = CreateLabel("StarsText");
 
             backgroundImage = GetComponent<Image>() ?? gameObject.AddComponent<Image>();
             upgradeButton   = GetComponent<Button>() ?? gameObject.AddComponent<Button>();
@@ -96,12 +112,16 @@ namespace GameIdle
             le.minHeight = le.preferredHeight = 100;
             le.flexibleHeight = 0;
 
+            // Rounded card background
+            backgroundImage.sprite = GetRoundedSprite();
+            backgroundImage.type   = Image.Type.Sliced;
+            backgroundImage.color  = CardColor;
+
             SetupAvatar();
             SetupAffordableIndicator();
+            SetupTierDots();
             ApplyCardLayout();
             LoadPortrait();
-
-            backgroundImage.color = CardColor;
 
             if (upgradeButton != null)
             {
@@ -116,30 +136,77 @@ namespace GameIdle
 
         private void SetupAvatar()
         {
-            var existing = transform.Find("AvatarBg");
-            if (existing != null) { existing.SetParent(null); Destroy(existing.gameObject); }
+            foreach (var n in new[] { "AvatarRing", "AvatarBg", "Icon" })
+            {
+                var ex = transform.Find(n);
+                if (ex != null) { ex.SetParent(null); Destroy(ex.gameObject); }
+            }
 
-            var bgGO = new GameObject("AvatarBg", typeof(RectTransform), typeof(Image));
+            // Gold ring (behind), child of card so the mask below doesn't clip it
+            var ringGO = new GameObject("AvatarRing", typeof(RectTransform), typeof(Image));
+            ringGO.transform.SetParent(transform, false);
+            var ringRT = ringGO.GetComponent<RectTransform>();
+            ringRT.anchorMin = ringRT.anchorMax = ringRT.pivot = new Vector2(0f, 0.5f);
+            ringRT.anchoredPosition = new Vector2(7f, 0f);
+            ringRT.sizeDelta = new Vector2(82f, 82f);
+            var ringImg = ringGO.GetComponent<Image>();
+            ringImg.sprite = GetCircleSprite();
+            ringImg.color  = new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0.5f);
+            ringImg.raycastTarget = false;
+
+            // Circular avatar background that also masks the portrait
+            var bgGO = new GameObject("AvatarBg", typeof(RectTransform), typeof(Image), typeof(Mask));
             bgGO.transform.SetParent(transform, false);
             var bgRT = bgGO.GetComponent<RectTransform>();
             bgRT.anchorMin = bgRT.anchorMax = bgRT.pivot = new Vector2(0f, 0.5f);
             bgRT.anchoredPosition = new Vector2(10f, 0f);
             bgRT.sizeDelta = new Vector2(76f, 76f);
             avatarBg = bgGO.GetComponent<Image>();
-            avatarBg.color = BlendWithNavy(character.data.tintColor, 0.55f);
+            avatarBg.sprite = GetCircleSprite();
+            avatarBg.type   = Image.Type.Simple;
+            avatarBg.color  = BlendWithNavy(character.data.tintColor, 0.3f);
             avatarBg.raycastTarget = false;
-
-            var existing2 = transform.Find("Icon");
-            if (existing2 != null) { existing2.SetParent(null); Destroy(existing2.gameObject); }
+            bgGO.GetComponent<Mask>().showMaskGraphic = true;
 
             var iconGO = new GameObject("Icon", typeof(RectTransform), typeof(Image));
             iconGO.transform.SetParent(bgGO.transform, false);
             var iconRT = iconGO.GetComponent<RectTransform>();
             iconRT.anchorMin = Vector2.zero; iconRT.anchorMax = Vector2.one;
-            iconRT.offsetMin = new Vector2(6f, 6f); iconRT.offsetMax = new Vector2(-6f, -6f);
+            iconRT.offsetMin = iconRT.offsetMax = Vector2.zero;
             iconImage = iconGO.GetComponent<Image>();
             iconImage.preserveAspect = true;
             iconImage.raycastTarget = false;
+        }
+
+        private void SetupTierDots()
+        {
+            var ex = transform.Find("TierDots");
+            if (ex != null) { ex.SetParent(null); Destroy(ex.gameObject); }
+
+            tierCount = GetStarCount(character.data.baseCost);
+
+            var rowGO = new GameObject("TierDots", typeof(RectTransform));
+            rowGO.transform.SetParent(transform, false);
+            var rowRT = rowGO.GetComponent<RectTransform>();
+            // Positioned in ApplyCardLayout
+            rowRT.anchorMin = new Vector2(0f, 0.40f);
+            rowRT.anchorMax = new Vector2(1f, 0.60f);
+
+            const float dot = 11f, gap = 4f;
+            for (int i = 0; i < 5; i++)
+            {
+                var d = new GameObject($"Dot{i}", typeof(RectTransform), typeof(Image));
+                d.transform.SetParent(rowGO.transform, false);
+                var drt = d.GetComponent<RectTransform>();
+                drt.anchorMin = drt.anchorMax = drt.pivot = new Vector2(0f, 0.5f);
+                drt.anchoredPosition = new Vector2(i * (dot + gap), 0f);
+                drt.sizeDelta = new Vector2(dot, dot);
+                var img = d.GetComponent<Image>();
+                img.sprite = GetCircleSprite();
+                img.color  = i < tierCount ? GoldColor : StarEmpty;
+                img.raycastTarget = false;
+                tierDots[i] = img;
+            }
         }
 
         private void SetupAffordableIndicator()
@@ -207,16 +274,6 @@ namespace GameIdle
             return 1;
         }
 
-        private static string BuildStarString(int stars)
-        {
-            const string filled = "★";
-            const string empty  = "★";
-            var sb = new System.Text.StringBuilder();
-            for (int i = 0; i < 5; i++)
-                sb.Append(i < stars ? filled : empty);
-            return sb.ToString();
-        }
-
         private static void SetAnchors(RectTransform rt, Vector2 aMin, Vector2 aMax, Vector2 oMin, Vector2 oMax)
         {
             rt.anchorMin = aMin; rt.anchorMax = aMax;
@@ -242,17 +299,11 @@ namespace GameIdle
                 nameText.overflowMode    = TextOverflowModes.Ellipsis;
             }
 
-            if (starsText != null)
-            {
-                SetAnchors(starsText.rectTransform,
+            var dotsRow = transform.Find("TierDots")?.GetComponent<RectTransform>();
+            if (dotsRow != null)
+                SetAnchors(dotsRow,
                     new Vector2(0f, 0.40f), new Vector2(1f, 0.60f),
                     new Vector2(avatarW, 0f), new Vector2(-rightW, 0f));
-                starsText.fontSize  = 13;
-                starsText.fontStyle = FontStyles.Normal;
-                starsText.alignment = TextAlignmentOptions.MidlineLeft;
-                starsText.textWrappingMode = TextWrappingModes.NoWrap;
-                starsText.overflowMode     = TextOverflowModes.Ellipsis;
-            }
 
             if (productionText != null)
             {
@@ -316,19 +367,6 @@ namespace GameIdle
             if (nameText != null)       { nameText.text       = character.data.characterName;                              nameText.ForceMeshUpdate(); }
             if (levelText != null)      { levelText.text      = $"Nv. {character.level}";                                 levelText.ForceMeshUpdate(); }
             if (costText != null)       { costText.text       = $"${NumberFormatter.Format(character.GetCurrentCost())}"; costText.ForceMeshUpdate(); }
-
-            if (starsText != null)
-            {
-                int stars = GetStarCount(character.data.baseCost);
-                // Use rich text to colour filled vs empty stars differently
-                var sb = new System.Text.StringBuilder("<color=#FFCE3A>");
-                for (int i = 0; i < stars; i++) sb.Append('★');
-                sb.Append("</color><color=#3a4a63>");
-                for (int i = stars; i < 5; i++) sb.Append('★');
-                sb.Append("</color>");
-                starsText.text = sb.ToString();
-                starsText.ForceMeshUpdate();
-            }
 
             if (productionText != null)
             {

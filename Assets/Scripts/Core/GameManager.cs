@@ -15,9 +15,12 @@ namespace GameIdle
         public double TotalEarned { get; private set; }
         public double PrestigeMultiplier { get; private set; } = 1.0;
         public int PrestigeCount { get; private set; }
+        public int Gems { get; private set; }
         public long LastLoginTimestamp { get; private set; }
 
-        [SerializeField] private double prestigeRequirement = 1_000_000_000.0;
+        // Prestige requirement scales each reset: base * growth^prestigeCount
+        [SerializeField] private double prestigeBaseRequirement = 1_000_000_000.0;
+        [SerializeField] private double prestigeRequirementGrowth = 5.0;
 
         private readonly List<EventEffect> activeEffects = new();
 
@@ -111,9 +114,34 @@ namespace GameIdle
         }
 
         public IReadOnlyList<EventEffect> GetActiveEffects() => activeEffects;
-        public double GetPrestigeRequirement() => prestigeRequirement;
 
-        public bool CanPrestige() => TotalEarned >= prestigeRequirement;
+        // Scalable: each prestige raises the bar by `growth`x
+        public double GetPrestigeRequirement() =>
+            prestigeBaseRequirement * Math.Pow(prestigeRequirementGrowth, PrestigeCount);
+
+        public bool CanPrestige() => TotalEarned >= GetPrestigeRequirement();
+
+        // Gems awarded on prestige, scaling with how much was earned this run.
+        public int GetPrestigeGemReward()
+        {
+            if (TotalEarned < GetPrestigeRequirement()) return 0;
+            return Math.Max(1, (int)Math.Floor(5.0 * Math.Sqrt(TotalEarned / prestigeBaseRequirement)));
+        }
+
+        public bool SpendGems(int amount)
+        {
+            if (amount <= 0 || Gems < amount) return false;
+            Gems -= amount;
+            OnStatsUpdated?.Invoke();
+            return true;
+        }
+
+        public void AddGems(int amount)
+        {
+            if (amount <= 0) return;
+            Gems += amount;
+            OnStatsUpdated?.Invoke();
+        }
 
         public double GetTapValue() => System.Math.Max(1.0, MoneyPerSecond * 0.5);
         public void Tap() => AddMoney(GetTapValue());
@@ -121,6 +149,8 @@ namespace GameIdle
         public void Prestige()
         {
             if (!CanPrestige()) return;
+            int gemsGained = GetPrestigeGemReward(); // compute before count/state reset
+            Gems += gemsGained;
             PrestigeCount++;
             PrestigeMultiplier = 1.0 + PrestigeCount * 0.5;
             Money = 10;
@@ -130,7 +160,8 @@ namespace GameIdle
             RecalculateStats();
             RankingPanel.AddRecord(PrestigeCount);
             UIManager.Instance.RefreshAll();
-            UIManager.Instance.ShowToast($"Prestígio #{PrestigeCount}! Multiplicador: x{PrestigeMultiplier:F1}",
+            UIManager.Instance.ShowToast(
+                $"Prestígio #{PrestigeCount}! x{PrestigeMultiplier:F1} • +{gemsGained} gemas",
                 new UnityEngine.Color(1f, 0.84f, 0f));
             SaveSystem.Save();
         }
@@ -141,6 +172,7 @@ namespace GameIdle
             TotalEarned = data.totalEarned;
             PrestigeCount = data.prestigeCount;
             PrestigeMultiplier = data.prestigeMultiplier > 0 ? data.prestigeMultiplier : 1.0;
+            Gems = data.gems;
             LastLoginTimestamp = data.lastLoginTimestamp;
         }
 
@@ -153,6 +185,7 @@ namespace GameIdle
                 moneyPerSecond = MoneyPerSecond,
                 prestigeCount = PrestigeCount,
                 prestigeMultiplier = PrestigeMultiplier,
+                gems = Gems,
                 lastLoginTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                 characters = CharacterManager.Instance.GetSaveData()
             };

@@ -85,6 +85,23 @@ namespace GameIdle
         // Ranking panel
         private RankingPanel rankingPanel;
 
+        // Gem currency display (created at runtime — gems are a new system)
+        private TextMeshProUGUI gemText;
+
+        // Built-in Unity UI sprites (always available at runtime)
+        private static Sprite circleSprite;
+        private static Sprite roundedSprite;
+        private static Sprite Circle()
+        {
+            if (circleSprite == null) circleSprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
+            return circleSprite;
+        }
+        private static Sprite Rounded()
+        {
+            if (roundedSprite == null) roundedSprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+            return roundedSprite;
+        }
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -250,6 +267,7 @@ namespace GameIdle
         private void PolishLayout()
         {
             ApplyTitleStyle();
+            SetupTopBar();
             SetupEffectsHUD();
             SetupEquipeHeader();
             ApplyNeonTheme();
@@ -259,7 +277,37 @@ namespace GameIdle
             SetupTapButton();
             SetupMainStats();
             SetupNextUnlockBanner();
+            StylePrestigeNotice();
             SetupRankingPanel();
+        }
+
+        // Moves the floating "Prestígio disponível" text out of the office view
+        // and docks it as a slim banner at the bottom of the main panel.
+        private void StylePrestigeNotice()
+        {
+            if (prestigeInfoText == null || panelMain == null) return;
+
+            // Navy pill background
+            var pill = new GameObject("PrestigeNoticeBG", typeof(RectTransform), typeof(Image));
+            pill.transform.SetParent(panelMain, false);
+            var brt = pill.GetComponent<RectTransform>();
+            brt.anchorMin = new Vector2(0.5f, 0f); brt.anchorMax = new Vector2(0.5f, 0f);
+            brt.pivot = new Vector2(0.5f, 0f);
+            brt.anchoredPosition = new Vector2(0f, 12f);
+            brt.sizeDelta = new Vector2(440f, 34f);
+            var pImg = pill.GetComponent<Image>();
+            pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
+            pImg.color = new Color(NavyDark.r, NavyDark.g, NavyDark.b, 0.82f);
+            pImg.raycastTarget = false;
+
+            prestigeInfoText.transform.SetParent(pill.transform, false);
+            var rt = prestigeInfoText.rectTransform;
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+            prestigeInfoText.fontSize  = 16;
+            prestigeInfoText.fontStyle = FontStyles.Bold;
+            prestigeInfoText.color     = GoldColor;
+            prestigeInfoText.alignment = TextAlignmentOptions.Center;
         }
 
         private void SetupRankingPanel()
@@ -351,19 +399,22 @@ namespace GameIdle
             tapButtonRT.anchoredPosition = new Vector2(0f, 50f);
             tapButtonRT.sizeDelta = new Vector2(220f, 220f);
             var tapImg = tapGO.GetComponent<Image>();
+            tapImg.sprite = Rounded(); tapImg.type = Image.Type.Sliced;
             tapImg.color = GreenBtn;
             var tapBtn = tapGO.GetComponent<Button>();
             tapBtn.targetGraphic = tapImg;
 
-            // Shadow ring behind button
-            var ringGO = new GameObject("Ring", typeof(RectTransform), typeof(Image));
-            ringGO.transform.SetParent(tapGO.transform, false);
-            ringGO.transform.SetAsFirstSibling();
-            var ringRT = ringGO.GetComponent<RectTransform>();
-            ringRT.anchorMin = Vector2.zero; ringRT.anchorMax = Vector2.one;
-            ringRT.offsetMin = new Vector2(-8f, -8f); ringRT.offsetMax = new Vector2(8f, 8f);
-            ringGO.GetComponent<Image>().color = new Color(0.15f, 0.55f, 0.25f, 0.45f);
-            ringGO.GetComponent<Image>().raycastTarget = false;
+            // Drop shadow behind button (offset down/right)
+            var shadowGO = new GameObject("Shadow", typeof(RectTransform), typeof(Image));
+            shadowGO.transform.SetParent(tapGO.transform, false);
+            shadowGO.transform.SetAsFirstSibling();
+            var shRT = shadowGO.GetComponent<RectTransform>();
+            shRT.anchorMin = Vector2.zero; shRT.anchorMax = Vector2.one;
+            shRT.offsetMin = new Vector2(-2f, -10f); shRT.offsetMax = new Vector2(6f, -2f);
+            var shImg = shadowGO.GetComponent<Image>();
+            shImg.sprite = Rounded(); shImg.type = Image.Type.Sliced;
+            shImg.color = new Color(0f, 0f, 0f, 0.35f);
+            shImg.raycastTarget = false;
 
             var labelGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGO.transform.SetParent(tapGO.transform, false);
@@ -387,9 +438,9 @@ namespace GameIdle
             tvRT.anchoredPosition = new Vector2(0f, -75f);
             tvRT.sizeDelta = new Vector2(280f, 36f);
             tapValueText = tvGO.GetComponent<TextMeshProUGUI>();
-            tapValueText.fontSize = 17;
+            tapValueText.fontSize = 20;
             tapValueText.fontStyle = FontStyles.Bold;
-            tapValueText.color = NeonCyan;
+            tapValueText.color = GoldColor;
             tapValueText.alignment = TextAlignmentOptions.Center;
             tapValueText.raycastTarget = false;
             UpdateTapValueText();
@@ -418,9 +469,48 @@ namespace GameIdle
                 rt.sizeDelta = new Vector2(200f, 40f);
                 rt.anchoredPosition = new Vector2(Random.Range(-60f, 60f), Random.Range(20f, 90f));
                 go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(val)}", NeonGreen);
+
+                // Coins flying up
+                int coins = Random.Range(3, 6);
+                for (int i = 0; i < coins; i++)
+                    StartCoroutine(FlyCoin());
             }
 
             if (tapButtonRT != null) StartCoroutine(PunchScale(tapButtonRT, 0.12f));
+        }
+
+        // A small gold coin that pops out of the tap button and arcs upward.
+        private IEnumerator FlyCoin()
+        {
+            if (panelMain == null) yield break;
+            var go = new GameObject("Coin", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(panelMain, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+            float size = Random.Range(16f, 26f);
+            rt.sizeDelta = new Vector2(size, size);
+            var img = go.GetComponent<Image>();
+            img.sprite = Circle();
+            img.color  = GoldColor;
+            img.raycastTarget = false;
+
+            Vector2 start = new Vector2(Random.Range(-50f, 50f), 60f);
+            Vector2 vel   = new Vector2(Random.Range(-110f, 110f), Random.Range(260f, 360f));
+            float gravity = -620f;
+            float life = 0.9f;
+            float t = 0f;
+            while (t < life && go != null)
+            {
+                float dt = Time.deltaTime;
+                t += dt;
+                vel.y += gravity * dt;
+                start += vel * dt;
+                rt.anchoredPosition = start;
+                var c = img.color; c.a = Mathf.Clamp01(1f - t / life); img.color = c;
+                rt.localScale = Vector3.one * Mathf.Lerp(1f, 0.6f, t / life);
+                yield return null;
+            }
+            if (go != null) Destroy(go);
         }
 
         private IEnumerator PulseTapButton()
@@ -483,6 +573,87 @@ namespace GameIdle
             var img = stripeGO.GetComponent<Image>();
             img.color = NavyDark;
             img.raycastTarget = false;
+        }
+
+        // Top-right gem pill + coin icon next to money. Gems are a new currency
+        // earned from prestige, so the whole display is built at runtime.
+        private void SetupTopBar()
+        {
+            var canvas = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
+            if (canvas == null) return;
+
+            // Gold coin icon to the left of the money value
+            if (moneyText != null)
+            {
+                var coinGO = new GameObject("CoinIcon", typeof(RectTransform), typeof(Image));
+                coinGO.transform.SetParent(moneyText.transform, false);
+                var crt = coinGO.GetComponent<RectTransform>();
+                crt.anchorMin = crt.anchorMax = crt.pivot = new Vector2(0f, 0.5f);
+                crt.anchoredPosition = new Vector2(-30f, 0f);
+                crt.sizeDelta = new Vector2(24f, 24f);
+                var ci = coinGO.GetComponent<Image>();
+                ci.sprite = Circle();
+                ci.color  = GoldColor;
+                ci.raycastTarget = false;
+                // "$" stamped on the coin
+                var sGO = new GameObject("S", typeof(RectTransform), typeof(TextMeshProUGUI));
+                sGO.transform.SetParent(coinGO.transform, false);
+                var srt = sGO.GetComponent<RectTransform>();
+                srt.anchorMin = Vector2.zero; srt.anchorMax = Vector2.one;
+                srt.offsetMin = srt.offsetMax = Vector2.zero;
+                var stmp = sGO.GetComponent<TextMeshProUGUI>();
+                stmp.text = "$"; stmp.fontSize = 16; stmp.fontStyle = FontStyles.Bold;
+                stmp.color = NavyDark; stmp.alignment = TextAlignmentOptions.Center;
+                stmp.raycastTarget = false;
+                var f = GetCachedFont(); if (f != null) stmp.font = f;
+            }
+
+            // Gem pill, top-right (left of the ranking button)
+            var pillGO = new GameObject("GemPill", typeof(RectTransform), typeof(Image));
+            pillGO.transform.SetParent(canvas.transform, false);
+            var prt = pillGO.GetComponent<RectTransform>();
+            prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(1f, 1f);
+            prt.anchoredPosition = new Vector2(-94f, -8f);
+            prt.sizeDelta = new Vector2(116f, 36f);
+            var pImg = pillGO.GetComponent<Image>();
+            pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
+            pImg.color  = NavyCard;
+            pImg.raycastTarget = false;
+
+            // Gem icon: a cyan diamond (rounded square rotated 45°)
+            var gemGO = new GameObject("GemIcon", typeof(RectTransform), typeof(Image));
+            gemGO.transform.SetParent(pillGO.transform, false);
+            var grt = gemGO.GetComponent<RectTransform>();
+            grt.anchorMin = grt.anchorMax = grt.pivot = new Vector2(0f, 0.5f);
+            grt.anchoredPosition = new Vector2(12f, 0f);
+            grt.sizeDelta = new Vector2(18f, 18f);
+            grt.localRotation = Quaternion.Euler(0f, 0f, 45f);
+            var gImg = gemGO.GetComponent<Image>();
+            gImg.sprite = Rounded(); gImg.type = Image.Type.Sliced;
+            gImg.color  = new Color(0.32f, 0.85f, 1f, 1f);
+            gImg.raycastTarget = false;
+
+            // Gem count
+            var gtGO = new GameObject("GemCount", typeof(RectTransform), typeof(TextMeshProUGUI));
+            gtGO.transform.SetParent(pillGO.transform, false);
+            var gtrt = gtGO.GetComponent<RectTransform>();
+            gtrt.anchorMin = new Vector2(0f, 0f); gtrt.anchorMax = new Vector2(1f, 1f);
+            gtrt.offsetMin = new Vector2(34f, 0f); gtrt.offsetMax = new Vector2(-8f, 0f);
+            gemText = gtGO.GetComponent<TextMeshProUGUI>();
+            gemText.fontSize = 16; gemText.fontStyle = FontStyles.Bold;
+            gemText.color = new Color(0.7f, 0.93f, 1f, 1f);
+            gemText.alignment = TextAlignmentOptions.MidlineLeft;
+            gemText.raycastTarget = false;
+            var gf = GetCachedFont(); if (gf != null) gemText.font = gf;
+
+            RefreshGemDisplay();
+        }
+
+        private void RefreshGemDisplay()
+        {
+            if (gemText == null || GameManager.Instance == null) return;
+            int g = GameManager.Instance.Gems;
+            gemText.text = g < 100_000 ? g.ToString("N0") : NumberFormatter.Format(g);
         }
 
         private void ApplyNeonTheme()
@@ -689,7 +860,7 @@ namespace GameIdle
             bool ready      = GameManager.Instance.CanPrestige();
 
             prestigeButtonLabel.text = ready
-                ? $"PRESTÍGIO ★\n#{count} → x{nextMult:F1}"
+                ? $"PRESTIGIAR  +{GameManager.Instance.GetPrestigeGemReward()} gemas\n#{count} → x{nextMult:F1}"
                 : $"PRESTÍGIO\n#{count} → x{nextMult:F1}";
 
             var img = prestigeButton?.GetComponent<Image>();
@@ -785,8 +956,8 @@ namespace GameIdle
             bool canPrestige = GameManager.Instance.CanPrestige();
             if (prestigeInfoText != null)
                 prestigeInfoText.text = canPrestige
-                    ? "[*] Prestígio disponível!"
-                    : $"Prestígio em: ${NumberFormatter.Format(1_000_000_000.0)}";
+                    ? $"Prestígio pronto! +{GameManager.Instance.GetPrestigeGemReward()} gemas"
+                    : $"Prestígio em: ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}";
 
             if (prestigeButton != null)
                 prestigeButton.interactable = canPrestige;
@@ -795,6 +966,7 @@ namespace GameIdle
             RefreshPrestigeLabel();
             UpdateTapValueText();
             RefreshMainStats();
+            RefreshGemDisplay();
         }
 
         private void RebuildCharacterButtons()
@@ -995,7 +1167,7 @@ namespace GameIdle
             var (next, via) = CharacterManager.Instance.GetNextUnlock();
             if (next == null)
             {
-                nextUnlockNameText.text = "✅ Todos desbloqueados!";
+                nextUnlockNameText.text = "Todos desbloqueados!";
                 if (nextUnlockCostText != null) nextUnlockCostText.text = "";
                 if (nextUnlockBar != null) nextUnlockBar.fillAmount = 1f;
                 return;
