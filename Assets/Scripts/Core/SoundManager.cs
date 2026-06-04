@@ -22,7 +22,6 @@ namespace GameIdle
             return Instance;
         }
 
-#if UNITY_MODULE_AUDIO
         private AudioSource src;
         private AudioClip clickClip, buyClip, prestigeClip, errorClip, coinClip;
 
@@ -30,6 +29,12 @@ namespace GameIdle
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
+
+            // Make sure something can actually hear the audio. Unity only plays
+            // 2D sounds if there is an active AudioListener in the scene.
+            if (Object.FindAnyObjectByType<AudioListener>() == null)
+                gameObject.AddComponent<AudioListener>();
+
             src = gameObject.AddComponent<AudioSource>();
             src.playOnAwake = false;
             src.spatialBlend = 0f;
@@ -115,19 +120,5 @@ namespace GameIdle
             clip.SetData(data, 0);
             return clip;
         }
-
-#else
-        private void Awake()
-        {
-            if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-            Instance = this;
-        }
-
-        public void PlayClick()    { }
-        public void PlayCoin()     { }
-        public void PlayBuy()      { }
-        public void PlayPrestige() { }
-        public void PlayError()    { }
-#endif
     }
 }
