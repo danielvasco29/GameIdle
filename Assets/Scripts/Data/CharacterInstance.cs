@@ -9,9 +9,31 @@ namespace GameIdle
         public int level;
         public bool isUnlocked;
 
+        private const double CostGrowth = 1.15;
+
         // Cost formula: baseCost * 1.15^level
         public double GetCurrentCost() =>
-            data.baseCost * Math.Pow(1.15, level);
+            data.baseCost * Math.Pow(CostGrowth, level);
+
+        // Total cost to buy `count` consecutive levels from the current level.
+        // Geometric series: first * (r^count - 1) / (r - 1).
+        public double GetCostForLevels(int count)
+        {
+            if (count <= 0) return 0;
+            double first = GetCurrentCost();
+            return first * (Math.Pow(CostGrowth, count) - 1) / (CostGrowth - 1);
+        }
+
+        // Largest number of levels purchasable with `money`.
+        public int GetMaxAffordable(double money)
+        {
+            double first = GetCurrentCost();
+            if (money < first) return 0;
+            // money >= first * (r^n - 1)/(r-1)  =>  r^n <= 1 + money*(r-1)/first
+            double rhs = 1.0 + money * (CostGrowth - 1) / first;
+            int n = (int)Math.Floor(Math.Log(rhs) / Math.Log(CostGrowth));
+            return Math.Max(0, n);
+        }
 
         // Production formula: baseProduction * level
         public double GetCurrentProduction() =>

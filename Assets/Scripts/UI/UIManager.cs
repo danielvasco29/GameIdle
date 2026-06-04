@@ -87,6 +87,10 @@ namespace GameIdle
         // Ranking panel
         private RankingPanel rankingPanel;
 
+        // Bulk-buy mode toggle (x1 / x10 / Máx)
+        private Button[] buyModeButtons;
+        private static readonly int[] BuyModeValues = { 1, 10, -1 };
+
         // Gem currency display (created at runtime — gems are a new system)
         private TextMeshProUGUI gemText;
         private GemShopPanel gemShopPanel;
@@ -751,11 +755,65 @@ namespace GameIdle
             labelGO.transform.SetParent(headerGO.transform, false);
             var lrt = labelGO.GetComponent<RectTransform>();
             lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
-            lrt.offsetMin = lrt.offsetMax = Vector2.zero;
+            lrt.offsetMin = new Vector2(12f, 0f); lrt.offsetMax = Vector2.zero;
             var ltmp = labelGO.GetComponent<TextMeshProUGUI>();
-            ltmp.text = "FUNCIONÁRIOS"; ltmp.fontSize = 14; ltmp.fontStyle = FontStyles.Bold;
-            ltmp.color = GoldColor; ltmp.alignment = TextAlignmentOptions.Center;
+            ltmp.text = "FUNCIONÁRIOS"; ltmp.fontSize = 13; ltmp.fontStyle = FontStyles.Bold;
+            ltmp.color = GoldColor; ltmp.alignment = TextAlignmentOptions.MidlineLeft;
             ltmp.raycastTarget = false;
+            var lf = GetCachedFont(); if (lf != null) ltmp.font = lf;
+
+            // x1 / x10 / Máx bulk-buy toggle, right-aligned in the header
+            string[] labels = { "x1", "x10", "MÁX" };
+            const float bw = 46f, gap = 4f;
+            buyModeButtons = new Button[3];
+            for (int i = 0; i < 3; i++)
+            {
+                var bGO = new GameObject($"BuyMode{i}", typeof(RectTransform), typeof(Image), typeof(Button));
+                bGO.transform.SetParent(headerGO.transform, false);
+                var brt = bGO.GetComponent<RectTransform>();
+                brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 0.5f);
+                brt.anchoredPosition = new Vector2(-8f - (2 - i) * (bw + gap), 0f);
+                brt.sizeDelta = new Vector2(bw, 24f);
+                var bImg = bGO.GetComponent<Image>();
+                bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
+                int captured = i;
+                bGO.GetComponent<Button>().onClick.AddListener(() => SetBuyMode(captured));
+
+                var tGO = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
+                tGO.transform.SetParent(bGO.transform, false);
+                var trt = tGO.GetComponent<RectTransform>();
+                trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
+                trt.offsetMin = trt.offsetMax = Vector2.zero;
+                var ttmp = tGO.GetComponent<TextMeshProUGUI>();
+                ttmp.text = labels[i]; ttmp.fontSize = 12; ttmp.fontStyle = FontStyles.Bold;
+                ttmp.alignment = TextAlignmentOptions.Center; ttmp.raycastTarget = false;
+                var bf = GetCachedFont(); if (bf != null) ttmp.font = bf;
+
+                buyModeButtons[i] = bGO.GetComponent<Button>();
+            }
+            RefreshBuyModeButtons();
+        }
+
+        private void SetBuyMode(int i)
+        {
+            CharacterManager.BuyAmount = BuyModeValues[i];
+            RefreshBuyModeButtons();
+            RefreshButtonAffordability();
+            if (SoundManager.Instance != null) SoundManager.Instance.PlayClick();
+        }
+
+        private void RefreshBuyModeButtons()
+        {
+            if (buyModeButtons == null) return;
+            for (int i = 0; i < buyModeButtons.Length; i++)
+            {
+                if (buyModeButtons[i] == null) continue;
+                bool active = CharacterManager.BuyAmount == BuyModeValues[i];
+                var img = buyModeButtons[i].GetComponent<Image>();
+                if (img != null) img.color = active ? GoldColor : NavyCard;
+                var lbl = buyModeButtons[i].GetComponentInChildren<TextMeshProUGUI>();
+                if (lbl != null) lbl.color = active ? NavyDark : TextSec;
+            }
         }
 
         // ── Effects HUD ───────────────────────────────────────────────────────

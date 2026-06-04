@@ -30,8 +30,6 @@ namespace GameIdle
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
 
-            // Make sure something can actually hear the audio. Unity only plays
-            // 2D sounds if there is an active AudioListener in the scene.
             if (Object.FindAnyObjectByType<AudioListener>() == null)
                 gameObject.AddComponent<AudioListener>();
 
@@ -39,84 +37,146 @@ namespace GameIdle
             src.playOnAwake = false;
             src.spatialBlend = 0f;
 
-            clickClip    = Blip(0.06f, 520f, 0.35f, 0.7f);
-            coinClip     = Sweep(0.10f, 700f, 1300f, 0.30f);
-            buyClip      = Arp(new[] { 660f, 880f }, 0.07f, 0.30f);
-            prestigeClip = Arp(new[] { 523f, 659f, 784f, 1046f }, 0.09f, 0.32f);
-            errorClip    = Blip(0.16f, 150f, 0.40f, 0.0f);
+            clickClip    = MakeClick();
+            coinClip     = MakeCoin();
+            buyClip      = MakeBuy();
+            prestigeClip = MakePrestige();
+            errorClip    = MakeError();
         }
 
-        private void PlayClip(AudioClip clip, float pitch = 1f)
+        private void PlayClip(AudioClip clip, float pitch = 1f, float vol = 1f)
         {
             if (Muted || clip == null || src == null) return;
             src.pitch = pitch;
-            src.PlayOneShot(clip);
+            src.PlayOneShot(clip, vol);
         }
 
-        public void PlayClick()    => PlayClip(clickClip, Random.Range(0.96f, 1.06f));
-        public void PlayCoin()     => PlayClip(coinClip,  Random.Range(0.95f, 1.08f));
-        public void PlayBuy()      => PlayClip(buyClip);
-        public void PlayPrestige() => PlayClip(prestigeClip);
-        public void PlayError()    => PlayClip(errorClip);
+        public void PlayClick()    => PlayClip(clickClip,    Random.Range(0.97f, 1.04f), 0.55f);
+        public void PlayCoin()     => PlayClip(coinClip,     Random.Range(0.95f, 1.08f), 0.45f);
+        public void PlayBuy()      => PlayClip(buyClip,      1f, 0.65f);
+        public void PlayPrestige() => PlayClip(prestigeClip, 1f, 0.70f);
+        public void PlayError()    => PlayClip(errorClip,    1f, 0.50f);
 
         // ── Synthesis helpers ────────────────────────────────────────────────
 
-        // Single tone with exponential decay. `square` blends toward a square wave.
-        private AudioClip Blip(float dur, float freq, float volume, float square)
+        private const int Rate = 44100;
+
+        // Warm tone: sine + small amount of 2nd/3rd harmonic + soft attack + exponential decay.
+        private static float WarmTone(float freq, float t, float attack)
         {
-            int rate = 44100;
-            int n = Mathf.Max(1, (int)(dur * rate));
+            float env  = (1f - Mathf.Exp(-t / Mathf.Max(attack, 0.001f))) // attack
+                       * Mathf.Exp(-t * 6f);                               // decay
+            float phase = 2f * Mathf.PI * freq * t;
+            return (Mathf.Sin(phase)                     // fundamental
+                  + 0.30f * Mathf.Sin(2f * phase)        // 2nd harmonic (warms it up)
+                  + 0.10f * Mathf.Sin(3f * phase))       // 3rd harmonic (slight body)
+                  * env;
+        }
+
+        // Short "tock" click — muffled low thud, no harsh overtones.
+        private AudioClip MakeClick()
+        {
+            int n = Rate / 20; // 50 ms
             var data = new float[n];
             for (int i = 0; i < n; i++)
             {
-                float t = (float)i / rate;
-                float env = Mathf.Exp(-t * 18f);
-                float sine = Mathf.Sin(2f * Mathf.PI * freq * t);
-                float sq = Mathf.Sign(sine);
-                data[i] = Mathf.Lerp(sine, sq, square) * env * volume;
+                float t   = (float)i / Rate;
+                float env = Mathf.Exp(-t * 55f);
+                // Two slightly-detuned tones for a natural thud
+                data[i] = (Mathf.Sin(2f * Mathf.PI * 420f * t)
+                          + 0.5f * Mathf.Sin(2f * Mathf.PI * 390f * t)) * env * 0.5f;
             }
-            var clip = AudioClip.Create("blip", n, 1, rate, false);
-            clip.SetData(data, 0);
-            return clip;
+            return Make("click", data);
         }
 
-        // Frequency sweep (used for coins).
-        private AudioClip Sweep(float dur, float fStart, float fEnd, float volume)
+        // Rising sweep with warm harmonics — feels like a coin being collected.
+        private AudioClip MakeCoin()
         {
-            int rate = 44100;
-            int n = Mathf.Max(1, (int)(dur * rate));
+            float dur = 0.18f;
+            int n = (int)(dur * Rate);
             var data = new float[n];
-            float phase = 0f;
+            float phase1 = 0, phase2 = 0;
             for (int i = 0; i < n; i++)
             {
-                float t = (float)i / n;
-                float freq = Mathf.Lerp(fStart, fEnd, t);
-                phase += 2f * Mathf.PI * freq / rate;
-                float env = Mathf.Exp(-t * 4f) * (1f - t);
-                data[i] = Mathf.Sin(phase) * env * volume;
+                float t    = (float)i / n;
+                float freq = Mathf.Lerp(600f, 1400f, Mathf.Pow(t, 0.5f));
+                float env  = Mathf.Exp(-t * 4.5f) * (1f - Mathf.Pow(t, 2f));
+                float dt   = 1f / Rate;
+                phase1 += 2f * Mathf.PI * freq * dt;
+                phase2 += 2f * Mathf.PI * (freq * 1.5f) * dt; // perfect fifth on top
+                data[i] = (0.7f * Mathf.Sin(phase1) + 0.3f * Mathf.Sin(phase2)) * env * 0.45f;
             }
-            var clip = AudioClip.Create("sweep", n, 1, rate, false);
-            clip.SetData(data, 0);
-            return clip;
+            return Make("coin", data);
         }
 
-        // Quick ascending notes (used for purchases / prestige).
-        private AudioClip Arp(float[] freqs, float noteDur, float volume)
+        // Friendly two-note "ding-dong" purchase confirmation.
+        private AudioClip MakeBuy()
         {
-            int rate = 44100;
-            int perNote = Mathf.Max(1, (int)(noteDur * rate));
+            float[] freqs = { 660f, 990f };
+            float noteDur = 0.10f;
+            int perNote = (int)(noteDur * Rate);
             int n = perNote * freqs.Length;
             var data = new float[n];
             for (int k = 0; k < freqs.Length; k++)
             {
                 for (int i = 0; i < perNote; i++)
                 {
-                    float t = (float)i / rate;
-                    float env = Mathf.Exp(-t * 12f);
-                    data[k * perNote + i] = Mathf.Sin(2f * Mathf.PI * freqs[k] * t) * env * volume;
+                    float t = (float)i / Rate;
+                    data[k * perNote + i] = WarmTone(freqs[k], t, 0.008f) * 0.55f;
                 }
             }
-            var clip = AudioClip.Create("arp", n, 1, rate, false);
+            return Make("buy", data);
+        }
+
+        // Triumphant 4-note arpeggio (major chord) — rewarding prestige feeling.
+        private AudioClip MakePrestige()
+        {
+            // C5-E5-G5-C6 major arpeggio
+            float[] freqs    = { 523f, 659f, 784f, 1047f };
+            float[] durs     = { 0.10f, 0.10f, 0.10f, 0.22f };
+            float overlap    = 0.04f; // notes bleed slightly into each other for richness
+
+            int totalSamples = 0;
+            foreach (var d in durs) totalSamples += (int)((d + overlap) * Rate);
+            var data = new float[totalSamples];
+
+            int offset = 0;
+            for (int k = 0; k < freqs.Length; k++)
+            {
+                int noteSamples = (int)((durs[k] + overlap) * Rate);
+                for (int i = 0; i < noteSamples && (offset + i) < totalSamples; i++)
+                {
+                    float t = (float)i / Rate;
+                    data[offset + i] += WarmTone(freqs[k], t, 0.010f) * 0.55f;
+                }
+                offset += (int)(durs[k] * Rate);
+            }
+            return Make("prestige", data);
+        }
+
+        // Low descending buzz — clearly "wrong" but not harsh.
+        private AudioClip MakeError()
+        {
+            float dur = 0.22f;
+            int n = (int)(dur * Rate);
+            var data = new float[n];
+            float phase = 0;
+            for (int i = 0; i < n; i++)
+            {
+                float t    = (float)i / Rate;
+                float freq = Mathf.Lerp(280f, 160f, t / dur); // descend
+                float env  = Mathf.Exp(-t * 8f);
+                phase += 2f * Mathf.PI * freq / Rate;
+                // Slight square-wave character (buzzy) without being pure square (harsh)
+                float s = Mathf.Sin(phase);
+                data[i] = Mathf.Lerp(s, Mathf.Sign(s), 0.3f) * env * 0.40f;
+            }
+            return Make("error", data);
+        }
+
+        private static AudioClip Make(string name, float[] data)
+        {
+            var clip = AudioClip.Create(name, data.Length, 1, Rate, false);
             clip.SetData(data, 0);
             return clip;
         }

@@ -14,6 +14,9 @@ namespace GameIdle
 
         public event Action OnCharactersUpdated;
 
+        // Bulk-buy mode shared across all character cards: 1, 10, or -1 (Max).
+        public static int BuyAmount = 1;
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -56,16 +59,37 @@ namespace GameIdle
             return multiplier;
         }
 
+        // How many levels would actually be bought for `index` given the current
+        // BuyAmount mode and money (Max resolves to what the player can afford).
+        public int GetPurchaseCount(int index)
+        {
+            if (index < 0 || index >= characters.Length) return 0;
+            if (BuyAmount == -1)
+                return Math.Max(1, characters[index].GetMaxAffordable(GameManager.Instance.Money));
+            return BuyAmount;
+        }
+
+        // Total cost for the resolved purchase count above.
+        public double GetPurchaseCost(int index)
+        {
+            if (index < 0 || index >= characters.Length) return 0;
+            return characters[index].GetCostForLevels(GetPurchaseCount(index));
+        }
+
         public bool TryUpgrade(int index)
         {
             if (index < 0 || index >= characters.Length) return false;
 
             var character = characters[index];
-            double cost = character.GetCurrentCost();
+            int count = BuyAmount == -1
+                ? character.GetMaxAffordable(GameManager.Instance.Money)
+                : BuyAmount;
+            if (count < 1) return false;
 
+            double cost = character.GetCostForLevels(count);
             if (!GameManager.Instance.SpendMoney(cost)) return false;
 
-            character.level++;
+            character.level += count;
             if (index + 1 < characters.Length)
                 characters[index + 1].isUnlocked = true;
 

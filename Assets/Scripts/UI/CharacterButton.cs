@@ -376,9 +376,18 @@ namespace GameIdle
         {
             if (character == null) return;
 
-            if (nameText != null)       { nameText.text       = character.data.characterName;                              nameText.ForceMeshUpdate(); }
-            if (levelText != null)      { levelText.text      = $"Nv. {character.level}";                                 levelText.ForceMeshUpdate(); }
-            if (costText != null)       { costText.text       = $"${NumberFormatter.Format(character.GetCurrentCost())}"; costText.ForceMeshUpdate(); }
+            int buyCount   = CharacterManager.Instance.GetPurchaseCount(characterIndex);
+            double buyCost = CharacterManager.Instance.GetPurchaseCost(characterIndex);
+
+            if (nameText != null)       { nameText.text       = character.data.characterName; nameText.ForceMeshUpdate(); }
+            if (levelText != null)      { levelText.text      = $"Nv. {character.level}";      levelText.ForceMeshUpdate(); }
+            if (costText != null)
+            {
+                costText.text = buyCount > 1
+                    ? $"${NumberFormatter.Format(buyCost)}\n<size=62%><color=#9fb2c9>x{buyCount} níveis</color></size>"
+                    : $"${NumberFormatter.Format(buyCost)}";
+                costText.ForceMeshUpdate();
+            }
 
             if (productionText != null)
             {
@@ -390,7 +399,7 @@ namespace GameIdle
                 productionText.ForceMeshUpdate();
             }
 
-            bool affordable = GameManager.Instance.Money >= character.GetCurrentCost();
+            bool affordable = GameManager.Instance.Money >= buyCost;
 
             if (backgroundImage != null)
                 backgroundImage.color = affordable ? CardColorReady : CardColor;
@@ -402,7 +411,7 @@ namespace GameIdle
 
             if (costProgressBar != null)
             {
-                float fill = Mathf.Clamp01((float)(GameManager.Instance.Money / character.GetCurrentCost()));
+                float fill = Mathf.Clamp01((float)(GameManager.Instance.Money / buyCost));
                 costProgressBar.fillAmount = fill;
                 costProgressBar.color = affordable
                     ? new Color(GreenColor.r, GreenColor.g, GreenColor.b, 0.85f)
