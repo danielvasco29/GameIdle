@@ -266,6 +266,7 @@ namespace GameIdle
             SetupTopBar();
             SetupEffectsHUD();
             SetupEquipeHeader();
+            SetupBuyModeBar();
             ApplyNeonTheme();
             SetupPrestigeProgressBar();
             StylePrestigeButton();
@@ -761,19 +762,58 @@ namespace GameIdle
             ltmp.color = GoldColor; ltmp.alignment = TextAlignmentOptions.MidlineLeft;
             ltmp.raycastTarget = false;
             var lf = GetCachedFont(); if (lf != null) ltmp.font = lf;
+        }
 
-            // x1 / x10 / Máx bulk-buy toggle, right-aligned in the header
+        // Dedicated bar (below the FUNCIONÁRIOS header) holding the x1/x10/Máx
+        // toggle. Buttons are left-anchored so they stay in the visible column
+        // — the right edge of Panel_Left is hidden behind the office artwork.
+        private void SetupBuyModeBar()
+        {
+            var panelLeft = GameObject.Find("Panel_Left");
+            if (panelLeft == null) return;
+
+            // Push the scroll list down to make room under the 32px header.
+            var scrollView = panelLeft.transform.Find("ScrollView");
+            if (scrollView != null)
+            {
+                var srt = scrollView.GetComponent<RectTransform>();
+                srt.offsetMax = new Vector2(srt.offsetMax.x, -66f);
+            }
+
+            var barGO = new GameObject("BuyModeBar", typeof(RectTransform), typeof(Image));
+            barGO.transform.SetParent(panelLeft.transform, false);
+            var barRT = barGO.GetComponent<RectTransform>();
+            barRT.anchorMin = new Vector2(0f, 1f); barRT.anchorMax = new Vector2(1f, 1f);
+            barRT.offsetMin = new Vector2(0f, -66f); barRT.offsetMax = new Vector2(0f, -34f);
+            var barImg = barGO.GetComponent<Image>();
+            barImg.color = NavyCard;
+            barImg.raycastTarget = false;
+
+            // "Comprar:" hint at the left
+            var hintGO = new GameObject("BuyHint", typeof(RectTransform), typeof(TextMeshProUGUI));
+            hintGO.transform.SetParent(barGO.transform, false);
+            var hrt2 = hintGO.GetComponent<RectTransform>();
+            hrt2.anchorMin = hrt2.anchorMax = hrt2.pivot = new Vector2(0f, 0.5f);
+            hrt2.anchoredPosition = new Vector2(10f, 0f);
+            hrt2.sizeDelta = new Vector2(72f, 24f);
+            var htmp = hintGO.GetComponent<TextMeshProUGUI>();
+            htmp.text = "Comprar:"; htmp.fontSize = 12; htmp.fontStyle = FontStyles.Bold;
+            htmp.color = TextSec; htmp.alignment = TextAlignmentOptions.MidlineLeft;
+            htmp.raycastTarget = false;
+            var hf = GetCachedFont(); if (hf != null) htmp.font = hf;
+
+            // x1 / x10 / Máx buttons, left-aligned right after the hint
             string[] labels = { "x1", "x10", "MÁX" };
-            const float bw = 46f, gap = 4f;
+            const float bw = 52f, gap = 6f, startX = 84f;
             buyModeButtons = new Button[3];
             for (int i = 0; i < 3; i++)
             {
                 var bGO = new GameObject($"BuyMode{i}", typeof(RectTransform), typeof(Image), typeof(Button));
-                bGO.transform.SetParent(headerGO.transform, false);
+                bGO.transform.SetParent(barGO.transform, false);
                 var brt = bGO.GetComponent<RectTransform>();
-                brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 0.5f);
-                brt.anchoredPosition = new Vector2(-8f - (2 - i) * (bw + gap), 0f);
-                brt.sizeDelta = new Vector2(bw, 24f);
+                brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 0.5f);
+                brt.anchoredPosition = new Vector2(startX + i * (bw + gap), 0f);
+                brt.sizeDelta = new Vector2(bw, 26f);
                 var bImg = bGO.GetComponent<Image>();
                 bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
                 int captured = i;
@@ -785,7 +825,7 @@ namespace GameIdle
                 trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
                 trt.offsetMin = trt.offsetMax = Vector2.zero;
                 var ttmp = tGO.GetComponent<TextMeshProUGUI>();
-                ttmp.text = labels[i]; ttmp.fontSize = 12; ttmp.fontStyle = FontStyles.Bold;
+                ttmp.text = labels[i]; ttmp.fontSize = 13; ttmp.fontStyle = FontStyles.Bold;
                 ttmp.alignment = TextAlignmentOptions.Center; ttmp.raycastTarget = false;
                 var bf = GetCachedFont(); if (bf != null) ttmp.font = bf;
 
