@@ -39,7 +39,7 @@ namespace GameIdle
         public static int GetCost(int i)
         {
             var u = Upgrades[i];
-            return (int)Math.Ceil(u.baseCost * Math.Pow(u.costGrowth, levels[i]));
+            return (int)Math.Ceiling(u.baseCost * Math.Pow(u.costGrowth, levels[i]));
         }
 
         public static bool IsMaxed(int i) => levels[i] >= Upgrades[i].maxLevel;
