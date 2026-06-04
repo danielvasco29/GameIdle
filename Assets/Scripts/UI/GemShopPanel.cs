@@ -190,13 +190,16 @@ namespace GameIdle
         {
             if (GemShop.Buy(index))
             {
+                if (SoundManager.Instance != null) SoundManager.Instance.PlayBuy();
                 RefreshState();
                 if (UIManager.Instance != null)
                     UIManager.Instance.ShowToast($"{GemShop.Upgrades[index].name} melhorado!", Green);
             }
-            else if (UIManager.Instance != null)
+            else
             {
-                UIManager.Instance.ShowToast("Gemas insuficientes!", new Color(1f, 0.4f, 0.4f));
+                if (SoundManager.Instance != null) SoundManager.Instance.PlayError();
+                if (UIManager.Instance != null)
+                    UIManager.Instance.ShowToast("Gemas insuficientes!", new Color(1f, 0.4f, 0.4f));
             }
         }
 

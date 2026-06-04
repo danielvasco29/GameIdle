@@ -111,6 +111,7 @@ namespace GameIdle
             SetupAffordableIndicator();
             SetupTierDots();
             ApplyCardLayout();
+            SetupLevelBadge();
             LoadPortrait();
 
             if (upgradeButton != null)
@@ -182,17 +183,17 @@ namespace GameIdle
             rowRT.anchorMin = new Vector2(0f, 0.40f);
             rowRT.anchorMax = new Vector2(1f, 0.60f);
 
-            const float dot = 11f, gap = 4f;
+            const float dot = 15f, gap = 3f;
             for (int i = 0; i < 5; i++)
             {
-                var d = new GameObject($"Dot{i}", typeof(RectTransform), typeof(Image));
+                var d = new GameObject($"Star{i}", typeof(RectTransform), typeof(Image));
                 d.transform.SetParent(rowGO.transform, false);
                 var drt = d.GetComponent<RectTransform>();
                 drt.anchorMin = drt.anchorMax = drt.pivot = new Vector2(0f, 0.5f);
                 drt.anchoredPosition = new Vector2(i * (dot + gap), 0f);
                 drt.sizeDelta = new Vector2(dot, dot);
                 var img = d.GetComponent<Image>();
-                img.sprite = GetCircleSprite();
+                img.sprite = UiSpriteFactory.Star();
                 img.color  = i < tierCount ? GoldColor : StarEmpty;
                 img.raycastTarget = false;
                 tierDots[i] = img;
@@ -308,32 +309,53 @@ namespace GameIdle
                 productionText.overflowMode     = TextOverflowModes.Ellipsis;
             }
 
-            // Level badge top-right
-            if (levelText != null)
-            {
-                SetAnchors(levelText.rectTransform,
-                    new Vector2(1f, 0.55f), new Vector2(1f, 1f),
-                    new Vector2(-rightW, 0f), new Vector2(-rightInset, -6f));
-                levelText.fontSize  = 12;
-                levelText.fontStyle = FontStyles.Bold;
-                levelText.alignment = TextAlignmentOptions.TopRight;
-                levelText.color     = BlueAccent;
-                levelText.textWrappingMode = TextWrappingModes.NoWrap;
-                levelText.overflowMode     = TextOverflowModes.Ellipsis;
-            }
-
-            // Cost bottom-right — gold, large
+            // Cost — gold, large, lower-right (level handled by the badge)
             if (costText != null)
             {
                 SetAnchors(costText.rectTransform,
-                    new Vector2(1f, 0f), new Vector2(1f, 0.55f),
+                    new Vector2(1f, 0f), new Vector2(1f, 0.62f),
                     new Vector2(-rightW, 6f), new Vector2(-rightInset, 0f));
-                costText.fontSize  = 18;
+                costText.fontSize  = 19;
                 costText.fontStyle = FontStyles.Bold;
                 costText.alignment = TextAlignmentOptions.BottomRight;
                 costText.color     = GoldColor;
                 costText.textWrappingMode = TextWrappingModes.NoWrap;
                 costText.overflowMode     = TextOverflowModes.Ellipsis;
+            }
+        }
+
+        // Small rounded blue badge in the top-right corner showing the level.
+        private void SetupLevelBadge()
+        {
+            const float rightInset = 18f;
+
+            var ex = transform.Find("LevelBadge");
+            if (ex != null) { ex.SetParent(null); Destroy(ex.gameObject); }
+
+            var badge = new GameObject("LevelBadge", typeof(RectTransform), typeof(Image));
+            badge.transform.SetParent(transform, false);
+            var brt = badge.GetComponent<RectTransform>();
+            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
+            brt.anchoredPosition = new Vector2(-rightInset, -8f);
+            brt.sizeDelta = new Vector2(74f, 24f);
+            var bImg = badge.GetComponent<Image>();
+            bImg.sprite = GetRoundedSprite();
+            bImg.type   = Image.Type.Sliced;
+            bImg.color  = new Color(BlueAccent.r, BlueAccent.g, BlueAccent.b, 0.20f);
+            bImg.raycastTarget = false;
+
+            if (levelText != null)
+            {
+                levelText.transform.SetParent(badge.transform, false);
+                var lrt = levelText.rectTransform;
+                lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
+                lrt.offsetMin = lrt.offsetMax = Vector2.zero;
+                levelText.fontSize  = 13;
+                levelText.fontStyle = FontStyles.Bold;
+                levelText.alignment = TextAlignmentOptions.Center;
+                levelText.color     = new Color(0.7f, 0.85f, 1f, 1f);
+                levelText.raycastTarget = false;
+                levelText.textWrappingMode = TextWrappingModes.NoWrap;
             }
         }
 
@@ -394,9 +416,15 @@ namespace GameIdle
         {
             bool success = CharacterManager.Instance.TryUpgrade(characterIndex);
             if (success)
+            {
+                if (SoundManager.Instance != null) SoundManager.Instance.PlayBuy();
                 StartCoroutine(UpgradeEffect());
+            }
             else
+            {
+                if (SoundManager.Instance != null) SoundManager.Instance.PlayError();
                 UIManager.Instance.ShowToast("Dinheiro insuficiente!", new Color(1f, 0.3f, 0.3f));
+            }
         }
 
         private IEnumerator UpgradeEffect()

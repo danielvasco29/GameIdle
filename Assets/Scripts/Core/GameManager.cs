@@ -161,6 +161,7 @@ namespace GameIdle
             CharacterManager.Instance.ResetAll();
             RecalculateStats();
             RankingPanel.AddRecord(PrestigeCount);
+            if (SoundManager.Instance != null) SoundManager.Instance.PlayPrestige();
             UIManager.Instance.RefreshAll();
             UIManager.Instance.ShowToast(
                 $"Prestígio #{PrestigeCount}! x{PrestigeMultiplier:F1} • +{gemsGained} gemas",

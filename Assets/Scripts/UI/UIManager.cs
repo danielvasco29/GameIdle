@@ -145,6 +145,7 @@ namespace GameIdle
             RefreshAll();
             displayedMoney = GameManager.Instance.Money;
             PolishLayout();
+            SoundManager.Get(); // ensure SFX system exists
         }
 
         private TMP_FontAsset GetCachedFont()
@@ -494,6 +495,7 @@ namespace GameIdle
             double val = GameManager.Instance.GetTapValue();
             GameManager.Instance.Tap();
             UpdateTapValueText();
+            if (SoundManager.Instance != null) SoundManager.Instance.PlayClick();
 
             if (panelMain != null)
             {
@@ -598,8 +600,18 @@ namespace GameIdle
             if (rt == null) return;
             // 520px gives the 2-column grid (228×2 + spacing + padding) room
             // to clear the vertical scrollbar (~15px) without being clipped.
-            rt.sizeDelta        = new Vector2(520f, rt.sizeDelta.y);
+            const float panelW = 520f;
+            rt.sizeDelta        = new Vector2(panelW, rt.sizeDelta.y);
             rt.anchoredPosition = new Vector2(260f, rt.anchoredPosition.y);
+
+            // Make the card cell fit inside the panel (minus scrollbar + padding)
+            // so the right side of each card (level + cost) is never clipped.
+            if (charactersContent != null)
+            {
+                var glg = charactersContent.GetComponent<GridLayoutGroup>();
+                if (glg != null)
+                    glg.cellSize = new Vector2(panelW - 36f, glg.cellSize.y);
+            }
         }
 
         private void ApplyTitleStyle()
