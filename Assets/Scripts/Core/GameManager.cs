@@ -87,7 +87,9 @@ namespace GameIdle
             }
 
             multiplier = Math.Max(0.01, multiplier);
-            MoneyPerSecond = baseProduction * multiplier * PrestigeMultiplier;
+            MoneyPerSecond = baseProduction * multiplier
+                             * PrestigeMultiplier * GemShop.GetPrestigeBonus()
+                             * GemShop.GetProductionMult();
             OnStatsUpdated?.Invoke();
         }
 
@@ -143,7 +145,7 @@ namespace GameIdle
             OnStatsUpdated?.Invoke();
         }
 
-        public double GetTapValue() => System.Math.Max(1.0, MoneyPerSecond * 0.5);
+        public double GetTapValue() => System.Math.Max(1.0, MoneyPerSecond * 0.5) * GemShop.GetTapMult();
         public void Tap() => AddMoney(GetTapValue());
 
         public void Prestige()
@@ -153,7 +155,7 @@ namespace GameIdle
             Gems += gemsGained;
             PrestigeCount++;
             PrestigeMultiplier = 1.0 + PrestigeCount * 0.5;
-            Money = 10;
+            Money = GemShop.GetStartMoney();
             TotalEarned = 0;
             activeEffects.Clear();
             CharacterManager.Instance.ResetAll();
@@ -166,6 +168,25 @@ namespace GameIdle
             SaveSystem.Save();
         }
 
+        // Wipes all progress and starts a brand-new save.
+        public void HardReset()
+        {
+            SaveSystem.Delete();
+            Money = 10.0;
+            TotalEarned = 0;
+            MoneyPerSecond = 0;
+            PrestigeCount = 0;
+            PrestigeMultiplier = 1.0;
+            Gems = 0;
+            GemShop.LoadLevels(null);
+            activeEffects.Clear();
+            CharacterManager.Instance.ResetAll();
+            RecalculateStats();
+            UIManager.Instance.RefreshAll();
+            UIManager.Instance.ShowToast("Novo jogo iniciado!", new UnityEngine.Color(0.4f, 0.9f, 1f));
+            SaveSystem.Save();
+        }
+
         public void ApplySaveData(SaveData data)
         {
             Money = data.money;
@@ -173,6 +194,7 @@ namespace GameIdle
             PrestigeCount = data.prestigeCount;
             PrestigeMultiplier = data.prestigeMultiplier > 0 ? data.prestigeMultiplier : 1.0;
             Gems = data.gems;
+            GemShop.LoadLevels(data.gemUpgrades);
             LastLoginTimestamp = data.lastLoginTimestamp;
         }
 
@@ -186,6 +208,7 @@ namespace GameIdle
                 prestigeCount = PrestigeCount,
                 prestigeMultiplier = PrestigeMultiplier,
                 gems = Gems,
+                gemUpgrades = GemShop.GetLevels(),
                 lastLoginTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                 characters = CharacterManager.Instance.GetSaveData()
             };

@@ -19,6 +19,7 @@ namespace GameIdle
         public int prestigeCount;
         public double prestigeMultiplier;
         public int gems;
+        public List<int> gemUpgrades = new();
         public long lastLoginTimestamp;
         public List<CharacterSaveData> characters = new();
     }

@@ -87,6 +87,8 @@ namespace GameIdle
 
         // Gem currency display (created at runtime — gems are a new system)
         private TextMeshProUGUI gemText;
+        private GemShopPanel gemShopPanel;
+        private SettingsPanel settingsPanel;
 
         // Built-in Unity UI sprites (always available at runtime)
         private static Sprite circleSprite;
@@ -279,6 +281,43 @@ namespace GameIdle
             SetupNextUnlockBanner();
             StylePrestigeNotice();
             SetupRankingPanel();
+            SetupShopAndSettings();
+        }
+
+        private void SetupShopAndSettings()
+        {
+            var canvas = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
+            if (canvas == null) return;
+
+            var shopGO = new GameObject("GemShopPanel", typeof(RectTransform));
+            shopGO.transform.SetParent(canvas.transform, false);
+            gemShopPanel = shopGO.AddComponent<GemShopPanel>();
+
+            var setGO = new GameObject("SettingsPanel", typeof(RectTransform));
+            setGO.transform.SetParent(canvas.transform, false);
+            settingsPanel = setGO.AddComponent<SettingsPanel>();
+
+            // Settings (menu) button — top-left corner
+            var btnGO = new GameObject("MenuButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            btnGO.transform.SetParent(canvas.transform, false);
+            var brt = btnGO.GetComponent<RectTransform>();
+            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 1f);
+            brt.anchoredPosition = new Vector2(8f, -8f);
+            brt.sizeDelta = new Vector2(76f, 36f);
+            var bImg = btnGO.GetComponent<Image>();
+            bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
+            bImg.color = NavyCard;
+            btnGO.GetComponent<Button>().onClick.AddListener(() => { if (settingsPanel != null) settingsPanel.Open(); });
+            var ml = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
+            ml.transform.SetParent(btnGO.transform, false);
+            var mlr = ml.GetComponent<RectTransform>();
+            mlr.anchorMin = Vector2.zero; mlr.anchorMax = Vector2.one;
+            mlr.offsetMin = mlr.offsetMax = Vector2.zero;
+            var mlt = ml.GetComponent<TextMeshProUGUI>();
+            mlt.text = "MENU"; mlt.fontSize = 13; mlt.fontStyle = FontStyles.Bold;
+            mlt.color = TextSec; mlt.alignment = TextAlignmentOptions.Center;
+            mlt.raycastTarget = false;
+            var f = GetCachedFont(); if (f != null) mlt.font = f;
         }
 
         // Moves the floating "Prestígio disponível" text out of the office view
@@ -608,8 +647,8 @@ namespace GameIdle
                 var f = GetCachedFont(); if (f != null) stmp.font = f;
             }
 
-            // Gem pill, top-right (left of the ranking button)
-            var pillGO = new GameObject("GemPill", typeof(RectTransform), typeof(Image));
+            // Gem pill, top-right (left of the ranking button) — opens the gem shop
+            var pillGO = new GameObject("GemPill", typeof(RectTransform), typeof(Image), typeof(Button));
             pillGO.transform.SetParent(canvas.transform, false);
             var prt = pillGO.GetComponent<RectTransform>();
             prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(1f, 1f);
@@ -618,7 +657,8 @@ namespace GameIdle
             var pImg = pillGO.GetComponent<Image>();
             pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
             pImg.color  = NavyCard;
-            pImg.raycastTarget = false;
+            pImg.raycastTarget = true;
+            pillGO.GetComponent<Button>().onClick.AddListener(() => { if (gemShopPanel != null) gemShopPanel.Open(); });
 
             // Gem icon: a cyan diamond (rounded square rotated 45°)
             var gemGO = new GameObject("GemIcon", typeof(RectTransform), typeof(Image));
@@ -1068,7 +1108,8 @@ namespace GameIdle
             if (statMpsText == null) return;
             statMpsText.text = $"+{NumberFormatter.Format(GameManager.Instance.MoneyPerSecond)}/s";
             double mult = CharacterManager.Instance.GetTotalMultiplier()
-                          * GameManager.Instance.PrestigeMultiplier;
+                          * GameManager.Instance.PrestigeMultiplier
+                          * GemShop.GetPrestigeBonus() * GemShop.GetProductionMult();
             statMultText.text  = $"x{mult:F2} mult";
             statTotalText.text = $"Total: ${NumberFormatter.Format(GameManager.Instance.TotalEarned)}";
             int pc = GameManager.Instance.PrestigeCount;
