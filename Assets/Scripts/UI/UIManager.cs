@@ -35,9 +35,18 @@ namespace GameIdle
         private float uiRefreshTimer;
         private const float UiRefreshInterval = 0.1f;
 
-        private static readonly Color NeonGreen  = new(0.45f, 1f,    0.6f);
-        private static readonly Color NeonCyan   = new(0.3f,  0.95f, 1.0f);
-        private static readonly Color NeonOrange = new(1.0f,  0.6f,  0.2f);
+        // Idle Startup Tycoon palette
+        private static readonly Color NavyDark    = new(0.086f, 0.137f, 0.220f, 1f); // #16233a
+        private static readonly Color NavyCard    = new(0.106f, 0.169f, 0.275f, 1f); // #1b2b46
+        private static readonly Color GoldColor   = new(1f,     0.808f, 0.227f, 1f); // #ffce3a
+        private static readonly Color GreenBtn    = new(0.247f, 0.749f, 0.353f, 1f); // #3fbf5a
+        private static readonly Color BlueAccent  = new(0.290f, 0.620f, 1f,    1f);  // #4a9eff
+        private static readonly Color TextPrimary = new(0.933f, 0.953f, 0.980f, 1f); // #eef3fa
+        private static readonly Color TextSec     = new(0.624f, 0.698f, 0.788f, 1f); // #9fb2c9
+        // Keep aliases used elsewhere in the file
+        private static readonly Color NeonGreen  = GreenBtn;
+        private static readonly Color NeonCyan   = BlueAccent;
+        private static readonly Color NeonOrange = GoldColor;
 
         private GameObject effectsHUD;
         private float effectsHUDTimer;
@@ -270,7 +279,7 @@ namespace GameIdle
             brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
             brt.anchoredPosition = new Vector2(-6f, -6f);
             brt.sizeDelta = new Vector2(80f, 44f);
-            btnGO.GetComponent<Image>().color = new Color(0.12f, 0.08f, 0.28f, 0.95f);
+            btnGO.GetComponent<Image>().color = NavyCard;
             btnGO.GetComponent<Button>().onClick.AddListener(OpenRanking);
 
             var lblGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -282,7 +291,7 @@ namespace GameIdle
             ltmp.text = "TOP\nRANKING";
             ltmp.fontSize = 11;
             ltmp.fontStyle = FontStyles.Bold;
-            ltmp.color = new Color(1f, 0.84f, 0f);
+            ltmp.color = GoldColor;
             ltmp.alignment = TextAlignmentOptions.Center;
             ltmp.raycastTarget = false;
             var ff = GetCachedFont();
@@ -319,7 +328,19 @@ namespace GameIdle
             bgRT.anchorMax = Vector2.one;
             bgRT.offsetMin = bgRT.offsetMax = Vector2.zero;
             var bgImg = bgGO.GetComponent<Image>();
-            bgImg.color = new Color(0.04f, 0.07f, 0.12f, 1f);
+            // Try loading office background art; fall back to solid navy
+            var officeTex = Resources.Load<Texture2D>("UI/office_bg");
+            if (officeTex != null)
+            {
+                bgImg.sprite = Sprite.Create(officeTex, new Rect(0, 0, officeTex.width, officeTex.height), new Vector2(0.5f, 0.5f));
+                bgImg.type = Image.Type.Simple;
+                bgImg.preserveAspect = false;
+                bgImg.color = Color.white;
+            }
+            else
+            {
+                bgImg.color = NavyDark;
+            }
             bgImg.raycastTarget = false;
 
             // Botão principal
@@ -330,9 +351,19 @@ namespace GameIdle
             tapButtonRT.anchoredPosition = new Vector2(0f, 50f);
             tapButtonRT.sizeDelta = new Vector2(220f, 220f);
             var tapImg = tapGO.GetComponent<Image>();
-            tapImg.color = new Color(0.08f, 0.42f, 0.22f, 1f);
+            tapImg.color = GreenBtn;
             var tapBtn = tapGO.GetComponent<Button>();
             tapBtn.targetGraphic = tapImg;
+
+            // Shadow ring behind button
+            var ringGO = new GameObject("Ring", typeof(RectTransform), typeof(Image));
+            ringGO.transform.SetParent(tapGO.transform, false);
+            ringGO.transform.SetAsFirstSibling();
+            var ringRT = ringGO.GetComponent<RectTransform>();
+            ringRT.anchorMin = Vector2.zero; ringRT.anchorMax = Vector2.one;
+            ringRT.offsetMin = new Vector2(-8f, -8f); ringRT.offsetMax = new Vector2(8f, 8f);
+            ringGO.GetComponent<Image>().color = new Color(0.15f, 0.55f, 0.25f, 0.45f);
+            ringGO.GetComponent<Image>().raycastTarget = false;
 
             var labelGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGO.transform.SetParent(tapGO.transform, false);
@@ -342,7 +373,7 @@ namespace GameIdle
             lRT.offsetMin = lRT.offsetMax = Vector2.zero;
             var lTMP = labelGO.GetComponent<TextMeshProUGUI>();
             lTMP.text = "TRABALHAR\n[ >_ ]";
-            lTMP.fontSize = 24;
+            lTMP.fontSize = 26;
             lTMP.fontStyle = FontStyles.Bold;
             lTMP.color = Color.white;
             lTMP.alignment = TextAlignmentOptions.Center;
@@ -396,8 +427,8 @@ namespace GameIdle
         {
             if (tapButtonRT == null) yield break;
             var img = tapButtonRT.GetComponent<Image>();
-            var c1  = new Color(0.08f, 0.42f, 0.22f, 1f);
-            var c2  = new Color(0.14f, 0.60f, 0.32f, 1f);
+            var c1  = GreenBtn;
+            var c2  = new Color(0.31f, 0.85f, 0.43f, 1f);
             while (tapButtonRT != null && img != null)
             {
                 float e = 0f;
@@ -439,7 +470,7 @@ namespace GameIdle
             var titleGO = GameObject.Find("TitleText");
             if (titleGO == null) return;
             var tmp = titleGO.GetComponent<TextMeshProUGUI>();
-            if (tmp != null) { tmp.fontSize = 28; tmp.fontStyle = FontStyles.Bold; tmp.color = NeonGreen; }
+            if (tmp != null) { tmp.fontSize = 26; tmp.fontStyle = FontStyles.Bold; tmp.color = TextPrimary; }
 
             var topBar = titleGO.transform.parent;
             if (topBar == null) return;
@@ -450,20 +481,17 @@ namespace GameIdle
             rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
             rt.offsetMin = rt.offsetMax = Vector2.zero;
             var img = stripeGO.GetComponent<Image>();
-            img.color = new Color(0.05f, 0.18f, 0.10f, 0.55f);
+            img.color = NavyDark;
             img.raycastTarget = false;
         }
 
         private void ApplyNeonTheme()
         {
-            if (moneyText != null) moneyText.color = NeonGreen;
-            if (mpsText   != null) mpsText.color   = NeonCyan;
-
-            var presLabel = GameObject.Find("PrestigeButtonLabel")?.GetComponent<TextMeshProUGUI>();
-            if (presLabel != null) { presLabel.outlineColor = NeonCyan; presLabel.outlineWidth = 0.15f; }
+            if (moneyText != null) { moneyText.color = GoldColor; moneyText.fontSize = 30; moneyText.fontStyle = FontStyles.Bold; }
+            if (mpsText   != null) { mpsText.color   = TextPrimary; }
 
             var companyInfo = GameObject.Find("CompanyInfo")?.GetComponent<TextMeshProUGUI>();
-            if (companyInfo != null) companyInfo.color = NeonOrange;
+            if (companyInfo != null) companyInfo.color = TextSec;
         }
 
         private void SetupEquipeHeader()
@@ -485,7 +513,7 @@ namespace GameIdle
             hrt.anchorMin = new Vector2(0f, 1f); hrt.anchorMax = new Vector2(1f, 1f);
             hrt.offsetMin = new Vector2(0f, -32f); hrt.offsetMax = Vector2.zero;
             var himg = headerGO.GetComponent<Image>();
-            himg.color = new Color(0.12f, 0.08f, 0.04f, 0.92f);
+            himg.color = NavyDark;
             himg.raycastTarget = false;
 
             var labelGO = new GameObject("EquipeLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -494,8 +522,8 @@ namespace GameIdle
             lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
             lrt.offsetMin = lrt.offsetMax = Vector2.zero;
             var ltmp = labelGO.GetComponent<TextMeshProUGUI>();
-            ltmp.text = "EQUIPE"; ltmp.fontSize = 15; ltmp.fontStyle = FontStyles.Bold;
-            ltmp.color = NeonOrange; ltmp.alignment = TextAlignmentOptions.Center;
+            ltmp.text = "FUNCIONÁRIOS"; ltmp.fontSize = 14; ltmp.fontStyle = FontStyles.Bold;
+            ltmp.color = GoldColor; ltmp.alignment = TextAlignmentOptions.Center;
             ltmp.raycastTarget = false;
         }
 
@@ -608,7 +636,7 @@ namespace GameIdle
 
             var img = prestigeButton.GetComponent<Image>();
             if (img == null) img = prestigeButton.gameObject.AddComponent<Image>();
-            img.color = new Color(0.55f, 0.1f, 0.8f, 1f);
+            img.color = NavyCard;
             prestigeButton.targetGraphic = img;
 
             // Collapse the vertical stretch (anchorMin.y != anchorMax.y in scene) to a
@@ -666,9 +694,7 @@ namespace GameIdle
 
             var img = prestigeButton?.GetComponent<Image>();
             if (img != null)
-                img.color = ready
-                    ? new Color(0.8f, 0.2f, 1.0f, 1f)
-                    : new Color(0.55f, 0.1f, 0.8f, 1f);
+                img.color = ready ? GreenBtn : NavyCard;
         }
 
         // ── Floating Money ────────────────────────────────────────────────────
@@ -837,7 +863,7 @@ namespace GameIdle
             crt.anchorMax = new Vector2(1f, 1f);
             crt.offsetMin = new Vector2(12f, -108f);
             crt.offsetMax = new Vector2(-12f, -8f);
-            cardGO.GetComponent<Image>().color = new Color(0.08f, 0.12f, 0.18f, 0.88f);
+            cardGO.GetComponent<Image>().color = NavyCard;
             cardGO.GetComponent<Image>().raycastTarget = false;
 
             // Linha 1: MPS (esquerda) + Multiplicador (direita)
@@ -900,7 +926,7 @@ namespace GameIdle
             brt.anchorMax = new Vector2(1f, 0f);
             brt.offsetMin = Vector2.zero;
             brt.offsetMax = new Vector2(0f, 75f);
-            bannerGO.GetComponent<Image>().color = new Color(0.10f, 0.06f, 0.02f, 0.95f);
+            bannerGO.GetComponent<Image>().color = NavyDark;
             bannerGO.GetComponent<Image>().raycastTarget = false;
 
             // Título "PRÓXIMO DESBLOQUEIO"
