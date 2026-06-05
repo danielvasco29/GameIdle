@@ -1157,7 +1157,7 @@ namespace GameIdle
             barGO.transform.SetParent(prestigeButton.transform, false);
             var rt = barGO.GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(0f, 0f); rt.anchorMax = new Vector2(1f, 0f);
-            rt.offsetMin = Vector2.zero; rt.offsetMax = new Vector2(0f, 4f);
+            rt.offsetMin = new Vector2(0f, 0f); rt.offsetMax = new Vector2(0f, 5f);
             prestigeProgressBar = barGO.GetComponent<Image>();
             prestigeProgressBar.type = Image.Type.Filled;
             prestigeProgressBar.fillMethod = Image.FillMethod.Horizontal;
@@ -1255,10 +1255,17 @@ namespace GameIdle
             int count       = GameManager.Instance.PrestigeCount;
             double nextMult = 1.0 + (count + 1) * 0.5;
             bool ready      = GameManager.Instance.CanPrestige();
+            int gems        = GameManager.Instance.GetPrestigeGemReward();
+            // Always show gem reward — when not ready, preview the fixed reward for this tier
+            int previewGems = ready ? gems : Mathf.Max(1,
+                (int)System.Math.Floor(5.0 * System.Math.Sqrt(
+                    GameManager.Instance.GetPrestigeRequirement() /
+                    GameManager.Instance.GetPrestigeBaseRequirement()) *
+                    GemShop.GetGemBonus()));
 
             prestigeButtonLabel.text = ready
-                ? $">> PRESTIGIAR  |  +{GameManager.Instance.GetPrestigeGemReward()} GEMAS <<\n<size=78%><color=#ffe090>#{count} -> x{nextMult:F1} multiplicador de lucro</color></size>"
-                : $"PRESTIGIO  #{count}  |  meta ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}\n<size=78%><color=#7ab8d4>#{count} -> x{nextMult:F1} ao prestigiar</color></size>";
+                ? $">> PRESTIGIAR  |  +{gems} GEMAS <<\n<size=78%><color=#ffe090>#{count} -> x{nextMult:F1} multiplicador de lucro</color></size>"
+                : $"PRESTIGIO #{count + 1}  |  meta ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}  +{previewGems} GEMAS\n<size=78%><color=#7ab8d4>#{count} -> x{nextMult:F1} multiplicador ao prestigiar</color></size>";
 
             var img = prestigeButton?.GetComponent<Image>();
             if (img != null)

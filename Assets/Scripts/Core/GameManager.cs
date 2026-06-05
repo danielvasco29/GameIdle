@@ -141,6 +141,7 @@ namespace GameIdle
         public double GetPrestigeRequirement() =>
             prestigeBaseRequirement * Math.Pow(prestigeRequirementGrowth, PrestigeCount);
 
+        public double GetPrestigeBaseRequirement() => prestigeBaseRequirement;
         public bool CanPrestige() => TotalEarned >= GetPrestigeRequirement();
 
         // Gems awarded on prestige, scaling with how much was earned this run.
