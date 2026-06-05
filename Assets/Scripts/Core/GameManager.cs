@@ -78,7 +78,9 @@ namespace GameIdle
             return true;
         }
 
-        public void RecalculateStats()
+        // Pure calculation of money/second for the current character state.
+        // Used both to refresh stats and to preview a purchase's income gain.
+        public double ComputeMoneyPerSecond()
         {
             double baseProduction = CharacterManager.Instance.GetTotalMPS();
             double multiplier = CharacterManager.Instance.GetTotalMultiplier();
@@ -93,7 +95,12 @@ namespace GameIdle
             double mps = baseProduction * multiplier
                          * PrestigeMultiplier * GemShop.GetPrestigeBonus()
                          * GemShop.GetProductionMult();
-            MoneyPerSecond = double.IsFinite(mps) ? mps : double.MaxValue;
+            return double.IsFinite(mps) ? mps : double.MaxValue;
+        }
+
+        public void RecalculateStats()
+        {
+            MoneyPerSecond = ComputeMoneyPerSecond();
             OnStatsUpdated?.Invoke();
         }
 

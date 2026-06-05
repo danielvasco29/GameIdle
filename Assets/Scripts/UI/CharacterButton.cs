@@ -11,6 +11,7 @@ namespace GameIdle
         private TextMeshProUGUI levelText;
         private TextMeshProUGUI productionText;
         private TextMeshProUGUI costText;
+        private TextMeshProUGUI gainText;
         private Button upgradeButton;
         private Image iconImage;
         private Image backgroundImage;
@@ -73,7 +74,7 @@ namespace GameIdle
                 switch (child.name)
                 {
                     case "NameText": case "LevelText": case "ProductionText":
-                    case "CostText": case "StarsText": case "UpgradeLabel":
+                    case "CostText": case "GainText": case "StarsText": case "UpgradeLabel":
                     case "TierDots":
                         child.SetParent(null);
                         Destroy(child.gameObject);
@@ -85,6 +86,7 @@ namespace GameIdle
             levelText      = CreateLabel("LevelText");
             productionText = CreateLabel("ProductionText");
             costText       = CreateLabel("CostText");
+            gainText       = CreateLabel("GainText");
 
             backgroundImage = GetComponent<Image>() ?? gameObject.AddComponent<Image>();
             upgradeButton   = GetComponent<Button>() ?? gameObject.AddComponent<Button>();
@@ -309,18 +311,32 @@ namespace GameIdle
                 productionText.overflowMode     = TextOverflowModes.Ellipsis;
             }
 
-            // Cost — gold, large, lower-right (level handled by the badge)
+            // Cost — gold, right column, just under the level badge
             if (costText != null)
             {
                 SetAnchors(costText.rectTransform,
-                    new Vector2(1f, 0f), new Vector2(1f, 0.62f),
-                    new Vector2(-rightW, 6f), new Vector2(-rightInset, 0f));
-                costText.fontSize  = 19;
+                    new Vector2(1f, 0.34f), new Vector2(1f, 0.66f),
+                    new Vector2(-rightW, 0f), new Vector2(-rightInset, 0f));
+                costText.fontSize  = 18;
                 costText.fontStyle = FontStyles.Bold;
-                costText.alignment = TextAlignmentOptions.BottomRight;
+                costText.alignment = TextAlignmentOptions.MidlineRight;
                 costText.color     = GoldColor;
                 costText.textWrappingMode = TextWrappingModes.NoWrap;
                 costText.overflowMode     = TextOverflowModes.Ellipsis;
+            }
+
+            // Income gain preview — green, below the cost ("+X/s ao comprar")
+            if (gainText != null)
+            {
+                SetAnchors(gainText.rectTransform,
+                    new Vector2(1f, 0.04f), new Vector2(1f, 0.34f),
+                    new Vector2(-rightW, 2f), new Vector2(-rightInset, 0f));
+                gainText.fontSize  = 12;
+                gainText.fontStyle = FontStyles.Bold;
+                gainText.alignment = TextAlignmentOptions.MidlineRight;
+                gainText.color     = GreenColor;
+                gainText.textWrappingMode = TextWrappingModes.NoWrap;
+                gainText.overflowMode     = TextOverflowModes.Ellipsis;
             }
         }
 
@@ -387,9 +403,16 @@ namespace GameIdle
                 costText.text = maxedOut
                     ? "MÁX"
                     : buyCount > 1
-                        ? $"${NumberFormatter.Format(buyCost)}\n<size=62%><color=#9fb2c9>x{buyCount} níveis</color></size>"
+                        ? $"${NumberFormatter.Format(buyCost)} <size=70%><color=#9fb2c9>x{buyCount}</color></size>"
                         : $"${NumberFormatter.Format(buyCost)}";
                 costText.ForceMeshUpdate();
+            }
+
+            if (gainText != null)
+            {
+                double gain = maxedOut ? 0 : CharacterManager.Instance.GetIncomeGain(characterIndex);
+                gainText.text = gain > 0 ? $"+{NumberFormatter.Format(gain)}/s" : "";
+                gainText.ForceMeshUpdate();
             }
 
             if (productionText != null)

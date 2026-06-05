@@ -83,6 +83,23 @@ namespace GameIdle
             return characters[index].GetCostForLevels(GetPurchaseCount(index));
         }
 
+        // How much money/second the resolved purchase would add (works for both
+        // producers and multiplier characters — simulated by bumping the level).
+        public double GetIncomeGain(int index)
+        {
+            if (index < 0 || index >= characters.Length) return 0;
+            int count = GetPurchaseCount(index);
+            if (count <= 0) return 0;
+
+            var c = characters[index];
+            double before = GameManager.Instance.MoneyPerSecond;
+            int original = c.level;
+            c.level += count;
+            double after = GameManager.Instance.ComputeMoneyPerSecond();
+            c.level = original;
+            return System.Math.Max(0, after - before);
+        }
+
         public bool TryUpgrade(int index)
         {
             if (index < 0 || index >= characters.Length) return false;
