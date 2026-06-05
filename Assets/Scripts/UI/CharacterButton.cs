@@ -33,7 +33,7 @@ namespace GameIdle
 
         // Navy theme palette
         private static readonly Color CardColor       = new(0.106f, 0.169f, 0.275f, 1f); // #1b2b46
-        private static readonly Color CardColorReady  = new(0.118f, 0.196f, 0.302f, 1f); // slightly lighter when affordable
+        private static readonly Color CardColorReady  = new(0.08f, 0.22f, 0.15f, 1f);  // green tint when affordable
         private static readonly Color GoldColor       = new(1f, 0.808f, 0.227f, 1f);     // #ffce3a
         private static readonly Color GreenColor      = new(0.247f, 0.749f, 0.353f, 1f); // #3fbf5a
         private static readonly Color StarEmpty       = new(0.227f, 0.290f, 0.388f, 1f); // #3a4a63
@@ -212,7 +212,7 @@ namespace GameIdle
             go.transform.SetAsFirstSibling();
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(0f, 0f); rt.anchorMax = new Vector2(0f, 1f);
-            rt.offsetMin = Vector2.zero; rt.offsetMax = new Vector2(4f, 0f);
+            rt.offsetMin = Vector2.zero; rt.offsetMax = new Vector2(5f, 0f);
             affordableIndicator = go.GetComponent<Image>();
             affordableIndicator.color = new Color(GreenColor.r, GreenColor.g, GreenColor.b, 0f);
             affordableIndicator.raycastTarget = false;
@@ -435,7 +435,7 @@ namespace GameIdle
 
             if (affordableIndicator != null)
                 affordableIndicator.color = affordable
-                    ? new Color(GreenColor.r, GreenColor.g, GreenColor.b, 1f)
+                    ? new Color(0.35f, 1f, 0.55f, 1f)
                     : new Color(GreenColor.r, GreenColor.g, GreenColor.b, 0f);
 
             if (costProgressBar != null)

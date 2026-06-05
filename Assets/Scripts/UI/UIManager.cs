@@ -297,6 +297,7 @@ namespace GameIdle
         {
             ApplyTitleStyle();
             SetupTopBar();
+            SetupTopSeparator();
             SetupEffectsHUD();
             SetupEquipeHeader();
             SetupBuyModeBar();
@@ -1001,6 +1002,24 @@ namespace GameIdle
             RefreshGemDisplay();
         }
 
+        private void SetupTopSeparator()
+        {
+            var canvas = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
+            if (canvas == null) return;
+
+            // Faixa escura logo abaixo dos botões de nav (separa HUD do campo de jogo)
+            var sepGO = new GameObject("TopSeparator", typeof(RectTransform), typeof(Image));
+            sepGO.transform.SetParent(canvas.transform, false);
+            var rt = sepGO.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0f, 1f); rt.anchorMax = new Vector2(1f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, -52f);
+            rt.sizeDelta = new Vector2(0f, 3f);
+            var img = sepGO.GetComponent<Image>();
+            img.color = new Color(BlueAccent.r, BlueAccent.g, BlueAccent.b, 0.55f);
+            img.raycastTarget = false;
+        }
+
         private void RefreshGemDisplay()
         {
             if (gemText == null || GameManager.Instance == null) return;
@@ -1520,7 +1539,7 @@ namespace GameIdle
             cardGO.transform.SetParent(panelMain, false);
             var crt = cardGO.GetComponent<RectTransform>();
             crt.anchorMin = new Vector2(0f, 1f); crt.anchorMax = new Vector2(1f, 1f);
-            crt.offsetMin = new Vector2(10f, -116f); crt.offsetMax = new Vector2(-10f, -6f);
+            crt.offsetMin = new Vector2(10f, -152f); crt.offsetMax = new Vector2(-10f, -6f);
             var cardImg = cardGO.GetComponent<Image>();
             cardImg.sprite = Rounded(); cardImg.type = Image.Type.Sliced;
             cardImg.color = new Color(0.07f, 0.12f, 0.20f, 0.92f);
@@ -1579,7 +1598,7 @@ namespace GameIdle
                 vrt.anchorMin = new Vector2(0f, 0.38f); vrt.anchorMax = Vector2.one;
                 vrt.offsetMin = new Vector2(12f, 0f); vrt.offsetMax = new Vector2(-6f, -2f);
                 var vtmp = valGO.GetComponent<TextMeshProUGUI>();
-                vtmp.fontSize = 16f; vtmp.fontStyle = FontStyles.Bold;
+                vtmp.fontSize = 19f; vtmp.fontStyle = FontStyles.Bold;
                 vtmp.color = Color.white;
                 vtmp.alignment = TextAlignmentOptions.MidlineLeft;
                 vtmp.textWrappingMode = TextWrappingModes.NoWrap;
@@ -1595,7 +1614,7 @@ namespace GameIdle
                 lrt2.anchorMin = Vector2.zero; lrt2.anchorMax = new Vector2(1f, 0.42f);
                 lrt2.offsetMin = new Vector2(12f, 2f); lrt2.offsetMax = new Vector2(-6f, 0f);
                 var ltmp2 = lblGO.GetComponent<TextMeshProUGUI>();
-                ltmp2.text = d.label; ltmp2.fontSize = 10f; ltmp2.fontStyle = FontStyles.Bold;
+                ltmp2.text = d.label; ltmp2.fontSize = 11f; ltmp2.fontStyle = FontStyles.Bold;
                 ltmp2.color = new Color(d.labelColor.r, d.labelColor.g, d.labelColor.b, 0.70f);
                 ltmp2.alignment = TextAlignmentOptions.MidlineLeft;
                 ltmp2.raycastTarget = false;
