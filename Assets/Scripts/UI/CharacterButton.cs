@@ -471,10 +471,9 @@ namespace GameIdle
 
         private IEnumerator HiredEffect()
         {
-            // Toast visível (o card fica dentro do ScrollView com clipping,
-            // então um texto flutuante interno seria cortado).
+            // Celebração grande no centro do escritório (área não clipada).
             if (UIManager.Instance != null)
-                UIManager.Instance.ShowToast($"Contratado: {character.data.characterName}!", new Color(0.4f, 1f, 0.6f));
+                UIManager.Instance.ShowHiredCelebration(character.data.characterName);
 
             // Flash dourado pulsante no avatar para destacar a contratação
             if (avatarBg != null)

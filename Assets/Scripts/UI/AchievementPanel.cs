@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace GameIdle
 {
     // Painel de conquistas — lista todas com estado bloqueado/desbloqueado.
-    // Construído em runtime, dentro de um ScrollView simples.
+    // Layout manual (sem ScrollRect) para evitar qualquer clipping de máscara.
     public class AchievementPanel : MonoBehaviour
     {
         private readonly Row[] _rows = new Row[AchievementManager.All.Length];
@@ -25,10 +25,15 @@ namespace GameIdle
 
         private void BuildUI()
         {
+            int count = AchievementManager.All.Length;
+            const float rowH = 42f, rowGap = 5f, topPad = 50f, botPad = 56f, sidePad = 16f;
+            float panelH = topPad + botPad + count * rowH + (count - 1) * rowGap;
+            const float panelW = 560f;
+
             var rt = GetComponent<RectTransform>() ?? gameObject.AddComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(520f, 560f);
+            rt.sizeDelta = new Vector2(panelW, panelH);
             rt.anchoredPosition = Vector2.zero;
 
             var bg = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
@@ -36,61 +41,32 @@ namespace GameIdle
 
             TMP_FontAsset font = TMP_Settings.defaultFontAsset;
 
-            // Título
+            // Título — ancorado no topo (px do topo)
             var titleGO = new GameObject("Title", typeof(RectTransform), typeof(TextMeshProUGUI));
             titleGO.transform.SetParent(transform, false);
             var trt = titleGO.GetComponent<RectTransform>();
-            trt.anchorMin = new Vector2(0f, 0.92f); trt.anchorMax = Vector2.one;
-            trt.offsetMin = new Vector2(16f, 0f); trt.offsetMax = new Vector2(-16f, -8f);
+            trt.anchorMin = trt.anchorMax = new Vector2(0.5f, 1f); trt.pivot = new Vector2(0.5f, 1f);
+            trt.sizeDelta = new Vector2(panelW - 2 * sidePad, 36f);
+            trt.anchoredPosition = new Vector2(0f, -8f);
             var ttmp = titleGO.GetComponent<TextMeshProUGUI>();
             ttmp.text = "CONQUISTAS"; ttmp.fontSize = 18; ttmp.fontStyle = FontStyles.Bold;
             ttmp.color = GoldColor; ttmp.alignment = TextAlignmentOptions.Center; ttmp.raycastTarget = false;
             if (font != null) ttmp.font = font;
 
-            // ScrollRect (sem máscara aqui)
-            var svGO = new GameObject("Scroll", typeof(RectTransform), typeof(ScrollRect));
-            svGO.transform.SetParent(transform, false);
-            var svrt = svGO.GetComponent<RectTransform>();
-            svrt.anchorMin = new Vector2(0f, 0.10f); svrt.anchorMax = new Vector2(1f, 0.92f);
-            svrt.offsetMin = new Vector2(12f, 4f); svrt.offsetMax = new Vector2(-12f, -4f);
-            var scroll = svGO.GetComponent<ScrollRect>();
-            scroll.horizontal = false; scroll.vertical = true; scroll.scrollSensitivity = 24f;
-            scroll.movementType = ScrollRect.MovementType.Clamped;
+            // Linhas — posicionadas manualmente a partir do topo
+            for (int i = 0; i < count; i++)
+            {
+                float yTop = -topPad - i * (rowH + rowGap);
+                _rows[i] = BuildRow(AchievementManager.All[i], panelW, sidePad, rowH, yTop, font);
+            }
 
-            // Viewport (com máscara) — filho do ScrollRect e atribuído explicitamente
-            var vpGO = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
-            vpGO.transform.SetParent(svGO.transform, false);
-            var vprt = vpGO.GetComponent<RectTransform>();
-            vprt.anchorMin = Vector2.zero; vprt.anchorMax = Vector2.one;
-            vprt.offsetMin = vprt.offsetMax = Vector2.zero;
-            vprt.pivot = new Vector2(0f, 1f);
-            vpGO.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.15f);
-
-            // Content — filho do Viewport
-            var contentGO = new GameObject("Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
-            contentGO.transform.SetParent(vpGO.transform, false);
-            var crt = contentGO.GetComponent<RectTransform>();
-            crt.anchorMin = new Vector2(0f, 1f); crt.anchorMax = new Vector2(1f, 1f);
-            crt.pivot = new Vector2(0.5f, 1f); crt.anchoredPosition = Vector2.zero;
-            var vlg = contentGO.GetComponent<VerticalLayoutGroup>();
-            vlg.spacing = 6f; vlg.padding = new RectOffset(6, 6, 6, 6);
-            vlg.childForceExpandWidth = true; vlg.childForceExpandHeight = false;
-            vlg.childControlHeight = true; vlg.childControlWidth = true;
-            var csf = contentGO.GetComponent<ContentSizeFitter>();
-            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            scroll.viewport = vprt;
-            scroll.content  = crt;
-
-            for (int i = 0; i < AchievementManager.All.Length; i++)
-                _rows[i] = BuildRow(contentGO.transform, AchievementManager.All[i], font);
-
-            // Botão Fechar
+            // Botão Fechar — ancorado na base
             var closeGO = new GameObject("Close", typeof(RectTransform), typeof(Image), typeof(Button));
             closeGO.transform.SetParent(transform, false);
             var clrt = closeGO.GetComponent<RectTransform>();
-            clrt.anchorMin = new Vector2(0f, 0f); clrt.anchorMax = new Vector2(1f, 0.10f);
-            clrt.offsetMin = new Vector2(16f, 8f); clrt.offsetMax = new Vector2(-16f, -4f);
+            clrt.anchorMin = clrt.anchorMax = new Vector2(0.5f, 0f); clrt.pivot = new Vector2(0.5f, 0f);
+            clrt.sizeDelta = new Vector2(panelW - 2 * sidePad, 40f);
+            clrt.anchoredPosition = new Vector2(0f, 10f);
             closeGO.GetComponent<Image>().sprite = UiSpriteFactory.RoundedBox();
             closeGO.GetComponent<Image>().type = Image.Type.Sliced;
             closeGO.GetComponent<Image>().color = GrayColor;
@@ -107,22 +83,25 @@ namespace GameIdle
             gameObject.SetActive(false);
         }
 
-        private Row BuildRow(Transform parent, AchievementManager.Achievement a, TMP_FontAsset font)
+        private Row BuildRow(AchievementManager.Achievement a, float panelW, float sidePad, float rowH, float yTop, TMP_FontAsset font)
         {
             var row = new Row();
-            var go = new GameObject(a.id, typeof(RectTransform), typeof(Image), typeof(LayoutElement));
-            go.transform.SetParent(parent, false);
-            go.GetComponent<LayoutElement>().minHeight = 56f;
+            var go = new GameObject(a.id, typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(transform, false);
+            var grt = go.GetComponent<RectTransform>();
+            grt.anchorMin = grt.anchorMax = new Vector2(0.5f, 1f); grt.pivot = new Vector2(0.5f, 1f);
+            grt.sizeDelta = new Vector2(panelW - 2 * sidePad, rowH);
+            grt.anchoredPosition = new Vector2(0f, yTop);
             row.bg = go.GetComponent<Image>();
             row.bg.sprite = UiSpriteFactory.RoundedBox(); row.bg.type = Image.Type.Sliced; row.bg.color = NavyCard;
             row.bg.raycastTarget = false;
 
-            row.nameText = MakeLabel(go.transform, "Name", new Vector2(0f, 0.5f), new Vector2(0.72f, 1f),
-                new Vector2(10f, 0f), new Vector2(0f, -2f), 14f, Color.white, TextAlignmentOptions.BottomLeft, font);
-            row.descText = MakeLabel(go.transform, "Desc", new Vector2(0f, 0f), new Vector2(0.72f, 0.5f),
-                new Vector2(10f, 2f), Vector2.zero, 11f, new Color(0.62f, 0.70f, 0.79f), TextAlignmentOptions.TopLeft, font);
-            row.statusText = MakeLabel(go.transform, "Status", new Vector2(0.72f, 0f), new Vector2(1f, 1f),
-                Vector2.zero, new Vector2(-10f, 0f), 12f, GoldColor, TextAlignmentOptions.Midline, font);
+            row.nameText = MakeLabel(go.transform, "Name", new Vector2(0f, 0.5f), new Vector2(0.74f, 1f),
+                new Vector2(12f, 0f), new Vector2(0f, -1f), 13.5f, Color.white, TextAlignmentOptions.BottomLeft, font);
+            row.descText = MakeLabel(go.transform, "Desc", new Vector2(0f, 0f), new Vector2(0.74f, 0.5f),
+                new Vector2(12f, 1f), Vector2.zero, 10.5f, new Color(0.62f, 0.70f, 0.79f), TextAlignmentOptions.TopLeft, font);
+            row.statusText = MakeLabel(go.transform, "Status", new Vector2(0.74f, 0f), new Vector2(1f, 1f),
+                Vector2.zero, new Vector2(-12f, 0f), 12f, GoldColor, TextAlignmentOptions.Midline, font);
 
             row.nameText.text = a.name;
             row.descText.text = a.description;

@@ -1566,5 +1566,20 @@ namespace GameIdle
         {
             ShowToast($"Conquista: {name} • +{gemReward} gemas", new Color(1f, 0.84f, 0.1f));
         }
+
+        // Celebração ao contratar (primeiro nível) — texto grande no escritório,
+        // área que não sofre clipping do ScrollView do painel esquerdo.
+        public void ShowHiredCelebration(string characterName)
+        {
+            if (panelMain == null) return;
+            var go = new GameObject("HiredCelebration", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(FloatingText));
+            go.transform.SetParent(panelMain, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(520f, 60f);
+            rt.anchoredPosition = new Vector2(0f, 160f);
+            var f = GetCachedFont(); if (f != null) go.GetComponent<TextMeshProUGUI>().font = f;
+            go.GetComponent<FloatingText>().Init($"CONTRATADO: {characterName.ToUpper()}!", new Color(0.4f, 1f, 0.6f), 34f);
+        }
     }
 }

@@ -51,7 +51,7 @@ namespace GameIdle
             src.PlayOneShot(clip, vol);
         }
 
-        public void PlayClick()    => PlayClip(clickClip,    Random.Range(0.97f, 1.04f), 0.55f);
+        public void PlayClick()    => PlayClip(clickClip,    Random.Range(0.90f, 1.10f), 0.50f);
         public void PlayCoin()     => PlayClip(coinClip,     Random.Range(0.95f, 1.08f), 0.45f);
         public void PlayBuy()      => PlayClip(buyClip,      Random.Range(0.98f, 1.03f), 0.35f);
         public void PlayPrestige() => PlayClip(prestigeClip, 1f, 0.70f);
@@ -82,30 +82,31 @@ namespace GameIdle
             }
         }
 
-        // Tap (TRABALHAR): a keyboard / old-typewriter keystroke — fits the
-        // dev-office theme. Built from a low-passed noise "clack", a low "thock"
-        // body (the key bottoming out) and a tiny metallic tick (typewriter).
+        // Tap (TRABALHAR): a soft mechanical key press ("pock") — warm and rounded
+        // rather than a sharp typewriter strike, so rapid presses sound pleasant
+        // instead of like machine-gun typing. A gently low-passed noise transient
+        // plus a warm low "thock" body; the harsh metallic tick was removed.
         private AudioClip MakeClick()
         {
-            int n = Rate * 7 / 100; // 70 ms
+            int n = Rate * 8 / 100; // 80 ms
             var data = new float[n];
             float lp = 0f; // one-pole low-pass state to tame the noise hiss
             for (int i = 0; i < n; i++)
             {
                 float t = (float)i / Rate;
 
-                // Noise clack — sharp, very fast decay
+                // Soft noise transient — heavily low-passed, quick but rounded decay
                 float raw = Random.value * 2f - 1f;
-                lp = Mathf.Lerp(lp, raw, 0.55f);
-                float clack = lp * Mathf.Exp(-t * 95f);
+                lp = Mathf.Lerp(lp, raw, 0.30f);           // lower cutoff = less hiss
+                float clack = lp * Mathf.Exp(-t * 70f);
 
-                // Low thock body (key hitting bottom)
-                float body = Mathf.Sin(2f * Mathf.PI * 175f * t) * Mathf.Exp(-t * 60f);
+                // Warm thock body (key bottoming out) — slightly lower & longer
+                float body = Mathf.Sin(2f * Mathf.PI * 155f * t) * Mathf.Exp(-t * 48f);
 
-                // Tiny high metallic tick (typewriter character striking)
-                float tick = Mathf.Sin(2f * Mathf.PI * 2500f * t) * Mathf.Exp(-t * 220f);
+                // Subtle mid harmonic for a touch of "click" without the metal
+                float mid  = Mathf.Sin(2f * Mathf.PI * 420f * t) * Mathf.Exp(-t * 120f);
 
-                data[i] = (clack * 0.55f + body * 0.45f + tick * 0.18f) * 0.7f;
+                data[i] = (clack * 0.35f + body * 0.55f + mid * 0.12f) * 0.7f;
             }
             return Make("click", data);
         }
