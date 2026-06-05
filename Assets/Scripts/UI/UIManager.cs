@@ -357,6 +357,7 @@ namespace GameIdle
             var mlt = ml.GetComponent<TextMeshProUGUI>();
             mlt.text = "MENU"; mlt.fontSize = 17; mlt.fontStyle = FontStyles.Bold;
             mlt.color = TextSec; mlt.alignment = TextAlignmentOptions.Center;
+            mlt.textWrappingMode = TextWrappingModes.NoWrap; mlt.overflowMode = TextOverflowModes.Ellipsis;
             mlt.raycastTarget = false;
             var f = GetCachedFont(); if (f != null) mlt.font = f;
 
@@ -390,6 +391,7 @@ namespace GameIdle
             var mblt = mbl.GetComponent<TextMeshProUGUI>();
             mblt.text = "MISSOES"; mblt.fontSize = 16; mblt.fontStyle = FontStyles.Bold;
             mblt.color = NeonCyan; mblt.alignment = TextAlignmentOptions.Center; mblt.raycastTarget = false;
+            mblt.textWrappingMode = TextWrappingModes.NoWrap; mblt.overflowMode = TextOverflowModes.Ellipsis;
             var mf = GetCachedFont(); if (mf != null) mblt.font = mf;
             _missionDot = MakeNotifyDot(mBtnGO.transform);
 
@@ -413,7 +415,7 @@ namespace GameIdle
             var abrt = aBtnGO.GetComponent<RectTransform>();
             abrt.anchorMin = abrt.anchorMax = abrt.pivot = new Vector2(0f, 1f);
             abrt.anchoredPosition = new Vector2(198f, -6f);
-            abrt.sizeDelta = new Vector2(114f, 40f);
+            abrt.sizeDelta = new Vector2(132f, 40f);
             var abImg = aBtnGO.GetComponent<Image>();
             abImg.sprite = Rounded(); abImg.type = Image.Type.Sliced;
             abImg.color = new Color(0.16f, 0.14f, 0.08f, 1f);
@@ -425,6 +427,7 @@ namespace GameIdle
             var ablt = abl.GetComponent<TextMeshProUGUI>();
             ablt.text = "CONQUISTAS"; ablt.fontSize = 16; ablt.fontStyle = FontStyles.Bold;
             ablt.color = GoldColor; ablt.alignment = TextAlignmentOptions.Center; ablt.raycastTarget = false;
+            ablt.textWrappingMode = TextWrappingModes.NoWrap; ablt.overflowMode = TextOverflowModes.Ellipsis;
             var af = GetCachedFont(); if (af != null) ablt.font = af;
             _achievementDot = MakeNotifyDot(aBtnGO.transform);
 
@@ -440,7 +443,7 @@ namespace GameIdle
             bBtnGO.transform.SetParent(canvas.transform, false);
             var bbrt = bBtnGO.GetComponent<RectTransform>();
             bbrt.anchorMin = bbrt.anchorMax = bbrt.pivot = new Vector2(0f, 1f);
-            bbrt.anchoredPosition = new Vector2(320f, -6f);
+            bbrt.anchoredPosition = new Vector2(338f, -6f);
             bbrt.sizeDelta = new Vector2(84f, 40f);
             var bbImg = bBtnGO.GetComponent<Image>();
             bbImg.sprite = Rounded(); bbImg.type = Image.Type.Sliced;
@@ -456,6 +459,7 @@ namespace GameIdle
             var bblt = bbl.GetComponent<TextMeshProUGUI>();
             bblt.text = "BONUS"; bblt.fontSize = 16; bblt.fontStyle = FontStyles.Bold;
             bblt.color = GoldColor; bblt.alignment = TextAlignmentOptions.Center; bblt.raycastTarget = false;
+            bblt.textWrappingMode = TextWrappingModes.NoWrap; bblt.overflowMode = TextOverflowModes.Ellipsis;
             var bf = GetCachedFont(); if (bf != null) bblt.font = bf;
             _bonusDot = MakeNotifyDot(bBtnGO.transform);
         }
