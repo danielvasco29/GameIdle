@@ -657,52 +657,9 @@ namespace GameIdle
             AddCircle("Border", new Vector2(-2f, -2f), new Vector2(2f, 2f),
                 new Color(0.10f, 0.38f, 0.18f, 1f), false);
 
-            // Face principal
+            // Face principal — verde chapado e limpo (mesma pegada do botao "Coletar")
             tapFaceImg = AddCircle("Face", Vector2.zero, Vector2.zero, GreenBtn, true);
             tapBtn.targetGraphic = tapFaceImg;
-
-            // Container circular com Mask — recorta os gradientes ao círculo
-            var shadeGO = new GameObject("FaceShade", typeof(RectTransform), typeof(Image), typeof(Mask));
-            shadeGO.transform.SetParent(tapGO.transform, false);
-            var shRT = shadeGO.GetComponent<RectTransform>();
-            shRT.anchorMin = Vector2.zero; shRT.anchorMax = Vector2.one;
-            shRT.offsetMin = shRT.offsetMax = Vector2.zero;
-            var shMaskImg = shadeGO.GetComponent<Image>();
-            shMaskImg.sprite = Circle(); shMaskImg.raycastTarget = false;
-            shadeGO.GetComponent<Mask>().showMaskGraphic = false;
-
-            // Gradiente claro no topo (highlight)
-            var gradTop = new GameObject("FaceGradTop", typeof(RectTransform), typeof(Image));
-            gradTop.transform.SetParent(shadeGO.transform, false);
-            var gtRT = gradTop.GetComponent<RectTransform>();
-            gtRT.anchorMin = Vector2.zero; gtRT.anchorMax = Vector2.one;
-            gtRT.offsetMin = gtRT.offsetMax = Vector2.zero;
-            var gtImg = gradTop.GetComponent<Image>();
-            gtImg.sprite = UiSpriteFactory.VerticalGradient();
-            gtImg.color = new Color(1f, 1f, 1f, 0.18f);
-            gtImg.raycastTarget = false;
-
-            // Gradiente escuro embaixo (sombra) — flip vertical
-            var gradBot = new GameObject("FaceGradBot", typeof(RectTransform), typeof(Image));
-            gradBot.transform.SetParent(shadeGO.transform, false);
-            var gbRT = gradBot.GetComponent<RectTransform>();
-            gbRT.anchorMin = Vector2.zero; gbRT.anchorMax = Vector2.one;
-            gbRT.offsetMin = gbRT.offsetMax = Vector2.zero;
-            gbRT.localScale = new Vector3(1f, -1f, 1f);
-            var gbImg = gradBot.GetComponent<Image>();
-            gbImg.sprite = UiSpriteFactory.VerticalGradient();
-            gbImg.color = new Color(0f, 0.15f, 0.05f, 0.38f);
-            gbImg.raycastTarget = false;
-
-            // Sheen (brilho concentrado no topo — glossy highlight)
-            var sheenGO = new GameObject("Sheen", typeof(RectTransform), typeof(Image));
-            sheenGO.transform.SetParent(tapGO.transform, false);
-            var sheenRT = sheenGO.GetComponent<RectTransform>();
-            sheenRT.anchorMin = new Vector2(0.16f, 0.54f); sheenRT.anchorMax = new Vector2(0.84f, 0.90f);
-            sheenRT.offsetMin = sheenRT.offsetMax = Vector2.zero;
-            var sheenImg = sheenGO.GetComponent<Image>();
-            sheenImg.sprite = Circle(); sheenImg.color = new Color(1f, 1f, 1f, 0.22f);
-            sheenImg.raycastTarget = false;
 
             // Label: ícone + texto
             var labelGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -965,9 +922,9 @@ namespace GameIdle
             rt.sizeDelta        = new Vector2(panelW, rt.sizeDelta.y);
             rt.anchoredPosition = new Vector2(panelW * 0.5f, rt.anchoredPosition.y);
 
-            // Navy background for the sidebar (darker shade of the card navy)
+            // Navy background for the sidebar — matches the welcome panel hue
             var panelImg = panelLeft.GetComponent<Image>();
-            if (panelImg != null) panelImg.color = new Color(0.063f, 0.106f, 0.176f, 1f);
+            if (panelImg != null) panelImg.color = new Color(0.055f, 0.094f, 0.165f, 0.92f);
 
             // Sombra na borda direita — separa a sidebar da arte do escritório
             if (panelLeft.transform.Find("RightShadow") == null)
@@ -1009,33 +966,8 @@ namespace GameIdle
             rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
             rt.offsetMin = rt.offsetMax = Vector2.zero;
             var img = stripeGO.GetComponent<Image>();
-            img.color = NavyDark;
+            img.color = new Color(0.055f, 0.094f, 0.165f, 0.92f); // glass navy, welcome-panel hue
             img.raycastTarget = false;
-
-            // Sheen no topo da barra (gradiente claro sutil)
-            var sheen = new GameObject("TopBarSheen", typeof(RectTransform), typeof(Image));
-            sheen.transform.SetParent(topBar, false);
-            sheen.transform.SetSiblingIndex(1);
-            var shrt = sheen.GetComponent<RectTransform>();
-            shrt.anchorMin = new Vector2(0f, 0.35f); shrt.anchorMax = Vector2.one;
-            shrt.offsetMin = shrt.offsetMax = Vector2.zero;
-            var shImg = sheen.GetComponent<Image>();
-            shImg.sprite = UiSpriteFactory.VerticalGradient();
-            shImg.color = new Color(1f, 1f, 1f, 0.05f);
-            shImg.raycastTarget = false;
-
-            // Sombra projetada abaixo da barra (separa do campo de jogo)
-            var drop = new GameObject("TopBarDrop", typeof(RectTransform), typeof(Image));
-            drop.transform.SetParent(topBar, false);
-            var drt = drop.GetComponent<RectTransform>();
-            drt.anchorMin = new Vector2(0f, 0f); drt.anchorMax = new Vector2(1f, 0f);
-            drt.pivot = new Vector2(0.5f, 1f);
-            drt.sizeDelta = new Vector2(0f, 10f);
-            drt.localScale = new Vector3(1f, -1f, 1f); // dark fades downward
-            var dImg = drop.GetComponent<Image>();
-            dImg.sprite = UiSpriteFactory.VerticalGradient();
-            dImg.color = new Color(0f, 0f, 0f, 0.30f);
-            dImg.raycastTarget = false;
         }
 
         // Top-right gem pill + coin icon next to money. Gems are a new currency
@@ -1779,28 +1711,8 @@ namespace GameIdle
                 prt.sizeDelta = new Vector2(pillW, pillH);
                 var pImg = pill.GetComponent<Image>();
                 pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
-                pImg.color = d.bgColor; pImg.raycastTarget = false;
-
-                // Sheen no topo (gradiente claro) para dar profundidade
-                var sheen = new GameObject("Sheen", typeof(RectTransform), typeof(Image));
-                sheen.transform.SetParent(pill.transform, false);
-                var shrt = sheen.GetComponent<RectTransform>();
-                shrt.anchorMin = new Vector2(0f, 0.45f); shrt.anchorMax = Vector2.one;
-                shrt.offsetMin = new Vector2(2f, 0f); shrt.offsetMax = new Vector2(-2f, -2f);
-                var shImg = sheen.GetComponent<Image>();
-                shImg.sprite = UiSpriteFactory.VerticalGradient();
-                shImg.color = new Color(1f, 1f, 1f, 0.07f);
-                shImg.raycastTarget = false;
-
-                // Linha de luz no topo (1px highlight)
-                var edge = new GameObject("Edge", typeof(RectTransform), typeof(Image));
-                edge.transform.SetParent(pill.transform, false);
-                var ert = edge.GetComponent<RectTransform>();
-                ert.anchorMin = new Vector2(0f, 1f); ert.anchorMax = new Vector2(1f, 1f);
-                ert.pivot = new Vector2(0.5f, 1f);
-                ert.offsetMin = new Vector2(6f, -2f); ert.offsetMax = new Vector2(-6f, 0f);
-                edge.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.09f);
-                edge.GetComponent<Image>().raycastTarget = false;
+                pImg.color = new Color(0.055f, 0.094f, 0.165f, 0.85f); // glass navy, welcome-panel hue
+                pImg.raycastTarget = false;
 
                 // Acento colorido lateral — pílula arredondada inset (não flush na borda)
                 var acc = new GameObject("A", typeof(RectTransform), typeof(Image));
