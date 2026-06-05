@@ -31,6 +31,7 @@ namespace GameIdle
             bg.sprite = UiSpriteFactory.RoundedBox();
             bg.type   = Image.Type.Sliced;
             bg.color  = NavyDark;
+            UiDepth.AddGlassTrim(bg);
 
             TMP_FontAsset font = TMP_Settings.defaultFontAsset;
 
