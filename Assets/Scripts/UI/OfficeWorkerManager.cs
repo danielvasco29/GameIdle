@@ -88,7 +88,7 @@ namespace GameIdle
 
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(90f, 110f);
+            rt.sizeDelta = new Vector2(130f, 150f);
 
             // Start at spread position so workers don't overlap
             var startPos = SpreadPositions[index % SpreadPositions.Length];
@@ -119,7 +119,7 @@ namespace GameIdle
                 var bgCircleRt = bgCircleGO.GetComponent<RectTransform>();
                 bgCircleRt.anchorMin = bgCircleRt.anchorMax = bgCircleRt.pivot = new Vector2(0.5f, 0.5f);
                 bgCircleRt.anchoredPosition = Vector2.zero;
-                bgCircleRt.sizeDelta = new Vector2(82f, 82f);
+                bgCircleRt.sizeDelta = new Vector2(122f, 122f);
                 var bgCircleImg = bgCircleGO.GetComponent<Image>();
                 bgCircleImg.sprite = UiSpriteFactory.Circle();
                 bgCircleImg.color = new Color(
@@ -133,7 +133,7 @@ namespace GameIdle
                 var bodyRt2 = bodyGO.GetComponent<RectTransform>();
                 bodyRt2.anchorMin = bodyRt2.anchorMax = bodyRt2.pivot = new Vector2(0.5f, 0.5f);
                 bodyRt2.anchoredPosition = Vector2.zero;
-                bodyRt2.sizeDelta = new Vector2(80f, 80f);
+                bodyRt2.sizeDelta = new Vector2(120f, 120f);
 
                 var bodyImg = bodyGO.GetComponent<Image>();
                 bodyImg.sprite = frames[0];
@@ -174,8 +174,8 @@ namespace GameIdle
                 bodyGO.transform.SetParent(go.transform, false);
                 var bodyRt = bodyGO.GetComponent<RectTransform>();
                 bodyRt.anchorMin = bodyRt.anchorMax = bodyRt.pivot = new Vector2(0.5f, 0.5f);
-                bodyRt.anchoredPosition = new Vector2(0f, 22f);
-                bodyRt.sizeDelta = new Vector2(66f, 66f);
+                bodyRt.anchoredPosition = new Vector2(0f, 30f);
+                bodyRt.sizeDelta = new Vector2(90f, 90f);
 
                 bool hasPortrait = frames != null && frames.Length == 1;
                 if (hasPortrait)

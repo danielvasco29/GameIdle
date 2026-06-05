@@ -621,8 +621,7 @@ namespace GameIdle
             }
             floorImg.transform.SetAsFirstSibling();
 
-            // ── Monitor glows (único efeito de ambiente) ──────────────────────
-            SpawnMonitorGlows(pmGO.transform);
+            // ── Monitor glows removidos ───────────────────────────────────────
 
             // Botão principal circular — camadas empilhadas: ring → glow → borda → face → sheen → label
             var tapGO = new GameObject("TapButton", typeof(RectTransform), typeof(Button));
