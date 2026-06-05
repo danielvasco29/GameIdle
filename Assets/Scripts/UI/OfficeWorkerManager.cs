@@ -21,18 +21,25 @@ namespace GameIdle
         // Com a reserva 1-por-spot, os personagens não se sobrepõem.
         public static readonly Vector2[] SpreadPositions =
         {
-            // fileira de trás / landmarks
+            // fileira de trás / landmarks (em pé)
             new(-380f,   10f), // mesa esquerda
             new(-200f,   30f), // chão fundo-esquerda
             new(  20f,   55f), // bebedouro de água (centro-topo)
             new( 210f,   35f), // chão fundo-centro
             new( 380f,   20f), // sofá (direita, em cima)
-            // fileira da frente (longe do canto do botão)
-            new(-360f, -110f), // chão frente-esquerda
-            new(-150f, -120f), // chão frente-centro-esquerda
-            new(  60f, -120f), // chão frente-centro
-            new( 250f,  -70f), // chão centro-direita (acima da zona do botão)
-            new( -40f,  -30f), // chão central
+            // cadeiras nas mesas (sentado)
+            new(-340f,  -70f), // cadeira mesa esquerda
+            new(-150f,  -80f), // cadeira mesa centro-esquerda
+            new(  40f,  -80f), // cadeira mesa centro
+            new( 220f,  -70f), // cadeira mesa centro-direita
+            new( -60f, -120f), // chão frente-central (em pé)
+        };
+
+        // Quais spots são cadeiras (o personagem senta e "trabalha").
+        public static readonly bool[] IsSeat =
+        {
+            false, false, false, false, false,
+            true,  true,  true,  true,  false,
         };
 
         public void Init(RectTransform panelMain)
@@ -285,6 +292,11 @@ namespace GameIdle
         private RectTransform _bodyProcRt;
         private float _stepPhase;
 
+        // Sentar / trabalhar
+        private bool _seatedTarget; // o destino atual é uma cadeira?
+        private bool _seated;       // está sentado agora?
+        private float _workPhase;
+
         // ── Init ─────────────────────────────────────────────────────────────
 
         public void InitSheet(RectTransform rt, RectTransform bodyRt, Image bodyImg,
@@ -322,14 +334,18 @@ namespace GameIdle
                 {
                     yield return StartCoroutine(WalkToTarget());
                     _walking = false;
-                    _idleDuration = Random.Range(2f, 6f);
+                    _seated = _seatedTarget;
+                    // Sentado: fica mais tempo "trabalhando"; em pé: pausa curta.
+                    _idleDuration = _seated ? Random.Range(7f, 14f) : Random.Range(2f, 6f);
                     _idleTimer = 0f;
-                    SetIdlePose();
+                    if (_seated) SetSeatedPose();
+                    else         SetIdlePose();
                 }
                 else
                 {
                     _idleTimer += Time.deltaTime;
-                    if (!_sheetMode) TickIdleBreath();
+                    if (_seated) TickWorking();
+                    else if (!_sheetMode) TickIdleBreath();
                     if (_idleTimer >= _idleDuration) PickNewTarget();
                 }
                 yield return null;
@@ -381,8 +397,12 @@ namespace GameIdle
             _claimedIndex = idx;
             _lastTargetIndex = idx;
             claimed.Add(idx);
+            _seatedTarget = OfficeWorkerManager.IsSeat[idx];
 
-            _target = positions[idx] + new Vector2(Random.Range(-10f, 10f), Random.Range(-8f, 8f));
+            // Cadeira: sem jitter (encaixa na cadeira); em pé: leve variação.
+            var jitter = _seatedTarget ? Vector2.zero
+                                       : new Vector2(Random.Range(-10f, 10f), Random.Range(-8f, 8f));
+            _target = positions[idx] + jitter;
             _walkSpeed = Random.Range(55f, 85f);
             _walking = true;
         }
@@ -484,6 +504,44 @@ namespace GameIdle
             {
                 _bodyProcRt.anchoredPosition = new Vector2(0f, breath);
                 _bodyProcRt.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin(_idleBreathPhase * 0.5f) * 0.8f);
+            }
+        }
+
+        // Pose sentada: corpo abaixado na cadeira; no modo procedural as pernas
+        // ficam dobradas para a frente como se estivessem sob a mesa.
+        private void SetSeatedPose()
+        {
+            if (_sheetMode)
+            {
+                if (_frames != null && _frames.Length > 0) _bodyImg.sprite = _frames[0];
+                _frameIndex = 0;
+                if (_bodyRt) _bodyRt.anchoredPosition = new Vector2(0f, -14f);
+            }
+            else
+            {
+                // Coxas para a frente (sentado) e pés recolhidos
+                if (_legL) _legL.localRotation = Quaternion.Euler(0f, 0f,  78f);
+                if (_legR) _legR.localRotation = Quaternion.Euler(0f, 0f, -78f);
+                if (_footL) { _footL.anchoredPosition = new Vector2(-16f, -20f); _footL.localScale = Vector3.one; }
+                if (_footR) { _footR.anchoredPosition = new Vector2( 16f, -20f); _footR.localScale = Vector3.one; }
+                if (_bodyProcRt) { _bodyProcRt.anchoredPosition = new Vector2(0f, -8f); _bodyProcRt.localRotation = Quaternion.identity; }
+                if (_shadow) _shadow.localScale = new Vector3(1.1f, 0.9f, 1f);
+            }
+        }
+
+        // Micro-movimento de "digitando" enquanto sentado.
+        private void TickWorking()
+        {
+            _workPhase += Time.deltaTime * 3.2f;
+            float b = Mathf.Sin(_workPhase) * 1.1f;
+            if (_sheetMode)
+            {
+                if (_bodyRt) _bodyRt.anchoredPosition = new Vector2(0f, -14f + b);
+            }
+            else if (_bodyProcRt)
+            {
+                _bodyProcRt.anchoredPosition = new Vector2(0f, -8f + b);
+                _bodyProcRt.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin(_workPhase * 0.6f) * 1.2f);
             }
         }
 
