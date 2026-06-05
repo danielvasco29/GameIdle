@@ -943,8 +943,8 @@ namespace GameIdle
             }
             if (mpsText != null)
             {
-                mpsText.fontSize  = 22; mpsText.fontStyle = FontStyles.Bold;
-                mpsText.color     = new Color(0.75f, 0.92f, 1f, 1f);
+                mpsText.fontSize  = 18; mpsText.fontStyle = FontStyles.Bold;
+                mpsText.color     = new Color(0.75f, 0.88f, 0.95f, 0.85f);
                 var mf2 = GetCachedFont(); if (mf2 != null) mpsText.font = mf2;
             }
             if (prestigeInfoText != null) prestigeInfoText.gameObject.SetActive(false);
