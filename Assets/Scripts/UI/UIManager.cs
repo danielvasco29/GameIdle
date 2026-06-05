@@ -91,16 +91,12 @@ namespace GameIdle
         private static readonly Color BoostCooldown = new(0.25f, 0.28f, 0.38f, 1f);
 
         // Próximo desbloqueio — pulse
-        private Image _nextUnlockBannerBg;
-        private bool  _nextUnlockWasAffordable;
+
 
         // Office workers
         private OfficeWorkerManager _workerManager;
 
         // Próximo desbloqueio
-        private TextMeshProUGUI nextUnlockNameText;
-        private TextMeshProUGUI nextUnlockCostText;
-        private Image nextUnlockBar;
 
         // Stats do Panel_Main
         private TextMeshProUGUI statMpsText;
@@ -1321,7 +1317,7 @@ namespace GameIdle
             {
                 uiRefreshTimer = UiRefreshInterval;
                 RefreshButtonAffordability();
-                RefreshNextUnlockBanner();
+
                 UpdateBoostButton();
                 AchievementManager.CheckAll(); // conquistas de dinheiro acumulado (idle)
                 UpdateNotifyDots();
@@ -1394,7 +1390,7 @@ namespace GameIdle
             {
                 foreach (var btn in characterButtons)
                     if (btn != null) btn.Refresh();
-                RefreshNextUnlockBanner();
+
                 return;
             }
 
@@ -1419,7 +1415,7 @@ namespace GameIdle
                 btn.Setup(chars[i], i);
                 characterButtons.Add(btn);
             }
-            RefreshNextUnlockBanner();
+
         }
 
         private void RefreshButtonAffordability()
@@ -1531,173 +1527,7 @@ namespace GameIdle
 
         // ── Próximo Desbloqueio ───────────────────────────────────────────────
 
-        private void SetupNextUnlockBanner()
-        {
-            var panelLeft = GameObject.Find("Panel_Left");
-            if (panelLeft == null) return;
-
-            const float bannerH = 82f;
-
-            // Encolhe o ScrollView pelo baixo para dar espaço ao banner
-            var scrollView = panelLeft.transform.Find("ScrollView");
-            if (scrollView != null)
-            {
-                var srt = scrollView.GetComponent<RectTransform>();
-                srt.offsetMin = new Vector2(srt.offsetMin.x, bannerH + 4f);
-            }
-
-            // Container do banner — clicável para comprar o próximo personagem
-            var bannerGO = new GameObject("NextUnlockBanner", typeof(RectTransform), typeof(Image), typeof(Button));
-            bannerGO.transform.SetParent(panelLeft.transform, false);
-            var brt = bannerGO.GetComponent<RectTransform>();
-            brt.anchorMin = new Vector2(0f, 0f);
-            brt.anchorMax = new Vector2(1f, 0f);
-            brt.offsetMin = new Vector2(6f, 4f);
-            brt.offsetMax = new Vector2(-6f, bannerH + 4f);
-            _nextUnlockBannerBg = bannerGO.GetComponent<Image>();
-            _nextUnlockBannerBg.sprite = UiSpriteFactory.RoundedBox();
-            _nextUnlockBannerBg.type = Image.Type.Sliced;
-            _nextUnlockBannerBg.color = new Color(0.08f, 0.13f, 0.22f, 1f);
-            _nextUnlockBannerBg.raycastTarget = true;
-            var bannerBtn = bannerGO.GetComponent<Button>();
-            bannerBtn.targetGraphic = _nextUnlockBannerBg;
-            bannerBtn.onClick.AddListener(OnNextUnlockBannerClicked);
-
-            // Borda laranja no topo do banner
-            var topLineGO = new GameObject("TopLine", typeof(RectTransform), typeof(Image));
-            topLineGO.transform.SetParent(bannerGO.transform, false);
-            var tlRT = topLineGO.GetComponent<RectTransform>();
-            tlRT.anchorMin = new Vector2(0f, 1f); tlRT.anchorMax = Vector2.one;
-            tlRT.pivot = new Vector2(0.5f, 1f);
-            tlRT.offsetMin = new Vector2(8f, -3f); tlRT.offsetMax = new Vector2(-8f, 0f);
-            topLineGO.GetComponent<Image>().color = new Color(NeonOrange.r, NeonOrange.g, NeonOrange.b, 0.7f);
-            topLineGO.GetComponent<Image>().raycastTarget = false;
-
-            // Título "PROXIMO DESBLOQUEIO"
-            CreateBannerLabel(bannerGO.transform, "Title",
-                new Vector2(0f, 0.72f), new Vector2(1f, 1f),
-                new Vector2(12f, 0f), new Vector2(-8f, -2f),
-                "PROXIMO DESBLOQUEIO", 12, NeonOrange, TextAlignmentOptions.MidlineLeft);
-
-            // Nome do personagem
-            nextUnlockNameText = CreateBannerLabel(bannerGO.transform, "NextName",
-                new Vector2(0f, 0.38f), new Vector2(0.60f, 0.72f),
-                new Vector2(12f, 0f), Vector2.zero,
-                "", 18, Color.white, TextAlignmentOptions.MidlineLeft);
-
-            // Custo
-            nextUnlockCostText = CreateBannerLabel(bannerGO.transform, "NextCost",
-                new Vector2(0.58f, 0.38f), new Vector2(1f, 0.72f),
-                Vector2.zero, new Vector2(-10f, 0f),
-                "", 17, new Color(1f, 0.92f, 0.35f), TextAlignmentOptions.MidlineRight);
-
-            // Fundo da barra de progresso
-            var barBGGO = new GameObject("BarBG", typeof(RectTransform), typeof(Image));
-            barBGGO.transform.SetParent(bannerGO.transform, false);
-            var barBGRT = barBGGO.GetComponent<RectTransform>();
-            barBGRT.anchorMin = new Vector2(0f, 0f);
-            barBGRT.anchorMax = new Vector2(1f, 0f);
-            barBGRT.offsetMin = new Vector2(10f, 8f);
-            barBGRT.offsetMax = new Vector2(-10f, 22f);
-            var barBGImg = barBGGO.GetComponent<Image>();
-            barBGImg.sprite = UiSpriteFactory.RoundedBox(); barBGImg.type = Image.Type.Sliced;
-            barBGImg.color = new Color(1f, 1f, 1f, 0.08f);
-            barBGImg.raycastTarget = false;
-
-            // Preenchimento da barra
-            var barGO = new GameObject("Bar", typeof(RectTransform), typeof(Image));
-            barGO.transform.SetParent(barBGGO.transform, false);
-            var barRT = barGO.GetComponent<RectTransform>();
-            barRT.anchorMin = Vector2.zero; barRT.anchorMax = Vector2.one;
-            barRT.offsetMin = barRT.offsetMax = Vector2.zero;
-            nextUnlockBar = barGO.GetComponent<Image>();
-            nextUnlockBar.type = Image.Type.Filled;
-            nextUnlockBar.fillMethod = Image.FillMethod.Horizontal;
-            nextUnlockBar.color = NeonOrange;
-            nextUnlockBar.raycastTarget = false;
-
-            RefreshNextUnlockBanner();
-        }
-
-        private TextMeshProUGUI CreateBannerLabel(Transform parent, string name,
-            Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax,
-            string text, float fontSize, Color color, TextAlignmentOptions align)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(parent, false);
-            var rt = go.GetComponent<RectTransform>();
-            rt.anchorMin = anchorMin; rt.anchorMax = anchorMax;
-            rt.offsetMin = offsetMin; rt.offsetMax = offsetMax;
-            var tmp = go.GetComponent<TextMeshProUGUI>();
-            tmp.text = text; tmp.fontSize = fontSize; tmp.fontStyle = FontStyles.Bold;
-            tmp.color = color; tmp.alignment = align;
-            tmp.textWrappingMode = TextWrappingModes.NoWrap; tmp.raycastTarget = false;
-            return tmp;
-        }
-
-        private void RefreshNextUnlockBanner()
-        {
-            if (nextUnlockNameText == null) return;
-            var (next, via) = CharacterManager.Instance.GetNextUnlock();
-            if (next == null)
-            {
-                nextUnlockNameText.text = "Equipe completa!";
-                nextUnlockNameText.color = new Color(0.55f, 0.88f, 1f, 1f);
-                if (nextUnlockCostText != null) nextUnlockCostText.text = "";
-                if (nextUnlockBar != null) { nextUnlockBar.fillAmount = 1f; nextUnlockBar.color = new Color(0.35f, 0.75f, 1f, 0.8f); }
-                if (_nextUnlockBannerBg != null) _nextUnlockBannerBg.color = new Color(0.08f, 0.14f, 0.26f, 1f);
-                _nextUnlockWasAffordable = false;
-                return;
-            }
-            nextUnlockNameText.color = Color.white;
-            nextUnlockNameText.text = $">> {next.data.characterName}";
-            double cost = via.GetCurrentCost();
-            if (nextUnlockCostText != null)
-                nextUnlockCostText.text = $"${NumberFormatter.Format(cost)}";
-
-            bool affordable = GameManager.Instance.Money >= cost;
-            if (nextUnlockBar != null)
-                nextUnlockBar.fillAmount = Mathf.Clamp01((float)(GameManager.Instance.Money / cost));
-
-            // Pulsa o banner ao ficar acessível pela primeira vez
-            if (affordable && !_nextUnlockWasAffordable)
-                StartCoroutine(PulseNextUnlockBanner());
-            _nextUnlockWasAffordable = affordable;
-        }
-
-        private void OnNextUnlockBannerClicked()
-        {
-            var (next, via) = CharacterManager.Instance.GetNextUnlock();
-            if (next == null) return;
-            int idx = System.Array.IndexOf(CharacterManager.Instance.GetAllCharacters(), next);
-            if (idx < 0) return;
-            bool ok = CharacterManager.Instance.TryUpgrade(idx);
-            if (ok)
-            {
-                if (SoundManager.Instance != null) SoundManager.Instance.PlayBuy();
-                RefreshNextUnlockBanner();
-                RefreshButtonAffordability();
-            }
-            else
-            {
-                if (SoundManager.Instance != null) SoundManager.Instance.PlayError();
-                ShowToast("Dinheiro insuficiente!", new Color(1f, 0.3f, 0.3f));
-            }
-        }
-
-        private IEnumerator PulseNextUnlockBanner()
-        {
-            if (_nextUnlockBannerBg == null) yield break;
-            var highlight = new Color(NeonOrange.r, NeonOrange.g, NeonOrange.b, 0.35f);
-            for (int i = 0; i < 3; i++)
-            {
-                float e = 0f;
-                while (e < 0.18f) { e += Time.deltaTime; _nextUnlockBannerBg.color = Color.Lerp(NavyDark, highlight, e / 0.18f); yield return null; }
-                e = 0f;
-                while (e < 0.18f) { e += Time.deltaTime; _nextUnlockBannerBg.color = Color.Lerp(highlight, NavyDark, e / 0.18f); yield return null; }
-            }
-            _nextUnlockBannerBg.color = NavyDark;
-        }
+        private void SetupNextUnlockBanner() { } // removed — pulse happens on the card itself
 
         public void ShowToast(string message, Color? color = null)
         {

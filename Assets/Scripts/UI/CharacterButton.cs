@@ -443,8 +443,15 @@ namespace GameIdle
                 float fill = Mathf.Clamp01((float)(GameManager.Instance.Money / buyCost));
                 costProgressBar.fillAmount = fill;
                 costProgressBar.color = affordable
-                    ? new Color(0.35f, 0.75f, 1f, 0.85f)  // cyan-blue when affordable
+                    ? new Color(0.35f, 0.75f, 1f, 0.85f)
                     : new Color(1f, 1f, 1f, 0.15f);
+            }
+
+            // Pulse the card when it first becomes affordable
+            if (affordable && !wasAffordable)
+            {
+                if (pulseCoroutine != null) StopCoroutine(pulseCoroutine);
+                pulseCoroutine = StartCoroutine(BecameAffordablePulse());
             }
 
             wasAffordable = affordable;
@@ -506,6 +513,28 @@ namespace GameIdle
             }
             if (pulseCoroutine != null) StopCoroutine(pulseCoroutine);
             pulseCoroutine = StartCoroutine(PulseCoroutine());
+        }
+
+        private IEnumerator BecameAffordablePulse()
+        {
+            // 3 quick cyan flashes to draw attention
+            var flash = new Color(0.45f, 0.85f, 1f, 1f);
+            for (int i = 0; i < 3; i++)
+            {
+                float e = 0f;
+                while (e < 0.14f) { e += Time.deltaTime; if (backgroundImage) backgroundImage.color = Color.Lerp(CardColorReady, flash, e / 0.14f); yield return null; }
+                e = 0f;
+                while (e < 0.14f) { e += Time.deltaTime; if (backgroundImage) backgroundImage.color = Color.Lerp(flash, CardColorReady, e / 0.14f); yield return null; }
+            }
+            // Scale bounce
+            transform.localScale = Vector3.one;
+            float t = 0f;
+            while (t < 0.12f) { t += Time.deltaTime; transform.localScale = Vector3.Lerp(Vector3.one, Vector3.one * 1.06f, t / 0.12f); yield return null; }
+            t = 0f;
+            while (t < 0.12f) { t += Time.deltaTime; transform.localScale = Vector3.Lerp(Vector3.one * 1.06f, Vector3.one, t / 0.12f); yield return null; }
+            transform.localScale = Vector3.one;
+            if (backgroundImage) backgroundImage.color = CardColorReady;
+            pulseCoroutine = null;
         }
 
         private IEnumerator PulseCoroutine()
