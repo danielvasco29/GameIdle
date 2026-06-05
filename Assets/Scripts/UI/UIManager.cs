@@ -941,9 +941,9 @@ namespace GameIdle
             {
                 // Reanchor to upper 60% so the /s subtitle fits below
                 var mrt2 = moneyText.rectTransform;
-                mrt2.anchorMin = new Vector2(0.2f, 0.42f);
+                mrt2.anchorMin = new Vector2(0.2f, 0.38f);
                 mrt2.anchorMax = new Vector2(0.8f, 1f);
-                mrt2.offsetMin = mrt2.offsetMax = Vector2.zero;
+                mrt2.offsetMin = new Vector2(0f, 4f); mrt2.offsetMax = Vector2.zero;
                 moneyText.fontSize  = 26; moneyText.fontStyle = FontStyles.Bold;
                 moneyText.color     = Color.white; moneyText.alignment = TextAlignmentOptions.Center;
                 var mf = GetCachedFont(); if (mf != null) moneyText.font = mf;
@@ -953,8 +953,8 @@ namespace GameIdle
                 // Reanchor to sit as a subtitle below the money amount (center, lower half of nav bar)
                 var mrt = mpsText.rectTransform;
                 mrt.anchorMin = new Vector2(0.2f, 0f);
-                mrt.anchorMax = new Vector2(0.8f, 0.44f);
-                mrt.offsetMin = mrt.offsetMax = Vector2.zero;
+                mrt.anchorMax = new Vector2(0.8f, 0.38f);
+                mrt.offsetMin = Vector2.zero; mrt.offsetMax = new Vector2(0f, -4f);
                 mpsText.fontSize  = 19; mpsText.fontStyle = FontStyles.Bold;
                 mpsText.color     = new Color(0.65f, 0.82f, 0.95f, 0.72f);
                 mpsText.alignment = TextAlignmentOptions.Center;
