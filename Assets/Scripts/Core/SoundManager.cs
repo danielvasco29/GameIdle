@@ -244,28 +244,35 @@ namespace GameIdle
 
         // Conversa estilo Simlish: frase de sílabas-vogais com entonação. Usa
         // síntese de formantes (fonte glotal + 2 ressonadores) para soar "falado".
+        // Escala alegre (pentatônica maior) para os saltos não soarem dissonantes.
+        private static readonly int[] PentaSteps = { 0, 2, 4, 7, 9, 12 };
+
         private AudioClip MakeChatter(int variant)
         {
             int n = Rate * 16 / 10; // 1.6 s
             var data = new float[n];
-            float basePitch = 142f + variant * 16f + Random.Range(-10f, 10f);
+            // Voz mais aguda e fofa (em vez do tom grave macabro)
+            float basePitch = 240f + variant * 24f + Random.Range(-12f, 12f);
             int syl = Random.Range(4, 7);
-            bool question = variant == 2;            // uma variação "pergunta" (sobe no fim)
+            bool question = variant == 2;            // variação "pergunta" (sobe no fim)
             float pos = 0.06f;
             for (int s = 0; s < syl; s++)
             {
                 int vi = Random.Range(0, 5);
-                // contorno da frase: leve arco + ajuste na última sílaba
-                int contour = (s == syl - 1) ? (question ? 4 : -3) : Random.Range(-2, 3);
-                float pitch = basePitch * Mathf.Pow(2f, contour / 12f);
-                float dur = Random.Range(0.11f, 0.20f);
+                // contorno melódico em notas da pentatônica (sem dissonância)
+                int note = PentaSteps[Random.Range(0, PentaSteps.Length)];
+                if (s == syl - 1) note = question ? 12 : 0; // resolve grave / sobe (pergunta)
+                float pitch = basePitch * Mathf.Pow(2f, note / 12f);
+                // glissando cantadinho dentro da sílaba
+                float glide = Mathf.Pow(2f, Random.Range(-2, 3) / 12f);
+                float dur = Random.Range(0.09f, 0.16f); // mais curtinhas/bouncy
                 if (pos + dur > n / (float)Rate - 0.05f) break;
 
-                // consoante leve (rufo curto) antes de ~metade das sílabas
-                if (Random.value < 0.5f) RenderKey(data, (int)(pos * Rate) - Rate / 200, 0.10f);
+                // consoante bem leve antes de ~metade das sílabas
+                if (Random.value < 0.45f) RenderKey(data, (int)(pos * Rate) - Rate / 200, 0.06f);
 
-                RenderSyllable(data, (int)(pos * Rate), pitch, dur, Vowels[vi, 0], Vowels[vi, 1], 0.5f);
-                pos += dur + Random.Range(0.03f, 0.10f);
+                RenderSyllable(data, (int)(pos * Rate), pitch, glide, dur, Vowels[vi, 0], Vowels[vi, 1], 0.5f);
+                pos += dur + Random.Range(0.03f, 0.09f);
             }
 
             // Normaliza o clip (os ressonadores têm ganho imprevisível)
@@ -276,33 +283,41 @@ namespace GameIdle
             return Make("chatter" + variant, data);
         }
 
-        // Síntese de formantes: pulsos glotais (no pitch) excitam dois ressonadores
-        // de 2 polos sintonizados nas frequências de formante da vogal.
-        private static void RenderSyllable(float[] data, int start, float pitch, float dur,
-            float f1, float f2, float vol)
+        // Síntese de formantes: um pulso glotal SUAVE (não impulso seco) por período
+        // excita dois ressonadores nas frequências de formante. Saída passa por um
+        // lowpass leve para tirar a aspereza e soar mais "fala" e menos zumbido.
+        private static void RenderSyllable(float[] data, int start, float pitch, float glide,
+            float dur, float f1, float f2, float vol)
         {
             int d = (int)(dur * Rate);
-            float r1 = Mathf.Exp(-Mathf.PI * 90f / Rate);
-            float r2 = Mathf.Exp(-Mathf.PI * 110f / Rate);
+            // ressonadores mais amortecidos (menos drone fantasmagórico)
+            float r1 = Mathf.Exp(-Mathf.PI * 130f / Rate);
+            float r2 = Mathf.Exp(-Mathf.PI * 170f / Rate);
             float a1 = 2f * r1 * Mathf.Cos(2f * Mathf.PI * f1 / Rate), c1 = -r1 * r1;
             float a2 = 2f * r2 * Mathf.Cos(2f * Mathf.PI * f2 / Rate), c2 = -r2 * r2;
             float y1a = 0f, y1b = 0f, y2a = 0f, y2b = 0f;
-            float phase = 0f;
+            float phase = 0f, lp = 0f;
+            const float duty = 0.42f; // largura do pulso glotal
 
             for (int i = 0; i < d && start + i < data.Length; i++)
             {
                 float t = (float)i / Rate;
-                float p = pitch * (1f + 0.015f * Mathf.Sin(2f * Mathf.PI * 5.5f * t)); // vibrato
+                float prog = t / dur;
+                float p = pitch * Mathf.Lerp(1f, glide, prog)        // glissando
+                                * (1f + 0.012f * Mathf.Sin(2f * Mathf.PI * 6.5f * t)); // vibrato
                 phase += p / Rate;
-                float x = 0f;
-                if (phase >= 1f) { phase -= 1f; x = 1f; }            // pulso glotal
+                if (phase >= 1f) phase -= 1f;
+                // pulso glotal suave (raised-cosine ao quadrado) — sem buzz metálico
+                float x = phase < duty ? Mathf.Pow(Mathf.Sin(Mathf.PI * phase / duty), 2f) : 0f;
 
                 float y1 = x + a1 * y1a + c1 * y1b; y1b = y1a; y1a = y1;
                 float y2 = x + a2 * y2a + c2 * y2b; y2b = y2a; y2a = y2;
+                float raw = 0.7f * y1 + 0.45f * y2;
+                lp += 0.45f * (raw - lp);                            // lowpass suave
 
-                float env = Mathf.Sin(Mathf.PI * t / dur);           // vogal entra/sai suave
+                float env = Mathf.Sin(Mathf.PI * prog);              // vogal entra/sai suave
                 if (env < 0f) env = 0f;
-                data[start + i] += (0.7f * y1 + 0.5f * y2) * env * vol;
+                data[start + i] += lp * env * vol;
             }
         }
 
