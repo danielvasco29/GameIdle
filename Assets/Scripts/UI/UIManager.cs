@@ -561,33 +561,57 @@ namespace GameIdle
             for (int i = pmGO.transform.childCount - 1; i >= 0; i--)
             {
                 string n = pmGO.transform.GetChild(i).name;
-                if (n == "PanelBG" || n == "TapButton" || n == "TapValue" || n == "TapValuePill")
+                if (n == "PanelBG" || n == "BgFloor" || n == "BgFurniture" || n == "BgPlants" || n == "BgWindows"
+                    || n == "TapButton" || n == "TapValue" || n == "TapValuePill")
                     DestroyImmediate(pmGO.transform.GetChild(i).gameObject);
             }
 
-            // Fundo escuro para o painel principal
-            var bgGO = new GameObject("PanelBG", typeof(RectTransform), typeof(Image));
-            bgGO.transform.SetParent(pmGO.transform, false);
-            bgGO.transform.SetAsFirstSibling();
-            var bgRT = bgGO.GetComponent<RectTransform>();
-            bgRT.anchorMin = Vector2.zero;
-            bgRT.anchorMax = Vector2.one;
-            bgRT.offsetMin = bgRT.offsetMax = Vector2.zero;
-            var bgImg = bgGO.GetComponent<Image>();
-            // Try loading office background art; fall back to solid navy
-            var officeTex = Resources.Load<Texture2D>("UI/office_bg");
-            if (officeTex != null)
+            // ── Layered background ───────────────────────────────────────────
+            Image SpawnBgLayer(string resPath, string goName, bool animated = false)
             {
-                bgImg.sprite = Sprite.Create(officeTex, new Rect(0, 0, officeTex.width, officeTex.height), new Vector2(0.5f, 0.5f));
-                bgImg.type = Image.Type.Simple;
-                bgImg.preserveAspect = false;
-                bgImg.color = Color.white;
+                var tex = Resources.Load<Texture2D>(resPath);
+                var layerGO = new GameObject(goName, typeof(RectTransform), typeof(Image));
+                layerGO.transform.SetParent(pmGO.transform, false);
+                var lrt = layerGO.GetComponent<RectTransform>();
+                lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
+                lrt.offsetMin = lrt.offsetMax = Vector2.zero;
+                var img = layerGO.GetComponent<Image>();
+                img.raycastTarget = false;
+                if (tex != null)
+                {
+                    img.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
+                    img.type = Image.Type.Simple;
+                    img.preserveAspect = false;
+                    img.color = Color.white;
+                }
+                else
+                {
+                    img.color = new Color(0, 0, 0, 0); // transparent if missing
+                }
+                return img;
             }
-            else
-            {
-                bgImg.color = NavyDark;
-            }
-            bgImg.raycastTarget = false;
+
+            var floorImg     = SpawnBgLayer("Backgrounds/bg_floor",     "BgFloor");
+            var furnitureImg = SpawnBgLayer("Backgrounds/bg_furniture",  "BgFurniture");
+            var plantsImg    = SpawnBgLayer("Backgrounds/bg_plants",     "BgPlants");
+            var windowsImg   = SpawnBgLayer("Backgrounds/bg_windows",    "BgWindows");
+
+            // Fallback: solid navy if no floor texture
+            if (floorImg.sprite == null) floorImg.color = NavyDark;
+
+            // Animate plants (gentle sway)
+            if (plantsImg.sprite != null)
+                StartCoroutine(AnimatePlants(plantsImg.GetComponent<RectTransform>()));
+
+            // Animate windows (light pulse)
+            if (windowsImg.sprite != null)
+                StartCoroutine(AnimateWindows(windowsImg));
+
+            // Sort layers
+            floorImg.transform.SetAsFirstSibling();
+            furnitureImg.transform.SetSiblingIndex(1);
+            plantsImg.transform.SetSiblingIndex(2);
+            windowsImg.transform.SetSiblingIndex(3);
 
             // Botão principal circular — camadas empilhadas: ring → glow → borda → face → sheen → label
             var tapGO = new GameObject("TapButton", typeof(RectTransform), typeof(Button));
@@ -1290,6 +1314,34 @@ namespace GameIdle
 
             prestigeButtonLabel.color = ready ? new Color(1f, 0.95f, 0.70f) : Color.white;
             prestigeButtonLabel.fontSize = 17f;
+        }
+
+        // ── Background Animations ─────────────────────────────────────────────
+
+        private IEnumerator AnimatePlants(RectTransform rt)
+        {
+            float phase = Random.Range(0f, Mathf.PI * 2f);
+            rt.pivot = new Vector2(0.5f, 0f); // sway from bottom
+            while (true)
+            {
+                phase += Time.deltaTime * 0.6f;
+                float sway = Mathf.Sin(phase) * 0.4f + Mathf.Sin(phase * 1.7f) * 0.2f;
+                rt.localRotation = Quaternion.Euler(0f, 0f, sway);
+                yield return null;
+            }
+        }
+
+        private IEnumerator AnimateWindows(Image img)
+        {
+            float phase = 0f;
+            Color baseColor = Color.white;
+            while (true)
+            {
+                phase += Time.deltaTime * 0.3f;
+                float pulse = 0.88f + Mathf.Sin(phase) * 0.06f + Mathf.Sin(phase * 2.3f) * 0.03f;
+                img.color = new Color(pulse, pulse, pulse, 1f);
+                yield return null;
+            }
         }
 
         // ── Floating Money ────────────────────────────────────────────────────
