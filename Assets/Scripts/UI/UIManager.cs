@@ -1335,8 +1335,8 @@ namespace GameIdle
                 srt.offsetMin = new Vector2(srt.offsetMin.x, 75f);
             }
 
-            // Container do banner
-            var bannerGO = new GameObject("NextUnlockBanner", typeof(RectTransform), typeof(Image));
+            // Container do banner — clicável para comprar o próximo personagem
+            var bannerGO = new GameObject("NextUnlockBanner", typeof(RectTransform), typeof(Image), typeof(Button));
             bannerGO.transform.SetParent(panelLeft.transform, false);
             var brt = bannerGO.GetComponent<RectTransform>();
             brt.anchorMin = new Vector2(0f, 0f);
@@ -1345,7 +1345,10 @@ namespace GameIdle
             brt.offsetMax = new Vector2(0f, 75f);
             _nextUnlockBannerBg = bannerGO.GetComponent<Image>();
             _nextUnlockBannerBg.color = NavyDark;
-            _nextUnlockBannerBg.raycastTarget = false;
+            _nextUnlockBannerBg.raycastTarget = true;
+            var bannerBtn = bannerGO.GetComponent<Button>();
+            bannerBtn.targetGraphic = _nextUnlockBannerBg;
+            bannerBtn.onClick.AddListener(OnNextUnlockBannerClicked);
 
             // Título "PRÓXIMO DESBLOQUEIO"
             CreateBannerLabel(bannerGO.transform, "Title",
@@ -1432,6 +1435,26 @@ namespace GameIdle
             if (affordable && !_nextUnlockWasAffordable)
                 StartCoroutine(PulseNextUnlockBanner());
             _nextUnlockWasAffordable = affordable;
+        }
+
+        private void OnNextUnlockBannerClicked()
+        {
+            var (next, via) = CharacterManager.Instance.GetNextUnlock();
+            if (next == null) return;
+            int idx = System.Array.IndexOf(CharacterManager.Instance.GetAllCharacters(), next);
+            if (idx < 0) return;
+            bool ok = CharacterManager.Instance.TryUpgrade(idx);
+            if (ok)
+            {
+                if (SoundManager.Instance != null) SoundManager.Instance.PlayBuy();
+                RefreshNextUnlockBanner();
+                RefreshButtonAffordability();
+            }
+            else
+            {
+                if (SoundManager.Instance != null) SoundManager.Instance.PlayError();
+                ShowToast("Dinheiro insuficiente!", new Color(1f, 0.3f, 0.3f));
+            }
         }
 
         private IEnumerator PulseNextUnlockBanner()
