@@ -65,10 +65,15 @@ namespace GameIdle
         {
             if (index < 0 || index >= characters.Length) return 0;
             var c = characters[index];
+            // Multiplier characters scale exponentially (multiplier^level), so
+            // bulk-buying them runs away instantly. They're always bought 1 at a
+            // time; x10/Máx only apply to producers.
+            if (c.data.type == CharacterType.Multiplier)
+                return c.ClampPurchaseCount(1);
             int count = BuyAmount == -1
                 ? c.GetMaxAffordable(GameManager.Instance.Money)
                 : BuyAmount;
-            return c.ClampPurchaseCount(count); // keep multipliers finite
+            return c.ClampPurchaseCount(count);
         }
 
         // Total cost for the resolved purchase count above.
@@ -83,10 +88,12 @@ namespace GameIdle
             if (index < 0 || index >= characters.Length) return false;
 
             var character = characters[index];
-            int count = BuyAmount == -1
-                ? character.GetMaxAffordable(GameManager.Instance.Money)
-                : BuyAmount;
-            count = character.ClampPurchaseCount(count); // keep multipliers finite
+            int count = character.data.type == CharacterType.Multiplier
+                ? 1 // multipliers always buy one level at a time (no runaway)
+                : (BuyAmount == -1
+                    ? character.GetMaxAffordable(GameManager.Instance.Money)
+                    : BuyAmount);
+            count = character.ClampPurchaseCount(count);
             if (count < 1) return false;
 
             double cost = character.GetCostForLevels(count);
