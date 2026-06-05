@@ -227,6 +227,9 @@ namespace GameIdle
 
             if (tex != null)
             {
+                // Strip baked-in white/gray/checkerboard backgrounds
+                tex = SpriteBackgroundRemover.Process(tex);
+
                 // If sprite sheet (width >> height), use only the first frame
                 int fw = tex.width;
                 int fh = tex.height;

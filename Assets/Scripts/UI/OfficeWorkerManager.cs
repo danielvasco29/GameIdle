@@ -69,6 +69,9 @@ namespace GameIdle
             if (tex == null) tex = Resources.Load<Texture2D>($"Characters/Sprites/{ci.data.characterName}");
             if (tex == null) return null;
 
+            // Strip baked-in white/gray/checkerboard backgrounds via flood-fill.
+            tex = SpriteBackgroundRemover.Process(tex);
+
             int fh = tex.height;
 
             // Sprite sheet: width is at least 2x height
@@ -127,7 +130,6 @@ namespace GameIdle
 
                 var bodyImg = bodyGO.GetComponent<Image>();
                 bodyImg.sprite = frames[0];
-                bodyImg.material = UiSpriteFactory.WhiteDiscardMaterial();
                 bodyImg.raycastTarget = false;
                 bodyImg.preserveAspect = true;
 
@@ -192,7 +194,6 @@ namespace GameIdle
                     prt2.offsetMin = prt2.offsetMax = Vector2.zero;
                     var portImg2 = portGO2.GetComponent<Image>();
                     portImg2.sprite = frames[0];
-                    portImg2.material = UiSpriteFactory.WhiteDiscardMaterial();
                     portImg2.raycastTarget = false;
                     portImg2.preserveAspect = true;
                 }
