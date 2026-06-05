@@ -19,27 +19,31 @@ namespace GameIdle
         // 10 spots espalhados pelos landmarks e pelo chão aberto. Evita de
         // propósito o canto inferior-direito (mesa colada no botão TRABALHAR).
         // Com a reserva 1-por-spot, os personagens não se sobrepõem.
+        // Coordenadas calibradas pelos landmarks reais do escritório (mapeadas a
+        // partir do screenshot). y é "para cima"; o centro do chão fica perto de (20,55).
         public static readonly Vector2[] SpreadPositions =
         {
-            // fileira de trás / landmarks (em pé)
-            new(-380f,   10f), // mesa esquerda
-            new(-200f,   30f), // chão fundo-esquerda
-            new(  20f,   55f), // bebedouro de água (centro-topo)
-            new( 210f,   35f), // chão fundo-centro
-            new( 380f,   20f), // sofá (direita, em cima)
-            // cadeiras nas mesas (sentado)
-            new(-340f,  -70f), // cadeira mesa esquerda
-            new(-150f,  -80f), // cadeira mesa centro-esquerda
-            new(  40f,  -80f), // cadeira mesa centro
-            new( 220f,  -70f), // cadeira mesa centro-direita
-            new( -60f, -120f), // chão frente-central (em pé)
+            // mesas (em pé trabalhando)
+            new(-556f, 261f), // mesa esquerda (cima) — cadeira 1
+            new(-420f, 235f), // mesa esquerda (cima) — cadeira 2
+            new(-505f, -79f), // mesa esquerda (baixo) — cadeira 1
+            new(-403f, -96f), // mesa esquerda (baixo) — cadeira 2
+            // landmarks (em pé)
+            new(-344f, 363f), // bebedouro de água
+            new( 404f, 201f), // sofá
+            // chão aberto (em pé, circulando)
+            new(  20f,  55f), // centro
+            new(-150f, 120f), // centro-fundo
+            new( 180f,  20f), // centro-direita
+            new(-200f, -120f), // frente-esquerda
         };
 
-        // Quais spots são cadeiras (o personagem senta e "trabalha").
+        // Quais spots são mesas (o personagem fica mais tempo "trabalhando").
         public static readonly bool[] IsSeat =
         {
-            false, false, false, false, false,
-            true,  true,  true,  true,  false,
+            true,  true,  true,  true,
+            false, false,
+            false, false, false, false,
         };
 
         public void Init(RectTransform panelMain)
