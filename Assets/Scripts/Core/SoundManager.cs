@@ -11,6 +11,18 @@ namespace GameIdle
         public static bool Muted { get; private set; }
         public static void ToggleMute() => Muted = !Muted;
 
+        // Música de fundo (lounge/jazz estilo Sims 1) — gerada em runtime.
+        public static bool MusicMuted { get; private set; }
+        public static void ToggleMusic()
+        {
+            MusicMuted = !MusicMuted;
+            if (Instance != null && Instance.musicSrc != null)
+            {
+                if (MusicMuted) Instance.musicSrc.Pause();
+                else            Instance.musicSrc.UnPause();
+            }
+        }
+
         public static SoundManager Get()
         {
             if (Instance == null)
@@ -23,6 +35,7 @@ namespace GameIdle
         }
 
         private AudioSource src;
+        private AudioSource musicSrc;
         private AudioClip clickClip, buyClip, prestigeClip, errorClip, coinClip;
 
         private void Awake()
@@ -42,6 +55,15 @@ namespace GameIdle
             buyClip      = MakeBuy();
             prestigeClip = MakePrestige();
             errorClip    = MakeError();
+
+            // Trilha de fundo em loop
+            musicSrc = gameObject.AddComponent<AudioSource>();
+            musicSrc.playOnAwake = false;
+            musicSrc.spatialBlend = 0f;
+            musicSrc.loop = true;
+            musicSrc.volume = 0.32f;
+            musicSrc.clip = MakeMusicLoop();
+            if (!MusicMuted) musicSrc.Play();
         }
 
         private void PlayClip(AudioClip clip, float pitch = 1f, float vol = 1f)
@@ -144,6 +166,135 @@ namespace GameIdle
             RenderTock(data, 0,                    200f, 26f, 0.55f);
             RenderTock(data, (int)(0.11f * Rate),  150f, 24f, 0.55f);
             return Make("error", data);
+        }
+
+        // ── Música de fundo: lounge/jazz relaxado (pegada Sims 1) ───────────────
+        // Tudo gerado por código: baixo caminhando, comping de vibrafone com
+        // tremolo, melodia esparsa com swing e um chiado de vassoura bem leve.
+        // Renderizado num buffer que dá loop perfeito (caudas dão wrap-around).
+
+        private static float MidiToFreq(int midi) => 440f * Mathf.Pow(2f, (midi - 69) / 12f);
+
+        // Soma um sample com wrap circular para o loop fechar sem clique.
+        private static void Add(float[] buf, int i, float v)
+        {
+            int L = buf.Length;
+            buf[((i % L) + L) % L] += v;
+        }
+
+        // Voz tonal quente (sine + harmônicos) com envelope de decaimento e tremolo
+        // opcional (caráter de vibrafone).
+        private static void RenderVoice(float[] buf, int start, float freq, float durSec,
+            float decay, float vol, float h2, float h3, float tremHz)
+        {
+            int dur = (int)(durSec * Rate);
+            for (int k = 0; k < dur; k++)
+            {
+                float t = (float)k / Rate;
+                float env = Mathf.Exp(-t * decay);
+                if (env < 0.0006f) break;
+                // ataque suave (~6 ms) para não estalar
+                float atk = t < 0.006f ? t / 0.006f : 1f;
+                float w = 2f * Mathf.PI * freq * t;
+                float s = Mathf.Sin(w) + h2 * Mathf.Sin(2f * w) + h3 * Mathf.Sin(3f * w);
+                float trem = tremHz > 0f ? (0.85f + 0.15f * Mathf.Sin(2f * Mathf.PI * tremHz * t)) : 1f;
+                Add(buf, start + k, s * env * atk * trem * vol);
+            }
+        }
+
+        // Chiado curto de vassoura/hi-hat (ruído filtrado passa-altas leve).
+        private static void RenderBrush(float[] buf, int start, float durSec, float decay, float vol)
+        {
+            int dur = (int)(durSec * Rate);
+            float prev = 0f, hp = 0f;
+            for (int k = 0; k < dur; k++)
+            {
+                float t = (float)k / Rate;
+                float env = Mathf.Exp(-t * decay);
+                if (env < 0.0006f) break;
+                float raw = Random.value * 2f - 1f;
+                hp = 0.9f * (hp + raw - prev); // passa-altas simples
+                prev = raw;
+                Add(buf, start + k, hp * env * vol);
+            }
+        }
+
+        private AudioClip MakeMusicLoop()
+        {
+            const float bpm = 92f;
+            float beat = 60f / bpm;                 // seg por tempo
+            int beatN = (int)(beat * Rate);          // amostras por tempo
+            const int bars = 4, bpb = 4;             // 4 compassos, 4/4
+            int L = bars * bpb * beatN;
+            var buf = new float[L];
+
+            // Progressão I-VI-ii-V em Dó: Cmaj7, A7, Dm7, G7 (fecha o loop redondo)
+            int[][] chords =
+            {
+                new[] { 60, 64, 67, 71 }, // Cmaj7  C E G B
+                new[] { 57, 61, 64, 67 }, // A7     A C# E G
+                new[] { 62, 65, 69, 72 }, // Dm7    D F A C
+                new[] { 55, 59, 62, 67 }, // G7     G B D F
+            };
+            int[] roots = { 36, 33, 38, 43 };        // baixo grave (C2,A1,D2,G2)
+
+            float swing = 0.62f;                      // colcheia "and" atrasada
+
+            for (int bar = 0; bar < bars; bar++)
+            {
+                int barStart = bar * bpb * beatN;
+                int[] ch = chords[bar];
+                int root = roots[bar];
+                int nextRoot = roots[(bar + 1) % bars];
+
+                // Baixo caminhando: tônica, quinta, oitava, aproximação cromática
+                int approach = nextRoot + (root <= nextRoot ? -1 : 1);
+                int[] walk = { root, root + 7, root + 12, approach };
+                for (int b = 0; b < bpb; b++)
+                    RenderVoice(buf, barStart + b * beatN, MidiToFreq(walk[b]),
+                        beat * 0.95f, 4.2f, 0.50f, 0.25f, 0.06f, 0f);
+
+                // Comping de vibrafone: acorde no tempo 1 (cheio) e no "and" do 2 e do 4
+                void Comp(float beatPos, float v)
+                {
+                    int s = barStart + (int)(beatPos * beatN);
+                    foreach (int n in ch)
+                        RenderVoice(buf, s, MidiToFreq(n + 12), 0.9f, 3.0f, v, 0.30f, 0.10f, 5.5f);
+                }
+                Comp(0f, 0.085f);
+                Comp(1f + swing, 0.06f);
+                Comp(3f + swing, 0.06f);
+
+                // Melodia esparsa e relaxada (tons do acorde, oitava acima)
+                void Mel(float beatPos, int note, float dur, float v)
+                {
+                    int s = barStart + (int)(beatPos * beatN);
+                    RenderVoice(buf, s, MidiToFreq(note + 12), dur, 2.4f, v, 0.22f, 0.07f, 6f);
+                }
+                Mel(0.5f + swing, ch[2], beat * 1.1f, 0.16f);  // quinta
+                Mel(2f,           ch[3], beat * 0.9f, 0.15f);  // sétima
+                Mel(2.5f + swing, ch[1], beat * 1.2f, 0.16f);  // terça
+
+                // Groove leve: hi-hat em cada tempo + vassoura nos tempos 2 e 4
+                for (int b = 0; b < bpb; b++)
+                {
+                    RenderBrush(buf, barStart + b * beatN, 0.05f, 70f, 0.030f);
+                    RenderBrush(buf, barStart + (int)((b + swing) * beatN), 0.04f, 90f, 0.020f);
+                }
+                RenderBrush(buf, barStart + 1 * beatN, 0.12f, 26f, 0.045f);
+                RenderBrush(buf, barStart + 3 * beatN, 0.12f, 26f, 0.045f);
+            }
+
+            // Normaliza para evitar clipping
+            float peak = 0f;
+            for (int i = 0; i < L; i++) peak = Mathf.Max(peak, Mathf.Abs(buf[i]));
+            if (peak > 0.0001f)
+            {
+                float g = 0.85f / peak;
+                for (int i = 0; i < L; i++) buf[i] *= g;
+            }
+
+            return Make("music", buf);
         }
 
         private static AudioClip Make(string name, float[] data)

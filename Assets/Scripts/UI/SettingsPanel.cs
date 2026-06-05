@@ -32,8 +32,8 @@ namespace GameIdle
         private void BuildUI()
         {
             var rt = GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0.18f, 0.28f);
-            rt.anchorMax = new Vector2(0.82f, 0.72f);
+            rt.anchorMin = new Vector2(0.18f, 0.20f);
+            rt.anchorMax = new Vector2(0.82f, 0.80f);
             rt.offsetMin = rt.offsetMax = Vector2.zero;
 
             var bg = gameObject.AddComponent<Image>();
@@ -46,12 +46,38 @@ namespace GameIdle
             trt.anchorMin = new Vector2(0f, 1f); trt.anchorMax = new Vector2(1f, 1f);
             trt.offsetMin = new Vector2(0f, -54f); trt.offsetMax = new Vector2(0f, -10f);
 
-            MakeButton("ResetBtn", "RESETAR JOGO", Red, new Vector2(0.1f, 0.62f), new Vector2(0.9f, 0.78f),
+            MakeToggle("MusicBtn", "MUSICA", new Vector2(0.1f, 0.78f), new Vector2(0.9f, 0.90f),
+                () => !SoundManager.MusicMuted, SoundManager.ToggleMusic);
+            MakeToggle("SfxBtn", "SOM", new Vector2(0.1f, 0.64f), new Vector2(0.9f, 0.76f),
+                () => !SoundManager.Muted, SoundManager.ToggleMute);
+
+            MakeButton("ResetBtn", "RESETAR JOGO", Red, new Vector2(0.1f, 0.46f), new Vector2(0.9f, 0.58f),
                 ShowResetConfirm);
-            MakeButton("QuitBtn", "SAIR DO JOGO", NavyCard, new Vector2(0.1f, 0.42f), new Vector2(0.9f, 0.58f),
+            MakeButton("QuitBtn", "SAIR DO JOGO", NavyCard, new Vector2(0.1f, 0.32f), new Vector2(0.9f, 0.44f),
                 QuitGame);
-            MakeButton("CloseBtn", "FECHAR", NavyCard, new Vector2(0.1f, 0.1f), new Vector2(0.9f, 0.26f),
+            MakeButton("CloseBtn", "FECHAR", NavyCard, new Vector2(0.1f, 0.06f), new Vector2(0.9f, 0.18f),
                 () => gameObject.SetActive(false));
+        }
+
+        // Botão liga/desliga que reflete o estado (ON verde / OFF cinza).
+        private void MakeToggle(string goName, string label, Vector2 aMin, Vector2 aMax,
+                                System.Func<bool> isOn, System.Action onToggle)
+        {
+            var green = new Color(0.247f, 0.749f, 0.353f, 1f);
+            var gray  = new Color(0.30f, 0.34f, 0.42f, 1f);
+
+            Button btn = null;
+            TextMeshProUGUI lbl = null;
+            void Apply()
+            {
+                bool on = isOn();
+                if (btn != null) btn.GetComponent<Image>().color = on ? green : gray;
+                if (lbl != null) lbl.text = $"{label}: {(on ? "ON" : "OFF")}";
+            }
+
+            btn = MakeButton(goName, label, gray, aMin, aMax, () => { onToggle(); Apply(); });
+            lbl = btn.GetComponentInChildren<TextMeshProUGUI>();
+            Apply();
         }
 
         private void ShowResetConfirm()
