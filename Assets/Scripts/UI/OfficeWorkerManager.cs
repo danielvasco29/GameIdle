@@ -5,17 +5,25 @@ using UnityEngine.UI;
 
 namespace GameIdle
 {
-    // Gerencia avatares de funcionários que caminham pelo escritório (Panel_Main).
-    // Chame Init(panelMain) logo após SetupTapButton, e SyncWorkers() quando os
-    // personagens forem atualizados.
     public class OfficeWorkerManager : MonoBehaviour
     {
         private RectTransform _panel;
         private readonly List<WorkerAvatar> _workers = new();
 
-        // Área de caminhada dentro do Panel_Main (em espaço local do panel)
-        private static readonly Vector2 WalkMin = new(-600f, -320f);
-        private static readonly Vector2 WalkMax = new( 600f,  160f);
+        // Fixed desk positions in Panel_Main local space (isometric layout)
+        private static readonly Vector2[] DeskPositions =
+        {
+            new(-430f, -55f),
+            new(-290f,  -5f),
+            new(-150f,  25f),
+            new(-390f,-135f),
+            new(-250f, -90f),
+            new(  90f,-100f),
+            new( 230f, -55f),
+            new( 370f, -85f),
+            new( 490f,-125f),
+            new( 560f, -95f),
+        };
 
         public void Init(RectTransform panelMain)
         {
@@ -36,14 +44,11 @@ namespace GameIdle
             if (_panel == null) return;
 
             var chars = CharacterManager.Instance.GetAllCharacters();
-
-            // Coleta personagens ativos (level > 0), limitado a 10 avatares
             var active = new List<CharacterInstance>();
             foreach (var c in chars)
                 if (c.level > 0) active.Add(c);
-            if (active.Count > 10) active = active.GetRange(0, 10);
+            if (active.Count > DeskPositions.Length) active = active.GetRange(0, DeskPositions.Length);
 
-            // Remove avatares a mais
             while (_workers.Count > active.Count)
             {
                 var w = _workers[_workers.Count - 1];
@@ -51,15 +56,14 @@ namespace GameIdle
                 if (w != null) Destroy(w.gameObject);
             }
 
-            // Adiciona avatares faltando
             for (int i = _workers.Count; i < active.Count; i++)
             {
-                var avatar = SpawnWorker(active[i]);
+                var avatar = SpawnWorker(active[i], i);
                 _workers.Add(avatar);
             }
         }
 
-        private WorkerAvatar SpawnWorker(CharacterInstance ci)
+        private WorkerAvatar SpawnWorker(CharacterInstance ci, int deskIndex)
         {
             var go = new GameObject("Worker_" + ci.data.characterName,
                 typeof(RectTransform), typeof(Image), typeof(WorkerAvatar));
@@ -67,16 +71,14 @@ namespace GameIdle
 
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(48f, 48f);
-            rt.anchoredPosition = RandomPos();
+            rt.sizeDelta = new Vector2(54f, 54f);
+            rt.anchoredPosition = DeskPositions[deskIndex];
 
-            // Fundo circular colorido
             var bg = go.GetComponent<Image>();
             bg.sprite = UiSpriteFactory.Circle();
-            bg.color  = new Color(ci.data.tintColor.r, ci.data.tintColor.g, ci.data.tintColor.b, 0.9f);
+            bg.color  = new Color(ci.data.tintColor.r, ci.data.tintColor.g, ci.data.tintColor.b, 0.92f);
             bg.raycastTarget = false;
 
-            // Portrait dentro (child com Mask)
             var maskGO = new GameObject("Mask", typeof(RectTransform), typeof(Image), typeof(Mask));
             maskGO.transform.SetParent(go.transform, false);
             var mrt = maskGO.GetComponent<RectTransform>();
@@ -102,53 +104,109 @@ namespace GameIdle
                 portImg.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
 
             var avatar = go.GetComponent<WorkerAvatar>();
-            avatar.Init(rt, WalkMin, WalkMax);
+            avatar.Init(rt, DeskPositions[deskIndex]);
             return avatar;
         }
-
-        private static Vector2 RandomPos() =>
-            new(Random.Range(WalkMin.x, WalkMax.x), Random.Range(WalkMin.y, WalkMax.y));
     }
 
-    // Comportamento individual de cada avatar: caminha para um alvo, espera, repete.
     public class WorkerAvatar : MonoBehaviour
     {
         private RectTransform _rt;
-        private Vector2 _min, _max;
+        private Vector2 _desk;
 
-        public void Init(RectTransform rt, Vector2 min, Vector2 max)
+        public void Init(RectTransform rt, Vector2 deskPos)
         {
-            _rt = rt; _min = min; _max = max;
-            StartCoroutine(Wander());
+            _rt = rt;
+            _desk = deskPos;
+            _rt.anchoredPosition = deskPos;
+            StartCoroutine(WorkCycle());
         }
 
-        private IEnumerator Wander()
+        private IEnumerator WorkCycle()
         {
+            // Stagger startup so not all workers animate in sync
+            yield return new WaitForSeconds(Random.Range(0f, 2f));
+
             while (true)
             {
-                // Espera aleatória antes de andar
-                yield return new WaitForSeconds(Random.Range(0.5f, 2.5f));
+                // Work at desk for 15-35 seconds
+                float workDuration = Random.Range(15f, 35f);
+                yield return StartCoroutine(WorkAtDesk(workDuration));
 
-                Vector2 target = new(Random.Range(_min.x, _max.x), Random.Range(_min.y, _max.y));
-                float speed    = Random.Range(55f, 95f); // px/s
-                float dist     = Vector2.Distance(_rt.anchoredPosition, target);
-                float duration = dist / speed;
-
-                // Flip horizontal conforme direção
-                bool goingRight = target.x > _rt.anchoredPosition.x;
-                _rt.localScale = new Vector3(goingRight ? 1f : -1f, 1f, 1f);
-
-                Vector2 start = _rt.anchoredPosition;
-                float elapsed = 0f;
-                while (elapsed < duration)
-                {
-                    elapsed += Time.deltaTime;
-                    _rt.anchoredPosition = Vector2.Lerp(start, target, elapsed / duration);
-                    yield return null;
-                }
-                _rt.anchoredPosition = target;
-                _rt.localScale = Vector3.one;
+                // Take a short break — walk a few pixels away and back
+                yield return StartCoroutine(TakeBreak());
             }
+        }
+
+        private IEnumerator WorkAtDesk(float duration)
+        {
+            float elapsed = 0f;
+            float bobSpeed  = Random.Range(1.8f, 2.6f);  // cycles per second
+            float bobAmp    = Random.Range(2.2f, 3.5f);  // pixels
+            float tiltAmp   = Random.Range(0.8f, 1.4f);  // degrees
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed * bobSpeed * Mathf.PI * 2f;
+                // Subtle bob (typing motion)
+                float bobY = Mathf.Sin(t) * bobAmp;
+                // Very slight tilt (leaning into screen)
+                float tiltZ = Mathf.Sin(t * 0.5f) * tiltAmp;
+                _rt.anchoredPosition = _desk + new Vector2(0f, bobY);
+                _rt.localRotation = Quaternion.Euler(0f, 0f, tiltZ);
+                yield return null;
+            }
+
+            // Reset to neutral
+            _rt.anchoredPosition = _desk;
+            _rt.localRotation = Quaternion.identity;
+        }
+
+        private IEnumerator TakeBreak()
+        {
+            // Pick a nearby "break" spot (small offset from desk)
+            Vector2 breakSpot = _desk + new Vector2(
+                Random.Range(-60f, 60f),
+                Random.Range(-30f, 30f));
+
+            // Walk to break spot
+            yield return StartCoroutine(WalkTo(breakSpot, 70f));
+
+            // Wait briefly
+            yield return new WaitForSeconds(Random.Range(1.5f, 3.5f));
+
+            // Walk back to desk
+            yield return StartCoroutine(WalkTo(_desk, 70f));
+        }
+
+        private IEnumerator WalkTo(Vector2 target, float speed)
+        {
+            float dist = Vector2.Distance(_rt.anchoredPosition, target);
+            if (dist < 1f) yield break;
+
+            float duration = dist / speed;
+            Vector2 start = _rt.anchoredPosition;
+            float elapsed = 0f;
+
+            bool goRight = target.x >= start.x;
+            _rt.localScale = new Vector3(goRight ? 1f : -1f, 1f, 1f);
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                // Smooth step for natural movement
+                float smooth = t * t * (3f - 2f * t);
+                _rt.anchoredPosition = Vector2.Lerp(start, target, smooth);
+                // Slight vertical bob while walking
+                _rt.anchoredPosition += new Vector2(0f, Mathf.Sin(elapsed * 12f) * 2f);
+                yield return null;
+            }
+
+            _rt.anchoredPosition = target;
+            _rt.localScale = Vector3.one;
+            _rt.localRotation = Quaternion.identity;
         }
     }
 }
