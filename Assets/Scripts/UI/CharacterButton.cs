@@ -517,22 +517,12 @@ namespace GameIdle
 
         private IEnumerator BecameAffordablePulse()
         {
-            // 3 quick cyan flashes to draw attention
-            var flash = new Color(0.45f, 0.85f, 1f, 1f);
-            for (int i = 0; i < 3; i++)
-            {
-                float e = 0f;
-                while (e < 0.14f) { e += Time.deltaTime; if (backgroundImage) backgroundImage.color = Color.Lerp(CardColorReady, flash, e / 0.14f); yield return null; }
-                e = 0f;
-                while (e < 0.14f) { e += Time.deltaTime; if (backgroundImage) backgroundImage.color = Color.Lerp(flash, CardColorReady, e / 0.14f); yield return null; }
-            }
-            // Scale bounce
-            transform.localScale = Vector3.one;
-            float t = 0f;
-            while (t < 0.12f) { t += Time.deltaTime; transform.localScale = Vector3.Lerp(Vector3.one, Vector3.one * 1.06f, t / 0.12f); yield return null; }
-            t = 0f;
-            while (t < 0.12f) { t += Time.deltaTime; transform.localScale = Vector3.Lerp(Vector3.one * 1.06f, Vector3.one, t / 0.12f); yield return null; }
-            transform.localScale = Vector3.one;
+            // Single gentle flash + small scale nudge
+            var flash = new Color(0.40f, 0.78f, 1f, 1f);
+            float e = 0f;
+            while (e < 0.20f) { e += Time.deltaTime; if (backgroundImage) backgroundImage.color = Color.Lerp(CardColorReady, flash, e / 0.20f); yield return null; }
+            e = 0f;
+            while (e < 0.30f) { e += Time.deltaTime; if (backgroundImage) backgroundImage.color = Color.Lerp(flash, CardColorReady, e / 0.30f); yield return null; }
             if (backgroundImage) backgroundImage.color = CardColorReady;
             pulseCoroutine = null;
         }
