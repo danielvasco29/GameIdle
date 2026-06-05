@@ -101,7 +101,7 @@ namespace GameIdle
             AutoFindComponents();
 
             var le = GetComponent<LayoutElement>() ?? gameObject.AddComponent<LayoutElement>();
-            le.minHeight = le.preferredHeight = 100;
+            le.minHeight = le.preferredHeight = 108;
             le.flexibleHeight = 0;
 
             // Rounded card background
@@ -144,7 +144,7 @@ namespace GameIdle
             var ringRT = ringGO.GetComponent<RectTransform>();
             ringRT.anchorMin = ringRT.anchorMax = ringRT.pivot = new Vector2(0f, 0.5f);
             ringRT.anchoredPosition = new Vector2(7f, 0f);
-            ringRT.sizeDelta = new Vector2(82f, 82f);
+            ringRT.sizeDelta = new Vector2(90f, 90f);
             var ringImg = ringGO.GetComponent<Image>();
             ringImg.sprite = GetCircleSprite();
             ringImg.color  = new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0.5f);
@@ -156,7 +156,7 @@ namespace GameIdle
             var bgRT = bgGO.GetComponent<RectTransform>();
             bgRT.anchorMin = bgRT.anchorMax = bgRT.pivot = new Vector2(0f, 0.5f);
             bgRT.anchoredPosition = new Vector2(10f, 0f);
-            bgRT.sizeDelta = new Vector2(76f, 76f);
+            bgRT.sizeDelta = new Vector2(84f, 84f);
             avatarBg = bgGO.GetComponent<Image>();
             avatarBg.sprite = GetCircleSprite();
             avatarBg.type   = Image.Type.Simple;
@@ -278,7 +278,7 @@ namespace GameIdle
 
         private void ApplyCardLayout()
         {
-            const float avatarW   = 96f;  // 10px margin + 76px avatar
+            const float avatarW   = 104f;  // 10px margin + 84px avatar
             const float rightW    = 124f;
             const float rightInset = 18f; // clears the vertical scrollbar on the right
 

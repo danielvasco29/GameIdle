@@ -1261,19 +1261,19 @@ namespace GameIdle
             bool ready      = GameManager.Instance.CanPrestige();
 
             prestigeButtonLabel.text = ready
-                ? $"PRESTIGIAR  >>  +{GameManager.Instance.GetPrestigeGemReward()} gemas\n<size=80%><color=#ffe090>#{count} -> x{nextMult:F1} multiplicador</color></size>"
-                : $"PRESTIGIO  #{count}  |  meta ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}\n<size=80%><color=#7ab8d4>#{count} -> x{nextMult:F1}</color></size>";
+                ? $">> PRESTIGIAR  |  +{GameManager.Instance.GetPrestigeGemReward()} GEMAS <<\n<size=78%><color=#ffe090>#{count} -> x{nextMult:F1} multiplicador de lucro</color></size>"
+                : $"PRESTIGIO  #{count}  |  meta ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}\n<size=78%><color=#7ab8d4>#{count} -> x{nextMult:F1} ao prestigiar</color></size>";
 
             var img = prestigeButton?.GetComponent<Image>();
             if (img != null)
-                img.color = ready ? new Color(0.72f, 0.48f, 0.06f, 1f) : NavyCard;
+                img.color = ready ? new Color(0.55f, 0.35f, 0.02f, 1f) : new Color(0.06f, 0.10f, 0.18f, 1f);
 
             if (_prestigeSheen != null)
                 _prestigeSheen.color = ready
-                    ? new Color(1f, 0.95f, 0.5f, 0.18f)
-                    : new Color(1f, 1f, 1f, 0.06f);
+                    ? new Color(1f, 0.88f, 0.3f, 0.22f)
+                    : new Color(1f, 1f, 1f, 0.04f);
 
-            prestigeButtonLabel.color = ready ? new Color(1f, 0.97f, 0.82f) : Color.white;
+            prestigeButtonLabel.color = ready ? new Color(1f, 0.95f, 0.70f) : new Color(0.82f, 0.90f, 1f);
         }
 
         // ── Floating Money ────────────────────────────────────────────────────
@@ -1441,14 +1441,14 @@ namespace GameIdle
 
             // 4 pills horizontais de largura fixa, ancoradas ao topo-esquerdo do painel
             // [+192B/s /s] [x32 mult] [$4,7M total] [x4 prest]
-            const float pillW = 195f, pillH = 52f, gap = 6f, topOff = -8f, leftOff = 10f;
+            const float pillW = 200f, pillH = 62f, gap = 6f, topOff = -8f, leftOff = 10f;
 
             var pillData = new (string label, Color labelColor, Color bgColor)[]
             {
-                ("/s",   NeonCyan,                            new Color(0.04f, 0.10f, 0.18f, 0.97f)),
-                ("mult", new Color(1f,  0.92f, 0.35f, 1f),   new Color(0.10f, 0.08f, 0.03f, 0.97f)),
-                ("total",new Color(0.80f,0.90f,1f,    0.90f),new Color(0.05f, 0.09f, 0.16f, 0.97f)),
-                ("prest",NeonOrange,                          new Color(0.12f, 0.07f, 0.02f, 0.97f)),
+                ("POR SEGUNDO", NeonCyan,                            new Color(0.04f, 0.10f, 0.20f, 0.98f)),
+                ("MULTIPLICADOR", new Color(1f,  0.92f, 0.35f, 1f), new Color(0.11f, 0.09f, 0.02f, 0.98f)),
+                ("TOTAL GANHO",new Color(0.80f,0.90f,1f,    0.95f), new Color(0.04f, 0.08f, 0.18f, 0.98f)),
+                ("PRESTIGIO",NeonOrange,                             new Color(0.14f, 0.07f, 0.02f, 0.98f)),
             };
 
             var textRefs = new TextMeshProUGUI[4];
@@ -1474,8 +1474,8 @@ namespace GameIdle
                 var art = acc.GetComponent<RectTransform>();
                 art.anchorMin = Vector2.zero; art.anchorMax = new Vector2(0f, 1f);
                 art.pivot = new Vector2(0f, 0.5f);
-                art.sizeDelta = new Vector2(3f, 0f);
-                art.anchoredPosition = new Vector2(6f, 0f);
+                art.sizeDelta = new Vector2(5f, 0f);
+                art.anchoredPosition = new Vector2(7f, 0f);
                 acc.GetComponent<Image>().color = d.labelColor;
                 acc.GetComponent<Image>().raycastTarget = false;
 
@@ -1483,10 +1483,10 @@ namespace GameIdle
                 var valGO = new GameObject("V", typeof(RectTransform), typeof(TextMeshProUGUI));
                 valGO.transform.SetParent(pill.transform, false);
                 var vrt = valGO.GetComponent<RectTransform>();
-                vrt.anchorMin = new Vector2(0f, 0.42f); vrt.anchorMax = Vector2.one;
-                vrt.offsetMin = new Vector2(14f, 0f); vrt.offsetMax = new Vector2(-6f, -3f);
+                vrt.anchorMin = new Vector2(0f, 0.40f); vrt.anchorMax = Vector2.one;
+                vrt.offsetMin = new Vector2(16f, 2f); vrt.offsetMax = new Vector2(-6f, -4f);
                 var vtmp = valGO.GetComponent<TextMeshProUGUI>();
-                vtmp.fontSize = 18f; vtmp.fontStyle = FontStyles.Bold; vtmp.color = Color.white;
+                vtmp.fontSize = 21f; vtmp.fontStyle = FontStyles.Bold; vtmp.color = Color.white;
                 vtmp.alignment = TextAlignmentOptions.MidlineLeft;
                 vtmp.textWrappingMode = TextWrappingModes.NoWrap;
                 vtmp.overflowMode = TextOverflowModes.Ellipsis;
@@ -1498,10 +1498,10 @@ namespace GameIdle
                 var lblGO = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
                 lblGO.transform.SetParent(pill.transform, false);
                 var lrt = lblGO.GetComponent<RectTransform>();
-                lrt.anchorMin = Vector2.zero; lrt.anchorMax = new Vector2(1f, 0.44f);
-                lrt.offsetMin = new Vector2(14f, 3f); lrt.offsetMax = new Vector2(-6f, 0f);
+                lrt.anchorMin = Vector2.zero; lrt.anchorMax = new Vector2(1f, 0.42f);
+                lrt.offsetMin = new Vector2(16f, 4f); lrt.offsetMax = new Vector2(-6f, 0f);
                 var ltmp = lblGO.GetComponent<TextMeshProUGUI>();
-                ltmp.text = d.label; ltmp.fontSize = 11f; ltmp.fontStyle = FontStyles.Bold;
+                ltmp.text = d.label; ltmp.fontSize = 10f; ltmp.fontStyle = FontStyles.Bold;
                 ltmp.color = new Color(d.labelColor.r, d.labelColor.g, d.labelColor.b, 0.75f);
                 ltmp.alignment = TextAlignmentOptions.MidlineLeft;
                 ltmp.raycastTarget = false;
