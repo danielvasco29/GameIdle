@@ -347,8 +347,8 @@ namespace GameIdle
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
             brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 1f);
-            brt.anchoredPosition = new Vector2(8f, -8f);
-            brt.sizeDelta = new Vector2(76f, 36f);
+            brt.anchoredPosition = new Vector2(8f, -6f);
+            brt.sizeDelta = new Vector2(80f, 40f);
             var bImg = btnGO.GetComponent<Image>();
             bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
             bImg.color = new Color(0.10f, 0.16f, 0.26f, 1f);
@@ -359,7 +359,7 @@ namespace GameIdle
             mlr.anchorMin = Vector2.zero; mlr.anchorMax = Vector2.one;
             mlr.offsetMin = mlr.offsetMax = Vector2.zero;
             var mlt = ml.GetComponent<TextMeshProUGUI>();
-            mlt.text = "MENU"; mlt.fontSize = 13; mlt.fontStyle = FontStyles.Bold;
+            mlt.text = "MENU"; mlt.fontSize = 14; mlt.fontStyle = FontStyles.Bold;
             mlt.color = TextSec; mlt.alignment = TextAlignmentOptions.Center;
             mlt.raycastTarget = false;
             var f = GetCachedFont(); if (f != null) mlt.font = f;
@@ -381,8 +381,8 @@ namespace GameIdle
             mBtnGO.transform.SetParent(canvas.transform, false);
             var mbrt = mBtnGO.GetComponent<RectTransform>();
             mbrt.anchorMin = mbrt.anchorMax = mbrt.pivot = new Vector2(0f, 1f);
-            mbrt.anchoredPosition = new Vector2(92f, -8f);
-            mbrt.sizeDelta = new Vector2(90f, 36f);
+            mbrt.anchoredPosition = new Vector2(96f, -6f);
+            mbrt.sizeDelta = new Vector2(94f, 40f);
             var mbImg = mBtnGO.GetComponent<Image>();
             mbImg.sprite = Rounded(); mbImg.type = Image.Type.Sliced;
             mbImg.color = new Color(0.10f, 0.20f, 0.32f, 1f);
@@ -392,7 +392,7 @@ namespace GameIdle
             var mblr = mbl.GetComponent<RectTransform>();
             mblr.anchorMin = Vector2.zero; mblr.anchorMax = Vector2.one; mblr.offsetMin = mblr.offsetMax = Vector2.zero;
             var mblt = mbl.GetComponent<TextMeshProUGUI>();
-            mblt.text = "MISSOES"; mblt.fontSize = 12; mblt.fontStyle = FontStyles.Bold;
+            mblt.text = "MISSOES"; mblt.fontSize = 13; mblt.fontStyle = FontStyles.Bold;
             mblt.color = NeonCyan; mblt.alignment = TextAlignmentOptions.Center; mblt.raycastTarget = false;
             var mf = GetCachedFont(); if (mf != null) mblt.font = mf;
             _missionDot = MakeNotifyDot(mBtnGO.transform);
@@ -416,8 +416,8 @@ namespace GameIdle
             aBtnGO.transform.SetParent(canvas.transform, false);
             var abrt = aBtnGO.GetComponent<RectTransform>();
             abrt.anchorMin = abrt.anchorMax = abrt.pivot = new Vector2(0f, 1f);
-            abrt.anchoredPosition = new Vector2(188f, -8f);
-            abrt.sizeDelta = new Vector2(110f, 36f);
+            abrt.anchoredPosition = new Vector2(198f, -6f);
+            abrt.sizeDelta = new Vector2(114f, 40f);
             var abImg = aBtnGO.GetComponent<Image>();
             abImg.sprite = Rounded(); abImg.type = Image.Type.Sliced;
             abImg.color = new Color(0.16f, 0.14f, 0.08f, 1f);
@@ -427,7 +427,7 @@ namespace GameIdle
             var ablr = abl.GetComponent<RectTransform>();
             ablr.anchorMin = Vector2.zero; ablr.anchorMax = Vector2.one; ablr.offsetMin = ablr.offsetMax = Vector2.zero;
             var ablt = abl.GetComponent<TextMeshProUGUI>();
-            ablt.text = "CONQUISTAS"; ablt.fontSize = 11; ablt.fontStyle = FontStyles.Bold;
+            ablt.text = "CONQUISTAS"; ablt.fontSize = 13; ablt.fontStyle = FontStyles.Bold;
             ablt.color = GoldColor; ablt.alignment = TextAlignmentOptions.Center; ablt.raycastTarget = false;
             var af = GetCachedFont(); if (af != null) ablt.font = af;
             _achievementDot = MakeNotifyDot(aBtnGO.transform);
@@ -444,8 +444,8 @@ namespace GameIdle
             bBtnGO.transform.SetParent(canvas.transform, false);
             var bbrt = bBtnGO.GetComponent<RectTransform>();
             bbrt.anchorMin = bbrt.anchorMax = bbrt.pivot = new Vector2(0f, 1f);
-            bbrt.anchoredPosition = new Vector2(304f, -8f);
-            bbrt.sizeDelta = new Vector2(80f, 36f);
+            bbrt.anchoredPosition = new Vector2(320f, -6f);
+            bbrt.sizeDelta = new Vector2(84f, 40f);
             var bbImg = bBtnGO.GetComponent<Image>();
             bbImg.sprite = Rounded(); bbImg.type = Image.Type.Sliced;
             bbImg.color = new Color(0.18f, 0.14f, 0.06f, 1f);
@@ -458,7 +458,7 @@ namespace GameIdle
             var bblr = bbl.GetComponent<RectTransform>();
             bblr.anchorMin = Vector2.zero; bblr.anchorMax = Vector2.one; bblr.offsetMin = bblr.offsetMax = Vector2.zero;
             var bblt = bbl.GetComponent<TextMeshProUGUI>();
-            bblt.text = "BÔNUS"; bblt.fontSize = 11; bblt.fontStyle = FontStyles.Bold;
+            bblt.text = "BONUS"; bblt.fontSize = 13; bblt.fontStyle = FontStyles.Bold;
             bblt.color = GoldColor; bblt.alignment = TextAlignmentOptions.Center; bblt.raycastTarget = false;
             var bf = GetCachedFont(); if (bf != null) bblt.font = bf;
             _bonusDot = MakeNotifyDot(bBtnGO.transform);
@@ -934,39 +934,28 @@ namespace GameIdle
             var canvas = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
             if (canvas == null) return;
 
-            // Gold coin icon to the left of the money value
+            // Estiliza textos do top bar (campos do scene)
             if (moneyText != null)
             {
-                var coinGO = new GameObject("CoinIcon", typeof(RectTransform), typeof(Image));
-                coinGO.transform.SetParent(moneyText.transform, false);
-                var crt = coinGO.GetComponent<RectTransform>();
-                crt.anchorMin = crt.anchorMax = crt.pivot = new Vector2(0f, 0.5f);
-                crt.anchoredPosition = new Vector2(-30f, 0f);
-                crt.sizeDelta = new Vector2(24f, 24f);
-                var ci = coinGO.GetComponent<Image>();
-                ci.sprite = Circle();
-                ci.color  = GoldColor;
-                ci.raycastTarget = false;
-                // "$" stamped on the coin
-                var sGO = new GameObject("S", typeof(RectTransform), typeof(TextMeshProUGUI));
-                sGO.transform.SetParent(coinGO.transform, false);
-                var srt = sGO.GetComponent<RectTransform>();
-                srt.anchorMin = Vector2.zero; srt.anchorMax = Vector2.one;
-                srt.offsetMin = srt.offsetMax = Vector2.zero;
-                var stmp = sGO.GetComponent<TextMeshProUGUI>();
-                stmp.text = "$"; stmp.fontSize = 16; stmp.fontStyle = FontStyles.Bold;
-                stmp.color = NavyDark; stmp.alignment = TextAlignmentOptions.Center;
-                stmp.raycastTarget = false;
-                var f = GetCachedFont(); if (f != null) stmp.font = f;
+                moneyText.fontSize  = 26; moneyText.fontStyle = FontStyles.Bold;
+                moneyText.color     = Color.white; moneyText.alignment = TextAlignmentOptions.Center;
+                var mf = GetCachedFont(); if (mf != null) moneyText.font = mf;
             }
+            if (mpsText != null)
+            {
+                mpsText.fontSize  = 22; mpsText.fontStyle = FontStyles.Bold;
+                mpsText.color     = new Color(0.75f, 0.92f, 1f, 1f);
+                var mf2 = GetCachedFont(); if (mf2 != null) mpsText.font = mf2;
+            }
+            if (prestigeInfoText != null) prestigeInfoText.gameObject.SetActive(false);
 
             // Gem pill, top-right (left of the ranking button) — opens the gem shop
             var pillGO = new GameObject("GemPill", typeof(RectTransform), typeof(Image), typeof(Button));
             pillGO.transform.SetParent(canvas.transform, false);
             var prt = pillGO.GetComponent<RectTransform>();
             prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(1f, 1f);
-            prt.anchoredPosition = new Vector2(-94f, -8f);
-            prt.sizeDelta = new Vector2(116f, 36f);
+            prt.anchoredPosition = new Vector2(-98f, -6f);
+            prt.sizeDelta = new Vector2(120f, 40f);
             var pImg = pillGO.GetComponent<Image>();
             pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
             pImg.color  = NavyCard;
@@ -993,7 +982,7 @@ namespace GameIdle
             gtrt.anchorMin = new Vector2(0f, 0f); gtrt.anchorMax = new Vector2(1f, 1f);
             gtrt.offsetMin = new Vector2(34f, 0f); gtrt.offsetMax = new Vector2(-8f, 0f);
             gemText = gtGO.GetComponent<TextMeshProUGUI>();
-            gemText.fontSize = 16; gemText.fontStyle = FontStyles.Bold;
+            gemText.fontSize = 17; gemText.fontStyle = FontStyles.Bold;
             gemText.color = new Color(0.7f, 0.93f, 1f, 1f);
             gemText.alignment = TextAlignmentOptions.MidlineLeft;
             gemText.raycastTarget = false;
@@ -1013,7 +1002,7 @@ namespace GameIdle
             var rt = sepGO.GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(0f, 1f); rt.anchorMax = new Vector2(1f, 1f);
             rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, -52f);
+            rt.anchoredPosition = new Vector2(0f, -54f);
             rt.sizeDelta = new Vector2(0f, 3f);
             var img = sepGO.GetComponent<Image>();
             img.color = new Color(BlueAccent.r, BlueAccent.g, BlueAccent.b, 0.55f);
@@ -1542,10 +1531,10 @@ namespace GameIdle
 
             var pillData = new (string label, Color labelColor, Color bgColor)[]
             {
-                ("/s",   NeonCyan,                            new Color(0.07f, 0.16f, 0.26f, 0.95f)),
-                ("mult", new Color(1f,  0.92f, 0.35f, 1f),   new Color(0.14f, 0.12f, 0.05f, 0.95f)),
-                ("total",new Color(0.80f,0.90f,1f,    0.85f),new Color(0.09f, 0.14f, 0.23f, 0.95f)),
-                ("prest",NeonOrange,                          new Color(0.16f, 0.10f, 0.04f, 0.95f)),
+                ("/s",   NeonCyan,                            new Color(0.04f, 0.10f, 0.18f, 0.97f)),
+                ("mult", new Color(1f,  0.92f, 0.35f, 1f),   new Color(0.10f, 0.08f, 0.03f, 0.97f)),
+                ("total",new Color(0.80f,0.90f,1f,    0.90f),new Color(0.05f, 0.09f, 0.16f, 0.97f)),
+                ("prest",NeonOrange,                          new Color(0.12f, 0.07f, 0.02f, 0.97f)),
             };
 
             var textRefs = new TextMeshProUGUI[4];
