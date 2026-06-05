@@ -38,7 +38,7 @@ namespace GameIdle
         private static readonly Color CardColorReady = new(0.110f, 0.250f, 0.180f, 1f);
         private static readonly Color CapsuleEmpty   = new(0.047f, 0.110f, 0.086f, 1f);
         private static readonly Color FillEmerald    = new(0.176f, 0.690f, 0.451f, 1f);
-        private static readonly Color FillGold       = new(0.965f, 0.812f, 0.290f, 1f);
+        private static readonly Color FillReady      = new(0.420f, 0.880f, 0.380f, 1f); // verde lima vivo
         private static readonly Color InnerBg        = new(0.070f, 0.149f, 0.118f, 1f);
         private static readonly Color TextPrimary    = new(0.925f, 0.980f, 0.949f, 1f);
         private static readonly Color TextSecondary  = new(0.745f, 0.922f, 0.824f, 1f);
@@ -364,7 +364,7 @@ namespace GameIdle
             if (capsuleFillRT != null)
                 capsuleFillRT.anchorMax = new Vector2(Mathf.Max(0.0001f, fill), 1f);
             if (capsuleFill != null)
-                capsuleFill.color = affordable || maxedOut ? FillGold : FillEmerald;
+                capsuleFill.color = affordable || maxedOut ? FillReady : FillEmerald;
 
             // Keep text readable: dark over the full gold fill, white otherwise
             if (costText != null)
@@ -414,7 +414,7 @@ namespace GameIdle
             if (avatarBg != null)
             {
                 Color orig = avatarBg.color;
-                Color gold = FillGold;
+                Color gold = FillReady;
                 for (int i = 0; i < 2; i++)
                 {
                     float t = 0f;
