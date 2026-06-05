@@ -621,6 +621,11 @@ namespace GameIdle
             }
             floorImg.transform.SetAsFirstSibling();
 
+            // ── Scene ambient animations ──────────────────────────────────────
+            StartCoroutine(AmbientLightPulse(pmGO.transform));
+            StartCoroutine(SpawnDustParticles(pmGO.transform));
+            SpawnMonitorGlows(pmGO.transform);
+
             // Botão principal circular — camadas empilhadas: ring → glow → borda → face → sheen → label
             var tapGO = new GameObject("TapButton", typeof(RectTransform), typeof(Button));
             tapGO.transform.SetParent(pmGO.transform, false);
@@ -1342,7 +1347,6 @@ namespace GameIdle
         private IEnumerator AnimateWindows(Image img)
         {
             float phase = 0f;
-            Color baseColor = Color.white;
             while (true)
             {
                 phase += Time.deltaTime * 0.3f;
@@ -1351,6 +1355,155 @@ namespace GameIdle
                 yield return null;
             }
         }
+
+        // ── Ambient light pulse (simulates clouds passing) ────────────────────
+        private IEnumerator AmbientLightPulse(Transform parent)
+        {
+            var go = new GameObject("AmbientLight", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+            var img = go.GetComponent<Image>();
+            img.color = new Color(1f, 0.97f, 0.88f, 0f);
+            img.raycastTarget = false;
+
+            // Place just above the floor, below characters
+            go.transform.SetSiblingIndex(1);
+
+            float phase = Random.Range(0f, Mathf.PI * 2f);
+            while (true)
+            {
+                phase += Time.deltaTime * 0.08f;
+                float alpha = (Mathf.Sin(phase) * 0.5f + 0.5f) * 0.06f
+                            + (Mathf.Sin(phase * 2.7f) * 0.5f + 0.5f) * 0.03f;
+                img.color = new Color(1f, 0.97f, 0.88f, alpha);
+                yield return null;
+            }
+        }
+
+        // ── Monitor glows (simulates screen light) ────────────────────────────
+        private void SpawnMonitorGlows(Transform parent)
+        {
+            // Approximate monitor positions in Panel_Main local space
+            var monitorPositions = new Vector2[]
+            {
+                new(-430f, -30f), new(-310f, -10f), new(-190f,  10f),
+                new(-380f,-110f), new(-260f, -70f), new( 100f, -80f),
+                new( 220f, -40f), new( 360f, -60f),
+            };
+
+            var colors = new Color[]
+            {
+                new(0.4f, 0.7f, 1.0f, 1f), // blue screen
+                new(0.3f, 0.9f, 0.5f, 1f), // green terminal
+                new(0.8f, 0.6f, 1.0f, 1f), // purple IDE
+                new(0.4f, 0.8f, 1.0f, 1f),
+                new(0.5f, 1.0f, 0.7f, 1f),
+                new(0.9f, 0.7f, 0.4f, 1f), // orange
+                new(0.4f, 0.7f, 1.0f, 1f),
+                new(0.6f, 0.9f, 1.0f, 1f),
+            };
+
+            for (int i = 0; i < monitorPositions.Length; i++)
+            {
+                var go = new GameObject("MonitorGlow", typeof(RectTransform), typeof(Image));
+                go.transform.SetParent(parent, false);
+                var rt = go.GetComponent<RectTransform>();
+                rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.anchoredPosition = monitorPositions[i];
+                rt.sizeDelta = new Vector2(38f, 22f);
+                var img = go.GetComponent<Image>();
+                img.sprite = UiSpriteFactory.RoundedBox();
+                img.type = Image.Type.Sliced;
+                img.color = new Color(colors[i].r, colors[i].g, colors[i].b, 0.18f);
+                img.raycastTarget = false;
+                go.transform.SetSiblingIndex(1);
+                StartCoroutine(AnimateMonitor(img, colors[i]));
+            }
+        }
+
+        private IEnumerator AnimateMonitor(Image img, Color baseColor)
+        {
+            float phase = Random.Range(0f, Mathf.PI * 2f);
+            float blinkTimer = Random.Range(3f, 8f);
+            while (true)
+            {
+                phase += Time.deltaTime * 0.4f;
+                blinkTimer -= Time.deltaTime;
+
+                float alpha = 0.12f + Mathf.Sin(phase) * 0.06f;
+
+                // Occasional blink (simulates screen refresh)
+                if (blinkTimer <= 0f)
+                {
+                    img.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.35f);
+                    yield return new WaitForSeconds(0.08f);
+                    img.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.05f);
+                    yield return new WaitForSeconds(0.05f);
+                    blinkTimer = Random.Range(4f, 10f);
+                }
+
+                img.color = new Color(baseColor.r, baseColor.g, baseColor.b, alpha);
+                yield return null;
+            }
+        }
+
+        // ── Dust particles ────────────────────────────────────────────────────
+        private IEnumerator SpawnDustParticles(Transform parent)
+        {
+            yield return new WaitForSeconds(2f);
+            while (true)
+            {
+                SpawnOneDust(parent);
+                yield return new WaitForSeconds(Random.Range(0.8f, 2.0f));
+            }
+        }
+
+        private void SpawnOneDust(Transform parent)
+        {
+            var go = new GameObject("Dust", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+            float size = Random.Range(2f, 5f);
+            rt.sizeDelta = new Vector2(size, size);
+            rt.anchoredPosition = new Vector2(
+                Random.Range(-500f, 500f),
+                Random.Range(-180f, 80f));
+            var img = go.GetComponent<Image>();
+            img.sprite = UiSpriteFactory.Circle();
+            img.color = new Color(1f, 0.95f, 0.8f, 0f);
+            img.raycastTarget = false;
+            go.transform.SetSiblingIndex(2);
+            StartCoroutine(AnimateDust(rt, img));
+        }
+
+        private IEnumerator AnimateDust(RectTransform rt, Image img)
+        {
+            float lifetime = Random.Range(4f, 9f);
+            float elapsed  = 0f;
+            Vector2 startPos = rt.anchoredPosition;
+            Vector2 drift = new Vector2(Random.Range(-15f, 15f), Random.Range(20f, 50f));
+            float maxAlpha = Random.Range(0.08f, 0.18f);
+
+            while (elapsed < lifetime)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / lifetime;
+                // Fade in then out
+                float alpha = t < 0.2f ? (t / 0.2f) * maxAlpha
+                            : t > 0.8f ? ((1f - t) / 0.2f) * maxAlpha
+                            : maxAlpha;
+                img.color = new Color(1f, 0.95f, 0.8f, alpha);
+                rt.anchoredPosition = startPos + drift * t;
+                // Gentle wobble
+                rt.anchoredPosition += new Vector2(Mathf.Sin(elapsed * 2.1f) * 3f, 0f);
+                yield return null;
+            }
+            Destroy(rt.gameObject);
+        }
+
 
         // ── Floating Money ────────────────────────────────────────────────────
 
