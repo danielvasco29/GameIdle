@@ -10,7 +10,15 @@ namespace GameIdle
         private RectTransform _panel;
         private readonly List<WorkerAvatar> _workers = new();
 
-        private static readonly Rect RoamBounds = new Rect(-560f, -200f, 1120f, 220f);
+        private static readonly Rect RoamBounds = new Rect(-500f, -180f, 1000f, 200f);
+
+        // Fixed spread positions so workers don't cluster — 10 spots across the office
+        public static readonly Vector2[] SpreadPositions =
+        {
+            new(-420f, -120f), new(-280f,  -80f), new(-140f,  -50f), new(  0f, -100f),
+            new( 140f,  -60f), new( 280f, -110f), new( 400f,  -80f), new(-360f, -160f),
+            new( 200f, -150f), new( 460f, -140f),
+        };
 
         public void Init(RectTransform panelMain)
         {
@@ -82,10 +90,12 @@ namespace GameIdle
 
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(64f, 90f);
+            rt.sizeDelta = new Vector2(90f, 110f);
 
-            float startX = RoamBounds.xMin + (index + 0.5f) * (RoamBounds.width / 10f);
-            rt.anchoredPosition = new Vector2(startX, Random.Range(RoamBounds.yMin, RoamBounds.yMax));
+            // Start at spread position so workers don't overlap
+            var startPos = SpreadPositions[index % SpreadPositions.Length];
+            startPos += new Vector2(Random.Range(-15f, 15f), Random.Range(-10f, 10f));
+            rt.anchoredPosition = startPos;
 
             bool hasSpriteSheet = frames != null && frames.Length > 1;
 
@@ -111,7 +121,7 @@ namespace GameIdle
                 var maskRt = maskGO.GetComponent<RectTransform>();
                 maskRt.anchorMin = maskRt.anchorMax = maskRt.pivot = new Vector2(0.5f, 0.5f);
                 maskRt.anchoredPosition = Vector2.zero;
-                maskRt.sizeDelta = new Vector2(62f, 62f);
+                maskRt.sizeDelta = new Vector2(80f, 80f);
                 var maskImg = maskGO.GetComponent<Image>();
                 maskImg.sprite = UiSpriteFactory.Circle();
                 maskImg.raycastTarget = false;
@@ -170,8 +180,8 @@ namespace GameIdle
                 bodyGO.transform.SetParent(go.transform, false);
                 var bodyRt = bodyGO.GetComponent<RectTransform>();
                 bodyRt.anchorMin = bodyRt.anchorMax = bodyRt.pivot = new Vector2(0.5f, 0.5f);
-                bodyRt.anchoredPosition = new Vector2(0f, 18f);
-                bodyRt.sizeDelta = new Vector2(52f, 52f);
+                bodyRt.anchoredPosition = new Vector2(0f, 22f);
+                bodyRt.sizeDelta = new Vector2(66f, 66f);
 
                 var bgImg = bodyGO.GetComponent<Image>();
                 bgImg.sprite = UiSpriteFactory.Circle();
@@ -318,9 +328,10 @@ namespace GameIdle
 
         private void PickNewTarget()
         {
-            _target = new Vector2(
-                Random.Range(_bounds.xMin + 30f, _bounds.xMax - 30f),
-                Random.Range(_bounds.yMin + 10f, _bounds.yMax - 10f));
+            // Pick a random spread position + small jitter so workers aim for different spots
+            var positions = OfficeWorkerManager.SpreadPositions;
+            var base_ = positions[Random.Range(0, positions.Length)];
+            _target = base_ + new Vector2(Random.Range(-40f, 40f), Random.Range(-20f, 20f));
             _walkSpeed = Random.Range(55f, 85f);
             _walking = true;
         }
