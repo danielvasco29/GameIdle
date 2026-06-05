@@ -603,19 +603,22 @@ namespace GameIdle
             if (panelLeft == null) return;
             var rt = panelLeft.GetComponent<RectTransform>();
             if (rt == null) return;
-            // 520px gives the 2-column grid (228×2 + spacing + padding) room
-            // to clear the vertical scrollbar (~15px) without being clipped.
-            const float panelW = 520f;
+            // The office art (Panel_Main) starts at x=380 in the 1920 reference,
+            // so Panel_Left must stop there — anything wider slides under the
+            // office and hides the right of each card (cost + level badge).
+            const float panelW = 380f;
+            rt.anchorMin        = new Vector2(0f, rt.anchorMin.y);
+            rt.anchorMax        = new Vector2(0f, rt.anchorMax.y);
             rt.sizeDelta        = new Vector2(panelW, rt.sizeDelta.y);
-            rt.anchoredPosition = new Vector2(260f, rt.anchoredPosition.y);
+            rt.anchoredPosition = new Vector2(panelW * 0.5f, rt.anchoredPosition.y);
 
-            // Make the card cell fit inside the panel (minus scrollbar + padding)
-            // so the right side of each card (level + cost) is never clipped.
+            // Fit the card to the visible width (minus the ~17px scrollbar and the
+            // grid's 10px side padding) so cost + level are never clipped.
             if (charactersContent != null)
             {
                 var glg = charactersContent.GetComponent<GridLayoutGroup>();
                 if (glg != null)
-                    glg.cellSize = new Vector2(panelW - 36f, glg.cellSize.y);
+                    glg.cellSize = new Vector2(panelW - 38f, glg.cellSize.y);
             }
         }
 
