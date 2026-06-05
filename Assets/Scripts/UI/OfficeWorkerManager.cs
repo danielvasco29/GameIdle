@@ -15,9 +15,10 @@ namespace GameIdle
         // Fixed spread positions so workers don't cluster — 10 spots across the office
         public static readonly Vector2[] SpreadPositions =
         {
-            new(-420f, -120f), new(-280f,  -80f), new(-140f,  -50f), new(  0f, -100f),
-            new( 140f,  -60f), new( 280f, -110f), new( 400f,  -80f), new(-360f, -160f),
-            new( 200f, -150f), new( 460f, -140f),
+            new(-480f,  -40f), new(-320f,  -20f), new(-160f,   10f),
+            new(-440f, -150f), new(-240f, -120f), new(  40f,  -80f),
+            new( 200f,  -40f), new( 380f, -100f), new( 520f,  -60f),
+            new( 300f, -160f),
         };
 
         public void Init(RectTransform panelMain)
@@ -342,7 +343,7 @@ namespace GameIdle
             do { idx = Random.Range(0, positions.Length); }
             while (idx == _lastTargetIndex && positions.Length > 1);
             _lastTargetIndex = idx;
-            _target = positions[idx] + new Vector2(Random.Range(-25f, 25f), Random.Range(-15f, 15f));
+            _target = positions[idx] + new Vector2(Random.Range(-10f, 10f), Random.Range(-8f, 8f));
             _walkSpeed = Random.Range(55f, 85f);
             _walking = true;
         }
