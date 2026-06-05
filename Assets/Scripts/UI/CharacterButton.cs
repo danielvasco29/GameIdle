@@ -33,17 +33,17 @@ namespace GameIdle
         private CharacterInstance character;
         private int characterIndex;
 
-        // ── Esmeralda + Ouro palette ──────────────────────────────────────────
-        private static readonly Color CardColor      = new(0.078f, 0.173f, 0.133f, 1f);
-        private static readonly Color CardColorReady = new(0.110f, 0.250f, 0.180f, 1f);
-        private static readonly Color CapsuleEmpty   = new(0.047f, 0.110f, 0.086f, 1f);
-        private static readonly Color FillEmerald    = new(0.176f, 0.690f, 0.451f, 1f);
-        private static readonly Color FillReady      = new(0.420f, 0.880f, 0.380f, 1f); // verde lima vivo
-        private static readonly Color InnerBg        = new(0.070f, 0.149f, 0.118f, 1f);
-        private static readonly Color TextPrimary    = new(0.925f, 0.980f, 0.949f, 1f);
-        private static readonly Color TextSecondary  = new(0.745f, 0.922f, 0.824f, 1f);
+        // ── Grafite + Verde Neon palette ──────────────────────────────────────
+        private static readonly Color CardColor      = new(0.125f, 0.145f, 0.157f, 1f);
+        private static readonly Color CardColorReady = new(0.160f, 0.205f, 0.180f, 1f);
+        private static readonly Color CapsuleEmpty   = new(0.071f, 0.086f, 0.094f, 1f);
+        private static readonly Color FillEmerald    = new(0.157f, 0.588f, 0.392f, 1f);
+        private static readonly Color FillReady      = new(0.314f, 0.961f, 0.588f, 1f); // verde neon
+        private static readonly Color InnerBg        = new(0.086f, 0.106f, 0.118f, 1f);
+        private static readonly Color TextPrimary    = new(0.922f, 0.961f, 0.941f, 1f);
+        private static readonly Color TextSecondary  = new(0.667f, 0.784f, 0.725f, 1f);
         private static readonly Color GoldStar       = new(1f,     0.824f, 0.275f, 1f);
-        private static readonly Color StarEmpty      = new(0.188f, 0.282f, 0.235f, 1f);
+        private static readonly Color StarEmpty      = new(0.220f, 0.250f, 0.255f, 1f);
 
         // Rarity frame colors by tier (1..5)
         private static readonly Color[] RarityColors =
