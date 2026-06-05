@@ -39,7 +39,6 @@ namespace GameIdle
             var bg = gameObject.AddComponent<Image>();
             bg.sprite = Rounded(); bg.type = Image.Type.Sliced;
             bg.color = Navy;
-            UiDepth.AddGlassTrim(bg);
 
             var title = MakeText(transform, "Title", "OPÇÕES", 22, Gold, FontStyles.Bold,
                 TextAlignmentOptions.Center);
