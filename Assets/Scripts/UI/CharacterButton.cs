@@ -231,7 +231,7 @@ namespace GameIdle
                 int fw = tex.width;
                 int fh = tex.height;
                 if (tex.width >= tex.height * 2)
-                    fw = tex.width / 8;
+                    fw = tex.width / Mathf.Max(2, Mathf.RoundToInt((float)tex.width / tex.height));
                 iconImage.sprite = Sprite.Create(tex, new Rect(0, 0, fw, fh), new Vector2(0.5f, 0.5f));
                 iconImage.color  = Color.white;
                 // hide initial letter

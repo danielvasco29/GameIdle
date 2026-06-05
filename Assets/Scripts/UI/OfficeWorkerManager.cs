@@ -64,14 +64,12 @@ namespace GameIdle
 
             int fh = tex.height;
 
-            // Sprite sheet: width is at least 2x height (>=)
+            // Sprite sheet: width is at least 2x height
             if (tex.width < tex.height * 2)
                 return new[] { Sprite.Create(tex, new Rect(0, 0, tex.width, fh), new Vector2(0.5f, 0.5f)) };
 
-            // Determine frame count: try 8, but support other counts too
-            int frameCount = 8;
-            if (tex.width % 6 == 0 && tex.width / 6 == fh) frameCount = 6;
-            else if (tex.width % 4 == 0 && tex.width / 4 == fh) frameCount = 4;
+            // Auto-detect frame count from aspect ratio (width / height rounded)
+            int frameCount = Mathf.Max(2, Mathf.RoundToInt((float)tex.width / tex.height));
 
             int fw = tex.width / frameCount;
             var frames = new Sprite[frameCount];
