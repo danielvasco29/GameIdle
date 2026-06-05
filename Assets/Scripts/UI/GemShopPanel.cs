@@ -161,6 +161,8 @@ namespace GameIdle
             var buyBtn = buyGO.GetComponent<Button>();
             int captured = index;
             buyBtn.onClick.AddListener(() => OnBuy(captured));
+            var hold = buyGO.AddComponent<HoldButton>();
+            hold.Init(() => OnBuy(captured));
 
             // Small cyan diamond icon inside the button (drawn, not a glyph)
             var gemIcon = new GameObject("Gem", typeof(RectTransform), typeof(Image));
