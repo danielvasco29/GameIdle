@@ -4,7 +4,7 @@ Shader "GameIdle/UIWhiteDiscard"
     {
         _MainTex ("Texture", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
-        _Threshold ("White Threshold", Range(0.5, 1.0)) = 0.88
+        _Threshold ("White Threshold", Range(0.5, 1.0)) = 0.80
         _Softness ("Edge Softness", Range(0.0, 0.2)) = 0.06
         // Required by Unity UI
         _StencilComp ("Stencil Comparison", Float) = 8
