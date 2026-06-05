@@ -30,6 +30,14 @@ namespace GameIdle
         private MissionPanel missionPanel;
         private AchievementPanel achievementPanel;
 
+        // Painéis modais — só um aberto por vez
+        private readonly List<GameObject> modalPanels = new();
+        public void CloseAllModals()
+        {
+            foreach (var p in modalPanels)
+                if (p != null) p.SetActive(false);
+        }
+
         [Header("Toast")]
         [SerializeField] private ToastMessage toast;
 
@@ -317,11 +325,13 @@ namespace GameIdle
             shopGO.transform.SetParent(canvas.transform, false);
             gemShopPanel = shopGO.AddComponent<GemShopPanel>();
             shopGO.SetActive(false); // ensure it never blocks raycasts while closed
+            modalPanels.Add(shopGO);
 
             var setGO = new GameObject("SettingsPanel", typeof(RectTransform));
             setGO.transform.SetParent(canvas.transform, false);
             settingsPanel = setGO.AddComponent<SettingsPanel>();
             setGO.SetActive(false);
+            modalPanels.Add(setGO);
 
             // Settings (menu) button — top-left corner
             var btnGO = new GameObject("MenuButton", typeof(RectTransform), typeof(Image), typeof(Button));
@@ -333,7 +343,7 @@ namespace GameIdle
             var bImg = btnGO.GetComponent<Image>();
             bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
             bImg.color = NavyCard;
-            btnGO.GetComponent<Button>().onClick.AddListener(() => { if (settingsPanel != null) settingsPanel.Open(); });
+            btnGO.GetComponent<Button>().onClick.AddListener(() => { if (settingsPanel != null) { CloseAllModals(); settingsPanel.Open(); } });
             var ml = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
             ml.transform.SetParent(btnGO.transform, false);
             var mlr = ml.GetComponent<RectTransform>();
@@ -355,6 +365,7 @@ namespace GameIdle
             missionGO.transform.SetParent(canvas.transform, false);
             missionPanel = missionGO.AddComponent<MissionPanel>();
             missionGO.SetActive(false);
+            modalPanels.Add(missionGO);
 
             // Botão Missões — ao lado do MENU
             var mBtnGO = new GameObject("MissionButton", typeof(RectTransform), typeof(Image), typeof(Button));
@@ -365,7 +376,7 @@ namespace GameIdle
             mbrt.sizeDelta = new Vector2(90f, 36f);
             var mbImg = mBtnGO.GetComponent<Image>();
             mbImg.sprite = Rounded(); mbImg.type = Image.Type.Sliced; mbImg.color = NavyCard;
-            mBtnGO.GetComponent<Button>().onClick.AddListener(() => { if (missionPanel != null) missionPanel.Open(); });
+            mBtnGO.GetComponent<Button>().onClick.AddListener(() => { if (missionPanel != null) { CloseAllModals(); missionPanel.Open(); } });
             var mbl = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
             mbl.transform.SetParent(mBtnGO.transform, false);
             var mblr = mbl.GetComponent<RectTransform>();
@@ -380,6 +391,7 @@ namespace GameIdle
             achGO.transform.SetParent(canvas.transform, false);
             achievementPanel = achGO.AddComponent<AchievementPanel>();
             achGO.SetActive(false);
+            modalPanels.Add(achGO);
 
             // Botão Conquistas — ao lado de MISSOES
             var aBtnGO = new GameObject("AchievementButton", typeof(RectTransform), typeof(Image), typeof(Button));
@@ -390,7 +402,7 @@ namespace GameIdle
             abrt.sizeDelta = new Vector2(110f, 36f);
             var abImg = aBtnGO.GetComponent<Image>();
             abImg.sprite = Rounded(); abImg.type = Image.Type.Sliced; abImg.color = NavyCard;
-            aBtnGO.GetComponent<Button>().onClick.AddListener(() => { if (achievementPanel != null) achievementPanel.Open(); });
+            aBtnGO.GetComponent<Button>().onClick.AddListener(() => { if (achievementPanel != null) { CloseAllModals(); achievementPanel.Open(); } });
             var abl = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
             abl.transform.SetParent(aBtnGO.transform, false);
             var ablr = abl.GetComponent<RectTransform>();
@@ -419,6 +431,7 @@ namespace GameIdle
             var panelGO = new GameObject("RankingPanel", typeof(RectTransform));
             panelGO.transform.SetParent(canvas.transform, false);
             rankingPanel = panelGO.AddComponent<RankingPanel>();
+            modalPanels.Add(panelGO);
 
             // Ranking button — top-right corner, large enough to tap
             var btnGO = new GameObject("RankingButton", typeof(RectTransform), typeof(Image), typeof(Button));
@@ -448,7 +461,7 @@ namespace GameIdle
 
         private void OpenRanking()
         {
-            if (rankingPanel != null) rankingPanel.Open();
+            if (rankingPanel != null) { CloseAllModals(); rankingPanel.Open(); }
         }
 
         // ── Tap Button ────────────────────────────────────────────────────────
@@ -837,7 +850,7 @@ namespace GameIdle
             pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
             pImg.color  = NavyCard;
             pImg.raycastTarget = true;
-            pillGO.GetComponent<Button>().onClick.AddListener(() => { if (gemShopPanel != null) gemShopPanel.Open(); });
+            pillGO.GetComponent<Button>().onClick.AddListener(() => { if (gemShopPanel != null) { CloseAllModals(); gemShopPanel.Open(); } });
 
             // Gem icon: a cyan diamond (rounded square rotated 45°)
             var gemGO = new GameObject("GemIcon", typeof(RectTransform), typeof(Image));

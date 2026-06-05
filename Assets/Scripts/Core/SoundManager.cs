@@ -95,18 +95,15 @@ namespace GameIdle
             {
                 float t = (float)i / Rate;
 
-                // Soft noise transient — heavily low-passed, quick but rounded decay
+                // Very soft noise transient — only a hint of attack, heavily damped
                 float raw = Random.value * 2f - 1f;
-                lp = Mathf.Lerp(lp, raw, 0.30f);           // lower cutoff = less hiss
-                float clack = lp * Mathf.Exp(-t * 70f);
+                lp = Mathf.Lerp(lp, raw, 0.18f);           // very low cutoff = muffled
+                float clack = lp * Mathf.Exp(-t * 90f);
 
-                // Warm thock body (key bottoming out) — slightly lower & longer
-                float body = Mathf.Sin(2f * Mathf.PI * 155f * t) * Mathf.Exp(-t * 48f);
+                // Deep warm thock body (key bottoming out) — the dominant element
+                float body = Mathf.Sin(2f * Mathf.PI * 130f * t) * Mathf.Exp(-t * 42f);
 
-                // Subtle mid harmonic for a touch of "click" without the metal
-                float mid  = Mathf.Sin(2f * Mathf.PI * 420f * t) * Mathf.Exp(-t * 120f);
-
-                data[i] = (clack * 0.35f + body * 0.55f + mid * 0.12f) * 0.7f;
+                data[i] = (clack * 0.18f + body * 0.62f) * 0.72f;
             }
             return Make("click", data);
         }
