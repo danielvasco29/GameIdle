@@ -1536,12 +1536,14 @@ namespace GameIdle
             var panelLeft = GameObject.Find("Panel_Left");
             if (panelLeft == null) return;
 
+            const float bannerH = 82f;
+
             // Encolhe o ScrollView pelo baixo para dar espaço ao banner
             var scrollView = panelLeft.transform.Find("ScrollView");
             if (scrollView != null)
             {
                 var srt = scrollView.GetComponent<RectTransform>();
-                srt.offsetMin = new Vector2(srt.offsetMin.x, 75f);
+                srt.offsetMin = new Vector2(srt.offsetMin.x, bannerH + 4f);
             }
 
             // Container do banner — clicável para comprar o próximo personagem
@@ -1550,43 +1552,57 @@ namespace GameIdle
             var brt = bannerGO.GetComponent<RectTransform>();
             brt.anchorMin = new Vector2(0f, 0f);
             brt.anchorMax = new Vector2(1f, 0f);
-            brt.offsetMin = Vector2.zero;
-            brt.offsetMax = new Vector2(0f, 75f);
+            brt.offsetMin = new Vector2(6f, 4f);
+            brt.offsetMax = new Vector2(-6f, bannerH + 4f);
             _nextUnlockBannerBg = bannerGO.GetComponent<Image>();
-            _nextUnlockBannerBg.color = NavyDark;
+            _nextUnlockBannerBg.sprite = UiSpriteFactory.RoundedBox();
+            _nextUnlockBannerBg.type = Image.Type.Sliced;
+            _nextUnlockBannerBg.color = new Color(0.08f, 0.13f, 0.22f, 1f);
             _nextUnlockBannerBg.raycastTarget = true;
             var bannerBtn = bannerGO.GetComponent<Button>();
             bannerBtn.targetGraphic = _nextUnlockBannerBg;
             bannerBtn.onClick.AddListener(OnNextUnlockBannerClicked);
 
-            // Título "PRÓXIMO DESBLOQUEIO"
+            // Borda laranja no topo do banner
+            var topLineGO = new GameObject("TopLine", typeof(RectTransform), typeof(Image));
+            topLineGO.transform.SetParent(bannerGO.transform, false);
+            var tlRT = topLineGO.GetComponent<RectTransform>();
+            tlRT.anchorMin = new Vector2(0f, 1f); tlRT.anchorMax = Vector2.one;
+            tlRT.pivot = new Vector2(0.5f, 1f);
+            tlRT.offsetMin = new Vector2(8f, -3f); tlRT.offsetMax = new Vector2(-8f, 0f);
+            topLineGO.GetComponent<Image>().color = new Color(NeonOrange.r, NeonOrange.g, NeonOrange.b, 0.7f);
+            topLineGO.GetComponent<Image>().raycastTarget = false;
+
+            // Título "PROXIMO DESBLOQUEIO"
             CreateBannerLabel(bannerGO.transform, "Title",
-                new Vector2(0f, 0.65f), new Vector2(1f, 1f),
-                new Vector2(10f, 0f), new Vector2(-8f, -3f),
-                "PROXIMO DESBLOQUEIO", 11, NeonOrange, TextAlignmentOptions.MidlineLeft);
+                new Vector2(0f, 0.72f), new Vector2(1f, 1f),
+                new Vector2(12f, 0f), new Vector2(-8f, -2f),
+                "PROXIMO DESBLOQUEIO", 12, NeonOrange, TextAlignmentOptions.MidlineLeft);
 
             // Nome do personagem
             nextUnlockNameText = CreateBannerLabel(bannerGO.transform, "NextName",
-                new Vector2(0f, 0.32f), new Vector2(0.62f, 0.65f),
-                new Vector2(10f, 0f), Vector2.zero,
-                "", 17, Color.white, TextAlignmentOptions.MidlineLeft);
+                new Vector2(0f, 0.38f), new Vector2(0.60f, 0.72f),
+                new Vector2(12f, 0f), Vector2.zero,
+                "", 18, Color.white, TextAlignmentOptions.MidlineLeft);
 
             // Custo
             nextUnlockCostText = CreateBannerLabel(bannerGO.transform, "NextCost",
-                new Vector2(0.62f, 0.32f), new Vector2(1f, 0.65f),
-                Vector2.zero, new Vector2(-8f, 0f),
-                "", 16, new Color(1f, 0.92f, 0.35f), TextAlignmentOptions.MidlineRight);
+                new Vector2(0.58f, 0.38f), new Vector2(1f, 0.72f),
+                Vector2.zero, new Vector2(-10f, 0f),
+                "", 17, new Color(1f, 0.92f, 0.35f), TextAlignmentOptions.MidlineRight);
 
-            // Fundo da barra
+            // Fundo da barra de progresso
             var barBGGO = new GameObject("BarBG", typeof(RectTransform), typeof(Image));
             barBGGO.transform.SetParent(bannerGO.transform, false);
             var barBGRT = barBGGO.GetComponent<RectTransform>();
             barBGRT.anchorMin = new Vector2(0f, 0f);
             barBGRT.anchorMax = new Vector2(1f, 0f);
-            barBGRT.offsetMin = new Vector2(8f, 7f);
-            barBGRT.offsetMax = new Vector2(-8f, 18f);
-            barBGGO.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.1f);
-            barBGGO.GetComponent<Image>().raycastTarget = false;
+            barBGRT.offsetMin = new Vector2(10f, 8f);
+            barBGRT.offsetMax = new Vector2(-10f, 22f);
+            var barBGImg = barBGGO.GetComponent<Image>();
+            barBGImg.sprite = UiSpriteFactory.RoundedBox(); barBGImg.type = Image.Type.Sliced;
+            barBGImg.color = new Color(1f, 1f, 1f, 0.08f);
+            barBGImg.raycastTarget = false;
 
             // Preenchimento da barra
             var barGO = new GameObject("Bar", typeof(RectTransform), typeof(Image));
@@ -1625,12 +1641,15 @@ namespace GameIdle
             var (next, via) = CharacterManager.Instance.GetNextUnlock();
             if (next == null)
             {
-                nextUnlockNameText.text = "Todos desbloqueados!";
+                nextUnlockNameText.text = "Equipe completa!";
+                nextUnlockNameText.color = new Color(0.4f, 1f, 0.6f, 1f);
                 if (nextUnlockCostText != null) nextUnlockCostText.text = "";
-                if (nextUnlockBar != null) nextUnlockBar.fillAmount = 1f;
+                if (nextUnlockBar != null) { nextUnlockBar.fillAmount = 1f; nextUnlockBar.color = new Color(0.3f, 0.9f, 0.5f, 1f); }
+                if (_nextUnlockBannerBg != null) _nextUnlockBannerBg.color = new Color(0.05f, 0.16f, 0.10f, 1f);
                 _nextUnlockWasAffordable = false;
                 return;
             }
+            nextUnlockNameText.color = Color.white;
             nextUnlockNameText.text = $">> {next.data.characterName}";
             double cost = via.GetCurrentCost();
             if (nextUnlockCostText != null)
