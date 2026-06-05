@@ -91,10 +91,8 @@ namespace GameIdle
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
             rt.sizeDelta = new Vector2(180f, 200f);
 
-            // Start at spread position so workers don't overlap
-            var startPos = SpreadPositions[index % SpreadPositions.Length];
-            startPos += new Vector2(Random.Range(-15f, 15f), Random.Range(-10f, 10f));
-            rt.anchoredPosition = startPos;
+            // Start at exact spread position — no jitter to prevent overlap
+            rt.anchoredPosition = SpreadPositions[index % SpreadPositions.Length];
 
             bool hasSpriteSheet = frames != null && frames.Length > 1;
 
