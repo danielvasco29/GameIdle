@@ -120,6 +120,9 @@ namespace GameIdle
             {
                 upgradeButton.onClick.RemoveAllListeners();
                 upgradeButton.onClick.AddListener(OnUpgradeClicked);
+
+                var hold = gameObject.GetComponent<HoldButton>() ?? gameObject.AddComponent<HoldButton>();
+                hold.Init(OnUpgradeClicked);
             }
 
             wasAffordable = false;
