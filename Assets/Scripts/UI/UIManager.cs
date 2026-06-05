@@ -230,7 +230,7 @@ namespace GameIdle
 
                 var glg = contentGO.GetComponent<GridLayoutGroup>();
                 if (glg == null) glg = contentGO.AddComponent<GridLayoutGroup>();
-                glg.cellSize        = new Vector2(460f, 112f);
+                glg.cellSize        = new Vector2(460f, 120f);
                 glg.spacing         = new Vector2(0f, 9f);
                 glg.padding         = new RectOffset(10, 10, 10, 10);
                 glg.childAlignment  = TextAnchor.UpperCenter;
