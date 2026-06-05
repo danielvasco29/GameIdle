@@ -29,12 +29,17 @@ namespace GameIdle
         private static readonly HashSet<string> _unlocked = new();
         private static int _turboUseCount;
 
+        // True quando há conquista(s) desbloqueada(s) ainda não vistas no painel.
+        public static bool HasUnseen { get; private set; }
+        public static void MarkSeen() => HasUnseen = false;
+
         public static bool IsUnlocked(string id) => _unlocked.Contains(id);
 
         public static bool TryUnlock(string id)
         {
             if (_unlocked.Contains(id)) return false;
             _unlocked.Add(id);
+            HasUnseen = true;
             var a = System.Array.Find(All, x => x.id == id);
             if (a == null) return true;
             if (GameManager.Instance != null) GameManager.Instance.AddGems(a.gemReward);

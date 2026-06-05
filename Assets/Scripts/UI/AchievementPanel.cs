@@ -126,6 +126,7 @@ namespace GameIdle
         public void Open()
         {
             gameObject.SetActive(true);
+            AchievementManager.MarkSeen();
             for (int i = 0; i < _rows.Length; i++)
             {
                 var a = AchievementManager.All[i];

@@ -24,11 +24,15 @@ namespace GameIdle
         [SerializeField] private Button prestigeButton;
 
         [Header("Painéis")]
-        [SerializeField] private EventPanel eventPanel;
+        private EventPanel eventPanel;
         [SerializeField] private PrestigePanel prestigePanel;
         private OfflineProgressPanel offlinePanel;
         private MissionPanel missionPanel;
         private AchievementPanel achievementPanel;
+
+        // Indicadores "pronto" (pontinho vermelho)
+        private Image _missionDot;
+        private Image _achievementDot;
 
         // Painéis modais — só um aberto por vez
         private readonly List<GameObject> modalPanels = new();
@@ -385,6 +389,7 @@ namespace GameIdle
             mblt.text = "MISSOES"; mblt.fontSize = 11; mblt.fontStyle = FontStyles.Bold;
             mblt.color = TextSec; mblt.alignment = TextAlignmentOptions.Center; mblt.raycastTarget = false;
             var mf = GetCachedFont(); if (mf != null) mblt.font = mf;
+            _missionDot = MakeNotifyDot(mBtnGO.transform);
 
             // ── Achievement Panel ──────────────────────────────────────────
             var achGO = new GameObject("AchievementPanel", typeof(RectTransform));
@@ -392,6 +397,13 @@ namespace GameIdle
             achievementPanel = achGO.AddComponent<AchievementPanel>();
             achGO.SetActive(false);
             modalPanels.Add(achGO);
+
+            // ── Event Panel ────────────────────────────────────────────────
+            var eventGO = new GameObject("EventPanel", typeof(RectTransform));
+            eventGO.transform.SetParent(canvas.transform, false);
+            eventPanel = eventGO.AddComponent<EventPanel>();
+            eventGO.SetActive(false);
+            modalPanels.Add(eventGO);
 
             // Botão Conquistas — ao lado de MISSOES
             var aBtnGO = new GameObject("AchievementButton", typeof(RectTransform), typeof(Image), typeof(Button));
@@ -411,6 +423,38 @@ namespace GameIdle
             ablt.text = "CONQUISTAS"; ablt.fontSize = 11; ablt.fontStyle = FontStyles.Bold;
             ablt.color = TextSec; ablt.alignment = TextAlignmentOptions.Center; ablt.raycastTarget = false;
             var af = GetCachedFont(); if (af != null) ablt.font = af;
+            _achievementDot = MakeNotifyDot(aBtnGO.transform);
+        }
+
+        private void UpdateNotifyDots()
+        {
+            if (_missionDot != null)
+            {
+                bool show = DailyMissionSystem.HasClaimable();
+                if (_missionDot.gameObject.activeSelf != show) _missionDot.gameObject.SetActive(show);
+            }
+            if (_achievementDot != null)
+            {
+                bool show = AchievementManager.HasUnseen;
+                if (_achievementDot.gameObject.activeSelf != show) _achievementDot.gameObject.SetActive(show);
+            }
+        }
+
+        // Pontinho vermelho de notificação no canto superior direito do botão.
+        private Image MakeNotifyDot(Transform parent)
+        {
+            var go = new GameObject("NotifyDot", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(1f, 1f);
+            rt.anchoredPosition = new Vector2(-2f, -2f);
+            rt.sizeDelta = new Vector2(12f, 12f);
+            var img = go.GetComponent<Image>();
+            img.sprite = Circle();
+            img.color = new Color(0.95f, 0.25f, 0.25f, 1f);
+            img.raycastTarget = false;
+            go.SetActive(false);
+            return img;
         }
 
         // The floating "Prestígio disponível" text used to overlap the prestige
@@ -1242,6 +1286,7 @@ namespace GameIdle
                 RefreshNextUnlockBanner();
                 UpdateBoostButton();
                 AchievementManager.CheckAll(); // conquistas de dinheiro acumulado (idle)
+                UpdateNotifyDots();
             }
 
             effectsHUDTimer -= Time.deltaTime;
@@ -1573,7 +1618,12 @@ namespace GameIdle
             _pendingOfflineEarned = earned;
             _pendingOfflineSeconds = seconds;
         }
-        public void ShowEventPanel(EventData eventData) => eventPanel.Show(eventData);
+        public void ShowEventPanel(EventData eventData)
+        {
+            if (eventPanel == null) return;
+            CloseAllModals();
+            eventPanel.Show(eventData);
+        }
 
         public void ShowAchievementToast(string name, string description, int gemReward)
         {

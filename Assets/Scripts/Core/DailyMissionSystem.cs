@@ -31,6 +31,14 @@ namespace GameIdle
         public static bool IsClaimed(int i)   => _claimed[i];
         public static bool IsComplete(int i)  => _progress[i] >= All[i].target;
 
+        // True se há alguma missão concluída ainda não coletada.
+        public static bool HasClaimable()
+        {
+            for (int i = 0; i < All.Length; i++)
+                if (IsComplete(i) && !IsClaimed(i)) return true;
+            return false;
+        }
+
         // Called every game start — resets if date changed
         public static void CheckDailyReset()
         {
