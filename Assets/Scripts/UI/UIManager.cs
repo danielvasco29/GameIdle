@@ -29,6 +29,8 @@ namespace GameIdle
         private OfflineProgressPanel offlinePanel;
         private MissionPanel missionPanel;
         private AchievementPanel achievementPanel;
+        private ActiveEffectsPanel activeEffectsPanel;
+        private Image _bonusDot;
 
         // Indicadores "pronto" (pontinho vermelho)
         private Image _missionDot;
@@ -424,6 +426,37 @@ namespace GameIdle
             ablt.color = TextSec; ablt.alignment = TextAlignmentOptions.Center; ablt.raycastTarget = false;
             var af = GetCachedFont(); if (af != null) ablt.font = af;
             _achievementDot = MakeNotifyDot(aBtnGO.transform);
+
+            // ── Active Effects Panel ───────────────────────────────────────
+            var aepGO = new GameObject("ActiveEffectsPanel", typeof(RectTransform));
+            aepGO.transform.SetParent(canvas.transform, false);
+            activeEffectsPanel = aepGO.AddComponent<ActiveEffectsPanel>();
+            aepGO.SetActive(false);
+            modalPanels.Add(aepGO);
+
+            // Botão BÔNUS — ao lado de CONQUISTAS
+            var bBtnGO = new GameObject("BonusButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            bBtnGO.transform.SetParent(canvas.transform, false);
+            var bbrt = bBtnGO.GetComponent<RectTransform>();
+            bbrt.anchorMin = bbrt.anchorMax = bbrt.pivot = new Vector2(0f, 1f);
+            bbrt.anchoredPosition = new Vector2(304f, -8f);
+            bbrt.sizeDelta = new Vector2(80f, 36f);
+            var bbImg = bBtnGO.GetComponent<Image>();
+            bbImg.sprite = Rounded(); bbImg.type = Image.Type.Sliced;
+            bbImg.color = new Color(0.18f, 0.28f, 0.42f, 1f);
+            bBtnGO.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                if (activeEffectsPanel != null) { CloseAllModals(); activeEffectsPanel.Open(); }
+            });
+            var bbl = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
+            bbl.transform.SetParent(bBtnGO.transform, false);
+            var bblr = bbl.GetComponent<RectTransform>();
+            bblr.anchorMin = Vector2.zero; bblr.anchorMax = Vector2.one; bblr.offsetMin = bblr.offsetMax = Vector2.zero;
+            var bblt = bbl.GetComponent<TextMeshProUGUI>();
+            bblt.text = "BÔNUS"; bblt.fontSize = 11; bblt.fontStyle = FontStyles.Bold;
+            bblt.color = GoldColor; bblt.alignment = TextAlignmentOptions.Center; bblt.raycastTarget = false;
+            var bf = GetCachedFont(); if (bf != null) bblt.font = bf;
+            _bonusDot = MakeNotifyDot(bBtnGO.transform);
         }
 
         private void UpdateNotifyDots()
@@ -437,6 +470,11 @@ namespace GameIdle
             {
                 bool show = AchievementManager.HasUnseen;
                 if (_achievementDot.gameObject.activeSelf != show) _achievementDot.gameObject.SetActive(show);
+            }
+            if (_bonusDot != null)
+            {
+                bool show = GameManager.Instance != null && GameManager.Instance.GetActiveEffects().Count > 0;
+                if (_bonusDot.gameObject.activeSelf != show) _bonusDot.gameObject.SetActive(show);
             }
         }
 
@@ -1103,11 +1141,12 @@ namespace GameIdle
             foreach (var effect in effects)
             {
                 Color pc = GetEffectPillColor(effect);
-                var pillGO = new GameObject("Pill", typeof(RectTransform), typeof(Image));
+                var pillGO = new GameObject("Pill", typeof(RectTransform), typeof(Image), typeof(Button));
                 pillGO.transform.SetParent(effectsHUD.transform, false);
                 pillGO.GetComponent<RectTransform>().sizeDelta = new Vector2(115, 22);
                 var pImg = pillGO.GetComponent<Image>();
-                pImg.color = new Color(pc.r, pc.g, pc.b, 0.65f); pImg.raycastTarget = false;
+                pImg.color = new Color(pc.r, pc.g, pc.b, 0.65f);
+                pillGO.GetComponent<Button>().onClick.AddListener(() => { CloseAllModals(); activeEffectsPanel?.Open(); });
                 var tGO = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
                 tGO.transform.SetParent(pillGO.transform, false);
                 var trt = tGO.GetComponent<RectTransform>();
