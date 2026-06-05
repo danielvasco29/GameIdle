@@ -355,7 +355,7 @@ namespace GameIdle
             mlr.anchorMin = Vector2.zero; mlr.anchorMax = Vector2.one;
             mlr.offsetMin = mlr.offsetMax = Vector2.zero;
             var mlt = ml.GetComponent<TextMeshProUGUI>();
-            mlt.text = "MENU"; mlt.fontSize = 16; mlt.fontStyle = FontStyles.Bold;
+            mlt.text = "MENU"; mlt.fontSize = 17; mlt.fontStyle = FontStyles.Bold;
             mlt.color = TextSec; mlt.alignment = TextAlignmentOptions.Center;
             mlt.raycastTarget = false;
             var f = GetCachedFont(); if (f != null) mlt.font = f;
@@ -388,7 +388,7 @@ namespace GameIdle
             var mblr = mbl.GetComponent<RectTransform>();
             mblr.anchorMin = Vector2.zero; mblr.anchorMax = Vector2.one; mblr.offsetMin = mblr.offsetMax = Vector2.zero;
             var mblt = mbl.GetComponent<TextMeshProUGUI>();
-            mblt.text = "MISSOES"; mblt.fontSize = 15; mblt.fontStyle = FontStyles.Bold;
+            mblt.text = "MISSOES"; mblt.fontSize = 16; mblt.fontStyle = FontStyles.Bold;
             mblt.color = NeonCyan; mblt.alignment = TextAlignmentOptions.Center; mblt.raycastTarget = false;
             var mf = GetCachedFont(); if (mf != null) mblt.font = mf;
             _missionDot = MakeNotifyDot(mBtnGO.transform);
@@ -423,7 +423,7 @@ namespace GameIdle
             var ablr = abl.GetComponent<RectTransform>();
             ablr.anchorMin = Vector2.zero; ablr.anchorMax = Vector2.one; ablr.offsetMin = ablr.offsetMax = Vector2.zero;
             var ablt = abl.GetComponent<TextMeshProUGUI>();
-            ablt.text = "CONQUISTAS"; ablt.fontSize = 15; ablt.fontStyle = FontStyles.Bold;
+            ablt.text = "CONQUISTAS"; ablt.fontSize = 16; ablt.fontStyle = FontStyles.Bold;
             ablt.color = GoldColor; ablt.alignment = TextAlignmentOptions.Center; ablt.raycastTarget = false;
             var af = GetCachedFont(); if (af != null) ablt.font = af;
             _achievementDot = MakeNotifyDot(aBtnGO.transform);
@@ -454,7 +454,7 @@ namespace GameIdle
             var bblr = bbl.GetComponent<RectTransform>();
             bblr.anchorMin = Vector2.zero; bblr.anchorMax = Vector2.one; bblr.offsetMin = bblr.offsetMax = Vector2.zero;
             var bblt = bbl.GetComponent<TextMeshProUGUI>();
-            bblt.text = "BONUS"; bblt.fontSize = 15; bblt.fontStyle = FontStyles.Bold;
+            bblt.text = "BONUS"; bblt.fontSize = 16; bblt.fontStyle = FontStyles.Bold;
             bblt.color = GoldColor; bblt.alignment = TextAlignmentOptions.Center; bblt.raycastTarget = false;
             var bf = GetCachedFont(); if (bf != null) bblt.font = bf;
             _bonusDot = MakeNotifyDot(bBtnGO.transform);
@@ -951,7 +951,7 @@ namespace GameIdle
                 mrt.anchorMin = new Vector2(0.2f, 0f);
                 mrt.anchorMax = new Vector2(0.8f, 0.44f);
                 mrt.offsetMin = mrt.offsetMax = Vector2.zero;
-                mpsText.fontSize  = 17; mpsText.fontStyle = FontStyles.Bold;
+                mpsText.fontSize  = 19; mpsText.fontStyle = FontStyles.Bold;
                 mpsText.color     = new Color(0.65f, 0.82f, 0.95f, 0.72f);
                 mpsText.alignment = TextAlignmentOptions.Center;
                 var mf2 = GetCachedFont(); if (mf2 != null) mpsText.font = mf2;
@@ -1063,7 +1063,7 @@ namespace GameIdle
             lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
             lrt.offsetMin = new Vector2(14f, 0f); lrt.offsetMax = Vector2.zero;
             var ltmp = labelGO.GetComponent<TextMeshProUGUI>();
-            ltmp.text = "FUNCIONARIOS"; ltmp.fontSize = 15; ltmp.fontStyle = FontStyles.Bold;
+            ltmp.text = "FUNCIONARIOS"; ltmp.fontSize = 16; ltmp.fontStyle = FontStyles.Bold;
             ltmp.color = GoldColor; ltmp.alignment = TextAlignmentOptions.MidlineLeft;
             ltmp.raycastTarget = false;
             var lf = GetCachedFont(); if (lf != null) ltmp.font = lf;
@@ -1193,7 +1193,7 @@ namespace GameIdle
             rt.anchorMin        = new Vector2(anchorX0, 0f);
             rt.anchorMax        = new Vector2(anchorX1, 0f);
             rt.pivot            = new Vector2(0.5f, 0f);
-            rt.sizeDelta        = new Vector2(0f, 62f);
+            rt.sizeDelta        = new Vector2(0f, 78f);
             rt.anchoredPosition = new Vector2(0f, 8f);
 
             // Sheen (topo do botão, visível quando pronto)
@@ -1212,8 +1212,8 @@ namespace GameIdle
             starGO.transform.SetParent(prestigeButton.transform, false);
             var strt = starGO.GetComponent<RectTransform>();
             strt.anchorMin = strt.anchorMax = strt.pivot = new Vector2(0f, 0.5f);
-            strt.anchoredPosition = new Vector2(18f, 0f);
-            strt.sizeDelta = new Vector2(28f, 28f);
+            strt.anchoredPosition = new Vector2(20f, 0f);
+            strt.sizeDelta = new Vector2(36f, 36f);
             var stImg = starGO.GetComponent<Image>();
             stImg.sprite = UiSpriteFactory.Star(); stImg.color = GoldColor;
             stImg.raycastTarget = false;
@@ -1231,7 +1231,7 @@ namespace GameIdle
                 lrt.offsetMin = lrt.offsetMax = Vector2.zero;
                 label = go.GetComponent<TextMeshProUGUI>();
             }
-            label.fontSize  = 15;
+            label.fontSize  = 18;
             label.fontStyle = FontStyles.Bold;
             label.color     = Color.white;
             label.alignment = TextAlignmentOptions.Center;
