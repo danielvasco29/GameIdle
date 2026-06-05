@@ -63,6 +63,7 @@ namespace GameIdle
         private TextMeshProUGUI tapValueText;
         private Image tapFaceImg;
         private Image tapGlowImg;
+        private bool _tapPunching;
 
         // Próximo desbloqueio
         private TextMeshProUGUI nextUnlockNameText;
@@ -522,7 +523,7 @@ namespace GameIdle
                     StartCoroutine(FlyCoin());
             }
 
-            if (tapButtonRT != null) StartCoroutine(PunchScale(tapButtonRT, 0.12f));
+            if (tapButtonRT != null && !_tapPunching) StartCoroutine(PunchScale(tapButtonRT, 0.12f));
         }
 
         // A small gold coin that pops out of the tap button and arcs upward.
@@ -590,6 +591,7 @@ namespace GameIdle
         private IEnumerator PunchScale(RectTransform rt, float duration)
         {
             if (rt == null) yield break;
+            _tapPunching = true;
             Vector3 orig = rt.localScale;
             Vector3 big  = orig * 1.12f;
             float half   = duration * 0.5f;
@@ -598,6 +600,7 @@ namespace GameIdle
             e = 0f;
             while (e < half) { e += Time.deltaTime; rt.localScale = Vector3.Lerp(big, orig, e / half); yield return null; }
             rt.localScale = orig;
+            _tapPunching = false;
         }
 
         // ── Layout & Theme ────────────────────────────────────────────────────
