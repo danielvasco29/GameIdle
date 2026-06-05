@@ -10,7 +10,7 @@ namespace GameIdle
     {
         private readonly Row[] _rows = new Row[AchievementManager.All.Length];
 
-        private static readonly Color NavyDark  = new(0.055f, 0.094f, 0.165f, 0.98f);
+        private static readonly Color NavyDark  = new(0.055f, 0.094f, 0.165f, 0.85f);
         private static readonly Color NavyCard  = new(0.106f, 0.169f, 0.275f, 1f);
         private static readonly Color GoldColor = new(1f, 0.808f, 0.227f, 1f);
         private static readonly Color GrayColor = new(0.35f, 0.40f, 0.50f, 1f);

@@ -12,7 +12,7 @@ namespace GameIdle
         private TextMeshProUGUI _earningsText;
         private double _pendingEarnings;
 
-        private static readonly Color NavyDark  = new(0.055f, 0.094f, 0.165f, 0.97f);
+        private static readonly Color NavyDark  = new(0.055f, 0.094f, 0.165f, 0.85f);
         private static readonly Color GoldColor = new(1f, 0.808f, 0.227f, 1f);
         private static readonly Color GreenColor= new(0.247f, 0.749f, 0.353f, 1f);
 

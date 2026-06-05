@@ -14,7 +14,7 @@ namespace GameIdle
         private readonly List<GameObject> _spawnedChoices = new();
         private EventData _currentEvent;
 
-        private static readonly Color NavyDark  = new(0.055f, 0.094f, 0.165f, 0.98f);
+        private static readonly Color NavyDark  = new(0.055f, 0.094f, 0.165f, 0.85f);
         private static readonly Color GoldColor = new(1f, 0.808f, 0.227f, 1f);
         private static readonly Color GreenColor= new(0.247f, 0.749f, 0.353f, 1f);
         private static readonly Color BtnColor  = new(0.16f, 0.30f, 0.46f, 1f);

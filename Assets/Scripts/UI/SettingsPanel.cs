@@ -6,7 +6,7 @@ namespace GameIdle
 {
     public class SettingsPanel : MonoBehaviour
     {
-        private static readonly Color Navy     = new(0.086f, 0.137f, 0.220f, 0.98f);
+        private static readonly Color Navy     = new(0.086f, 0.137f, 0.220f, 0.85f);
         private static readonly Color NavyCard = new(0.106f, 0.169f, 0.275f, 1f);
         private static readonly Color Gold     = new(1f, 0.808f, 0.227f, 1f);
         private static readonly Color Red      = new(0.78f, 0.22f, 0.22f, 1f);
