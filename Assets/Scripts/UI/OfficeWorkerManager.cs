@@ -30,7 +30,7 @@ namespace GameIdle
             new(-403f, -96f), // mesa esquerda (baixo) — cadeira 2
             // landmarks (em pé, na frente do objeto — sem animação de uso)
             new(-344f, 250f), // em frente ao bebedouro de água
-            new( 404f, 110f), // em frente ao sofá
+            new( 350f,  10f), // em frente ao sofá (passando da mesinha de centro)
             // chão aberto (em pé, circulando)
             new(  20f,  55f), // centro
             new(-150f, 120f), // centro-fundo
