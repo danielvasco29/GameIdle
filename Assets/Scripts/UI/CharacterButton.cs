@@ -101,7 +101,7 @@ namespace GameIdle
             AutoFindComponents();
 
             var le = GetComponent<LayoutElement>() ?? gameObject.AddComponent<LayoutElement>();
-            le.minHeight = le.preferredHeight = 108;
+            le.minHeight = le.preferredHeight = 128;
             le.flexibleHeight = 0;
 
             // Rounded card background
@@ -109,6 +109,7 @@ namespace GameIdle
             backgroundImage.type   = Image.Type.Sliced;
             backgroundImage.color  = CardColor;
 
+            SetupAccentBar();
             SetupAvatar();
             SetupAffordableIndicator();
             SetupTierDots();
@@ -130,6 +131,29 @@ namespace GameIdle
             Refresh();
         }
 
+        private void SetupAccentBar()
+        {
+            var ex = transform.Find("AccentBar");
+            if (ex != null) { ex.SetParent(null); Destroy(ex.gameObject); }
+
+            var go = new GameObject("AccentBar", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(transform, false);
+            go.transform.SetAsFirstSibling();
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0f, 0f); rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 0.5f);
+            rt.offsetMin = new Vector2(0f, 4f);
+            rt.offsetMax = new Vector2(6f, -4f);
+            var img = go.GetComponent<Image>();
+            img.sprite = GetRoundedSprite();
+            img.type   = Image.Type.Sliced;
+            img.color  = new Color(
+                character.data.tintColor.r * 0.85f + 0.15f,
+                character.data.tintColor.g * 0.85f + 0.15f,
+                character.data.tintColor.b * 0.85f + 0.15f, 0.9f);
+            img.raycastTarget = false;
+        }
+
         private void SetupAvatar()
         {
             foreach (var n in new[] { "AvatarRing", "AvatarBg", "Icon" })
@@ -138,29 +162,32 @@ namespace GameIdle
                 if (ex != null) { ex.SetParent(null); Destroy(ex.gameObject); }
             }
 
-            // Gold ring (behind), child of card so the mask below doesn't clip it
+            // Colored ring behind avatar (tint color, subtle)
             var ringGO = new GameObject("AvatarRing", typeof(RectTransform), typeof(Image));
             ringGO.transform.SetParent(transform, false);
             var ringRT = ringGO.GetComponent<RectTransform>();
             ringRT.anchorMin = ringRT.anchorMax = ringRT.pivot = new Vector2(0f, 0.5f);
-            ringRT.anchoredPosition = new Vector2(7f, 0f);
-            ringRT.sizeDelta = new Vector2(90f, 90f);
+            ringRT.anchoredPosition = new Vector2(16f, 0f);
+            ringRT.sizeDelta = new Vector2(108f, 108f);
             var ringImg = ringGO.GetComponent<Image>();
             ringImg.sprite = GetCircleSprite();
-            ringImg.color  = new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0.5f);
+            ringImg.color  = new Color(
+                character.data.tintColor.r * 0.6f + 0.1f,
+                character.data.tintColor.g * 0.6f + 0.1f,
+                character.data.tintColor.b * 0.6f + 0.1f, 0.40f);
             ringImg.raycastTarget = false;
 
-            // Circular avatar background that also masks the portrait
+            // Circular avatar background + mask
             var bgGO = new GameObject("AvatarBg", typeof(RectTransform), typeof(Image), typeof(Mask));
             bgGO.transform.SetParent(transform, false);
             var bgRT = bgGO.GetComponent<RectTransform>();
             bgRT.anchorMin = bgRT.anchorMax = bgRT.pivot = new Vector2(0f, 0.5f);
-            bgRT.anchoredPosition = new Vector2(10f, 0f);
-            bgRT.sizeDelta = new Vector2(84f, 84f);
+            bgRT.anchoredPosition = new Vector2(16f, 0f);
+            bgRT.sizeDelta = new Vector2(100f, 100f);
             avatarBg = bgGO.GetComponent<Image>();
             avatarBg.sprite = GetCircleSprite();
             avatarBg.type   = Image.Type.Simple;
-            avatarBg.color  = BlendWithNavy(character.data.tintColor, 0.3f);
+            avatarBg.color  = BlendWithNavy(character.data.tintColor, 0.25f);
             avatarBg.raycastTarget = false;
             bgGO.GetComponent<Mask>().showMaskGraphic = true;
 
@@ -255,7 +282,7 @@ namespace GameIdle
                     var ttmp = initialGO.GetComponent<TextMeshProUGUI>();
                     ttmp.text = character.data.characterName.Length > 0
                         ? character.data.characterName[0].ToString().ToUpper() : "?";
-                    ttmp.fontSize  = 36;
+                    ttmp.fontSize  = 44;
                     ttmp.fontStyle = FontStyles.Bold;
                     ttmp.alignment = TextAlignmentOptions.Center;
                     ttmp.color     = Color.white;
@@ -286,16 +313,16 @@ namespace GameIdle
 
         private void ApplyCardLayout()
         {
-            const float avatarW   = 104f;  // 10px margin + 84px avatar
-            const float rightW    = 124f;
-            const float rightInset = 18f; // clears the vertical scrollbar on the right
+            const float avatarW    = 126f;  // 16px margin + 100px avatar + 10px gap
+            const float rightW     = 120f;
+            const float rightInset = 14f;
 
             if (nameText != null)
             {
                 SetAnchors(nameText.rectTransform,
-                    new Vector2(0f, 0.58f), new Vector2(1f, 1f),
-                    new Vector2(avatarW, 0f), new Vector2(-rightW, -4f));
-                nameText.fontSize  = 18;
+                    new Vector2(0f, 0.60f), new Vector2(1f, 1f),
+                    new Vector2(avatarW, 0f), new Vector2(-rightW, -6f));
+                nameText.fontSize  = 20;
                 nameText.fontStyle = FontStyles.Bold;
                 nameText.alignment = TextAlignmentOptions.BottomLeft;
                 nameText.color     = TextPrimary;
@@ -306,15 +333,15 @@ namespace GameIdle
             var dotsRow = transform.Find("TierDots")?.GetComponent<RectTransform>();
             if (dotsRow != null)
                 SetAnchors(dotsRow,
-                    new Vector2(0f, 0.40f), new Vector2(1f, 0.60f),
+                    new Vector2(0f, 0.40f), new Vector2(1f, 0.62f),
                     new Vector2(avatarW, 0f), new Vector2(-rightW, 0f));
 
             if (productionText != null)
             {
                 SetAnchors(productionText.rectTransform,
-                    new Vector2(0f, 0.05f), new Vector2(1f, 0.42f),
+                    new Vector2(0f, 0.04f), new Vector2(1f, 0.40f),
                     new Vector2(avatarW, 0f), new Vector2(-rightW, 0f));
-                productionText.fontSize  = 15;
+                productionText.fontSize  = 16;
                 productionText.fontStyle = FontStyles.Bold;
                 productionText.alignment = TextAlignmentOptions.MidlineLeft;
                 productionText.color     = GreenColor;
@@ -322,13 +349,13 @@ namespace GameIdle
                 productionText.overflowMode     = TextOverflowModes.Ellipsis;
             }
 
-            // Cost — gold, right column, just under the level badge
+            // Cost — gold, right column
             if (costText != null)
             {
                 SetAnchors(costText.rectTransform,
-                    new Vector2(1f, 0.34f), new Vector2(1f, 0.66f),
+                    new Vector2(1f, 0.32f), new Vector2(1f, 0.68f),
                     new Vector2(-rightW, 0f), new Vector2(-rightInset, 0f));
-                costText.fontSize  = 20;
+                costText.fontSize  = 21;
                 costText.fontStyle = FontStyles.Bold;
                 costText.alignment = TextAlignmentOptions.MidlineRight;
                 costText.color     = GoldColor;
@@ -336,13 +363,13 @@ namespace GameIdle
                 costText.overflowMode     = TextOverflowModes.Ellipsis;
             }
 
-            // Income gain preview — green, below the cost ("+X/s ao comprar")
+            // Gain preview — green, below cost
             if (gainText != null)
             {
                 SetAnchors(gainText.rectTransform,
-                    new Vector2(1f, 0.04f), new Vector2(1f, 0.34f),
+                    new Vector2(1f, 0.04f), new Vector2(1f, 0.32f),
                     new Vector2(-rightW, 2f), new Vector2(-rightInset, 0f));
-                gainText.fontSize  = 13;
+                gainText.fontSize  = 14;
                 gainText.fontStyle = FontStyles.Bold;
                 gainText.alignment = TextAlignmentOptions.MidlineRight;
                 gainText.color     = GreenColor;
@@ -354,7 +381,7 @@ namespace GameIdle
         // Small rounded blue badge in the top-right corner showing the level.
         private void SetupLevelBadge()
         {
-            const float rightInset = 18f;
+            const float rightInset = 14f;
 
             var ex = transform.Find("LevelBadge");
             if (ex != null) { ex.SetParent(null); Destroy(ex.gameObject); }
@@ -364,11 +391,11 @@ namespace GameIdle
             var brt = badge.GetComponent<RectTransform>();
             brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
             brt.anchoredPosition = new Vector2(-rightInset, -8f);
-            brt.sizeDelta = new Vector2(74f, 24f);
+            brt.sizeDelta = new Vector2(78f, 26f);
             var bImg = badge.GetComponent<Image>();
             bImg.sprite = GetRoundedSprite();
             bImg.type   = Image.Type.Sliced;
-            bImg.color  = new Color(BlueAccent.r, BlueAccent.g, BlueAccent.b, 0.20f);
+            bImg.color  = new Color(BlueAccent.r, BlueAccent.g, BlueAccent.b, 0.25f);
             bImg.raycastTarget = false;
 
             if (levelText != null)
@@ -377,10 +404,10 @@ namespace GameIdle
                 var lrt = levelText.rectTransform;
                 lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
                 lrt.offsetMin = lrt.offsetMax = Vector2.zero;
-                levelText.fontSize  = 14;
+                levelText.fontSize  = 15;
                 levelText.fontStyle = FontStyles.Bold;
                 levelText.alignment = TextAlignmentOptions.Center;
-                levelText.color     = new Color(0.7f, 0.85f, 1f, 1f);
+                levelText.color     = new Color(0.7f, 0.88f, 1f, 1f);
                 levelText.raycastTarget = false;
                 levelText.textWrappingMode = TextWrappingModes.NoWrap;
             }
