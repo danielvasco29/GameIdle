@@ -486,6 +486,11 @@ namespace GameIdle
             UpdateTapValueText();
 
             tapBtn.onClick.AddListener(OnTapClicked);
+
+            // Hold: segura o botão para disparar repetidamente com aceleração
+            var holdBtn = tapGO.AddComponent<HoldButton>();
+            holdBtn.Init(OnTapClicked);
+
             StartCoroutine(PulseTapButton());
         }
 
