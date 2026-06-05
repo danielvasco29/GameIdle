@@ -808,9 +808,12 @@ namespace GameIdle
                 var go = new GameObject("FloatTap", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(FloatingText));
                 go.transform.SetParent(panelMain, false);
                 var rt = go.GetComponent<RectTransform>();
-                rt.sizeDelta = new Vector2(200f, 40f);
-                rt.anchoredPosition = new Vector2(Random.Range(-60f, 60f), Random.Range(20f, 90f));
-                go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(val)}", NeonGreen);
+                rt.sizeDelta = new Vector2(260f, 60f);
+                rt.anchoredPosition = new Vector2(Random.Range(-80f, 80f), Random.Range(30f, 100f));
+                // Turbo tap = gold, normal = green
+                Color tapColor = GameManager.Instance.TapBoostActive
+                    ? new Color(1f, 0.85f, 0.1f) : NeonGreen;
+                go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(val)}", tapColor, 32f);
 
                 // Coins flying up
                 int coins = Random.Range(3, 6);
@@ -1517,9 +1520,9 @@ namespace GameIdle
             float halfW = panelMain.rect.width  * 0.35f;
             float halfH = panelMain.rect.height * 0.35f;
             rt.anchoredPosition = new Vector2(Random.Range(-halfW, halfW), -halfH);
-            rt.sizeDelta = new Vector2(160f, 30f);
+            rt.sizeDelta = new Vector2(220f, 50f);
             double amount = GameManager.Instance.MoneyPerSecond * FloatBurstInterval;
-            go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(amount)}", NeonGreen);
+            go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(amount)}", NeonGreen, 26f);
         }
 
         // ── Core UI Update ────────────────────────────────────────────────────
