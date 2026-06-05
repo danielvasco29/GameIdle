@@ -1153,6 +1153,16 @@ namespace GameIdle
         private void SetupPrestigeProgressBar()
         {
             if (prestigeButton == null) return;
+
+            // Track background
+            var trackGO = new GameObject("PrestigeBarTrack", typeof(RectTransform), typeof(Image));
+            trackGO.transform.SetParent(prestigeButton.transform, false);
+            var trt = trackGO.GetComponent<RectTransform>();
+            trt.anchorMin = new Vector2(0f, 0f); trt.anchorMax = new Vector2(1f, 0f);
+            trt.offsetMin = new Vector2(0f, 0f); trt.offsetMax = new Vector2(0f, 5f);
+            trackGO.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.35f);
+            trackGO.GetComponent<Image>().raycastTarget = false;
+
             var barGO = new GameObject("PrestigeBar", typeof(RectTransform), typeof(Image));
             barGO.transform.SetParent(prestigeButton.transform, false);
             var rt = barGO.GetComponent<RectTransform>();
@@ -1265,18 +1275,23 @@ namespace GameIdle
 
             prestigeButtonLabel.text = ready
                 ? $">> PRESTIGIAR  |  x{nextMult:F1}  +{gems} GEMAS <<"
-                : $"PRESTIGIO #{count + 1}  |  x{nextMult:F1}  +{previewGems} GEMAS\n<size=75%><color=#7ab8d4>meta ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}</color></size>";
+                : $"PRESTIGIO #{count + 1}  |  x{nextMult:F1}  +{previewGems} GEMAS\n<size=72%><color=#f0c060>meta ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}</color></size>";
 
             var img = prestigeButton?.GetComponent<Image>();
             if (img != null)
-                img.color = ready ? new Color(0.55f, 0.35f, 0.02f, 1f) : new Color(0.06f, 0.10f, 0.18f, 1f);
+                img.color = ready
+                    ? new Color(0.55f, 0.35f, 0.02f, 1f)
+                    : new Color(0.10f, 0.16f, 0.30f, 1f);  // brighter navy when inactive
 
             if (_prestigeSheen != null)
                 _prestigeSheen.color = ready
                     ? new Color(1f, 0.88f, 0.3f, 0.22f)
-                    : new Color(1f, 1f, 1f, 0.04f);
+                    : new Color(0.5f, 0.75f, 1f, 0.07f);   // subtle blue sheen when inactive
 
-            prestigeButtonLabel.color = ready ? new Color(1f, 0.95f, 0.70f) : new Color(0.82f, 0.90f, 1f);
+            prestigeButtonLabel.color = ready
+                ? new Color(1f, 0.95f, 0.70f)
+                : Color.white;
+            prestigeButtonLabel.fontSize = ready ? 18f : 17f;
         }
 
         // ── Floating Money ────────────────────────────────────────────────────
