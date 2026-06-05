@@ -26,8 +26,11 @@ namespace GameIdle
             rt.anchorMax = new Vector2(0.95f, 0.95f);
             rt.offsetMin = rt.offsetMax = Vector2.zero;
 
+            // Fix 6: RoundedBox sprite + sliced + new background color
             var bg = gameObject.AddComponent<Image>();
-            bg.color = new Color(0.04f, 0.04f, 0.14f, 0.97f);
+            bg.sprite = UiSpriteFactory.RoundedBox();
+            bg.type = Image.Type.Sliced;
+            bg.color = new Color(0.05f, 0.08f, 0.16f, 0.98f);
 
             // Title bar
             var titleGO = new GameObject("Title", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -85,13 +88,16 @@ namespace GameIdle
             sr.horizontal = false; sr.vertical = true;
             sr.scrollSensitivity = 30f;
 
-            // Close button
+            // Fix 3: Close button — navy color + RoundedBox sprite sliced
             var closeBtnGO = new GameObject("CloseBtn", typeof(RectTransform), typeof(Image), typeof(Button));
             closeBtnGO.transform.SetParent(transform, false);
             var cbrt = closeBtnGO.GetComponent<RectTransform>();
             cbrt.anchorMin = new Vector2(0.25f, 0f); cbrt.anchorMax = new Vector2(0.75f, 0.12f);
             cbrt.offsetMin = new Vector2(0f, 4f); cbrt.offsetMax = new Vector2(0f, -4f);
-            closeBtnGO.GetComponent<Image>().color = new Color(0.5f, 0.08f, 0.08f, 1f);
+            var closeBtnImg = closeBtnGO.GetComponent<Image>();
+            closeBtnImg.sprite = UiSpriteFactory.RoundedBox();
+            closeBtnImg.type = Image.Type.Sliced;
+            closeBtnImg.color = new Color(0.10f, 0.16f, 0.28f, 1f);
             closeBtnGO.GetComponent<Button>().onClick.AddListener(() => gameObject.SetActive(false));
 
             var clblGO = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -122,7 +128,8 @@ namespace GameIdle
             var data = Load();
             data.records.Sort((a, b) => b.prestigeCount.CompareTo(a.prestigeCount));
 
-            AddRow(rank: 0, pos: "#", name: "JOGADOR", count: "PRESTÍGIOS", date: "DATA", header: true);
+            // Fix 2: "PRESTÍGIOS" → "PREST.", column width 80 → 60
+            AddRow(rank: 0, pos: "#", name: "JOGADOR", count: "PREST.", date: "DATA", header: true);
             if (data.records.Count == 0)
             {
                 AddEmptyMessage();
@@ -140,7 +147,8 @@ namespace GameIdle
         {
             var rowGO = new GameObject($"Row{rank}", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup));
             rowGO.transform.SetParent(rowsContainer, false);
-            rowGO.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, 30f);
+            // Fix 4: row height 30 → 34
+            rowGO.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, 34f);
 
             rowGO.GetComponent<Image>().color = header
                 ? new Color(0.1f, 0.08f, 0.28f, 1f)
@@ -155,11 +163,13 @@ namespace GameIdle
 
             Color textColor = header ? new Color(1f, 0.84f, 0f) : Color.white;
             FontStyles style = header ? FontStyles.Bold : FontStyles.Normal;
-            int fontSize = header ? 12 : 11;
+            // Fix 5: header 12 → 13, rows 11 → 12
+            int fontSize = header ? 13 : 12;
 
             AddCell(rowGO.transform, pos,   32f, textColor, style, fontSize);
             AddCell(rowGO.transform, name,   0f, textColor, style, fontSize, flexible: true);
-            AddCell(rowGO.transform, count, 80f, textColor, style, fontSize);
+            // Fix 2: column width 80 → 60
+            AddCell(rowGO.transform, count, 60f, textColor, style, fontSize);
             AddCell(rowGO.transform, date,  76f, textColor, style, fontSize);
         }
 
@@ -193,15 +203,29 @@ namespace GameIdle
             tmp.raycastTarget = false;
         }
 
+        // Fix 1: Deduplication — update existing record if new prestigeCount is higher
         public static void AddRecord(int prestigeCount)
         {
             var data = Load();
-            data.records.Add(new PrestigeRecord
+            const string playerName = "Jogador";
+            int existingIndex = data.records.FindIndex(r => r.playerName == playerName);
+            if (existingIndex >= 0)
             {
-                playerName   = "Jogador",
-                prestigeCount = prestigeCount,
-                date         = DateTime.Now.ToString("dd/MM/yy")
-            });
+                if (prestigeCount > data.records[existingIndex].prestigeCount)
+                {
+                    data.records[existingIndex].prestigeCount = prestigeCount;
+                    data.records[existingIndex].date = DateTime.Now.ToString("dd/MM/yy");
+                }
+            }
+            else
+            {
+                data.records.Add(new PrestigeRecord
+                {
+                    playerName    = playerName,
+                    prestigeCount = prestigeCount,
+                    date          = DateTime.Now.ToString("dd/MM/yy")
+                });
+            }
             data.records.Sort((a, b) => b.prestigeCount.CompareTo(a.prestigeCount));
             if (data.records.Count > MaxRecords)
                 data.records.RemoveRange(MaxRecords, data.records.Count - MaxRecords);
