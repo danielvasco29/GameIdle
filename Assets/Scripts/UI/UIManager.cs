@@ -51,14 +51,14 @@ namespace GameIdle
         private float uiRefreshTimer;
         private const float UiRefreshInterval = 0.1f;
 
-        // Grafite + Verde Neon palette
-        private static readonly Color NavyDark    = new(0.063f, 0.071f, 0.078f, 1f); // grafite escuro
-        private static readonly Color NavyCard    = new(0.125f, 0.145f, 0.157f, 1f); // grafite card
-        private static readonly Color GoldColor   = new(0.314f, 0.941f, 0.549f, 1f); // verde neon (titulos/dinheiro)
-        private static readonly Color GreenBtn    = new(0.314f, 0.961f, 0.588f, 1f); // verde neon botoes
-        private static readonly Color BlueAccent  = new(0.275f, 0.820f, 0.541f, 1f); // verde-agua accent
-        private static readonly Color TextPrimary = new(0.922f, 0.961f, 0.941f, 1f); // quase branco
-        private static readonly Color TextSec     = new(0.667f, 0.784f, 0.725f, 1f); // verde acinzentado
+        // Idle Startup Tycoon palette (navy)
+        private static readonly Color NavyDark    = new(0.086f, 0.137f, 0.220f, 1f); // #16233a
+        private static readonly Color NavyCard    = new(0.106f, 0.169f, 0.275f, 1f); // #1b2b46
+        private static readonly Color GoldColor   = new(1f,     0.808f, 0.227f, 1f); // #ffce3a
+        private static readonly Color GreenBtn    = new(0.247f, 0.749f, 0.353f, 1f); // #3fbf5a
+        private static readonly Color BlueAccent  = new(0.290f, 0.620f, 1f,    1f);  // #4a9eff
+        private static readonly Color TextPrimary = new(0.933f, 0.953f, 0.980f, 1f); // #eef3fa
+        private static readonly Color TextSec     = new(0.624f, 0.698f, 0.788f, 1f); // #9fb2c9
         // Keep aliases used elsewhere in the file
         private static readonly Color NeonGreen  = GreenBtn;
         private static readonly Color NeonCyan   = BlueAccent;
@@ -932,9 +932,9 @@ namespace GameIdle
             rt.sizeDelta        = new Vector2(panelW, rt.sizeDelta.y);
             rt.anchoredPosition = new Vector2(panelW * 0.5f, rt.anchoredPosition.y);
 
-            // Graphite background for the sidebar
+            // Navy background for the sidebar (darker shade of the card navy)
             var panelImg = panelLeft.GetComponent<Image>();
-            if (panelImg != null) panelImg.color = new Color(0.086f, 0.098f, 0.110f, 1f);
+            if (panelImg != null) panelImg.color = new Color(0.063f, 0.106f, 0.176f, 1f);
 
             // Fit the card to the visible width (minus the ~17px scrollbar and the
             // grid's 10px side padding) so cost + level are never clipped.
@@ -1095,7 +1095,7 @@ namespace GameIdle
             hrt.offsetMin = new Vector2(0f, -32f); hrt.offsetMax = Vector2.zero;
             var himg = headerGO.GetComponent<Image>();
             himg.sprite = Rounded(); himg.type = Image.Type.Sliced;
-            himg.color = new Color(0.063f, 0.071f, 0.078f, 1f);
+            himg.color = NavyDark;
             himg.raycastTarget = false;
 
             var labelGO = new GameObject("EquipeLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
