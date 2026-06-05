@@ -120,7 +120,7 @@ namespace GameIdle
 
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(130f, 150f);
+            rt.sizeDelta = new Vector2(150f, 172f);
 
             // Start at exact spread position — no jitter to prevent overlap
             rt.anchoredPosition = SpreadPositions[index % SpreadPositions.Length];
@@ -135,8 +135,8 @@ namespace GameIdle
                 shadowGO.transform.SetParent(go.transform, false);
                 var shRt = shadowGO.GetComponent<RectTransform>();
                 shRt.anchorMin = shRt.anchorMax = shRt.pivot = new Vector2(0.5f, 0.5f);
-                shRt.anchoredPosition = new Vector2(0f, -58f);
-                shRt.sizeDelta = new Vector2(70f, 16f);
+                shRt.anchoredPosition = new Vector2(0f, -67f);
+                shRt.sizeDelta = new Vector2(80f, 18f);
                 var shImg = shadowGO.GetComponent<Image>();
                 shImg.sprite = UiSpriteFactory.Circle();
                 shImg.color = new Color(0f, 0f, 0f, 0.20f);
@@ -148,7 +148,7 @@ namespace GameIdle
                 var bodyRt2 = bodyGO.GetComponent<RectTransform>();
                 bodyRt2.anchorMin = bodyRt2.anchorMax = bodyRt2.pivot = new Vector2(0.5f, 0.5f);
                 bodyRt2.anchoredPosition = Vector2.zero;
-                bodyRt2.sizeDelta = new Vector2(130f, 130f);
+                bodyRt2.sizeDelta = new Vector2(150f, 150f);
 
                 var bodyImg = bodyGO.GetComponent<Image>();
                 bodyImg.sprite = frames[0];
