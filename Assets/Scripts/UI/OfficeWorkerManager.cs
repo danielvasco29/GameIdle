@@ -113,24 +113,27 @@ namespace GameIdle
                 sImg.color = new Color(0f, 0f, 0f, 0.25f);
                 sImg.raycastTarget = false;
 
-                // Máscara circular — corta fundo branco dos sprites não-transparentes
-                var maskGO = new GameObject("Mask", typeof(RectTransform), typeof(Image), typeof(Mask));
-                maskGO.transform.SetParent(go.transform, false);
-                var maskRt = maskGO.GetComponent<RectTransform>();
-                maskRt.anchorMin = maskRt.anchorMax = maskRt.pivot = new Vector2(0.5f, 0.5f);
-                maskRt.anchoredPosition = Vector2.zero;
-                maskRt.sizeDelta = new Vector2(80f, 80f);
-                var maskImg = maskGO.GetComponent<Image>();
-                maskImg.sprite = UiSpriteFactory.Circle();
-                maskImg.color = Color.white;
-                maskImg.raycastTarget = false;
-                maskGO.GetComponent<Mask>().showMaskGraphic = false;
+                // Fundo circular colorido + sprite por cima (sem máscara, sem xadrez)
+                var bgCircleGO = new GameObject("BgCircle", typeof(RectTransform), typeof(Image));
+                bgCircleGO.transform.SetParent(go.transform, false);
+                var bgCircleRt = bgCircleGO.GetComponent<RectTransform>();
+                bgCircleRt.anchorMin = bgCircleRt.anchorMax = bgCircleRt.pivot = new Vector2(0.5f, 0.5f);
+                bgCircleRt.anchoredPosition = Vector2.zero;
+                bgCircleRt.sizeDelta = new Vector2(82f, 82f);
+                var bgCircleImg = bgCircleGO.GetComponent<Image>();
+                bgCircleImg.sprite = UiSpriteFactory.Circle();
+                bgCircleImg.color = new Color(
+                    ci.data.tintColor.r * 0.4f + 0.1f,
+                    ci.data.tintColor.g * 0.4f + 0.1f,
+                    ci.data.tintColor.b * 0.4f + 0.1f, 1f);
+                bgCircleImg.raycastTarget = false;
 
                 var bodyGO = new GameObject("Body", typeof(RectTransform), typeof(Image));
-                bodyGO.transform.SetParent(maskGO.transform, false);
+                bodyGO.transform.SetParent(go.transform, false);
                 var bodyRt2 = bodyGO.GetComponent<RectTransform>();
-                bodyRt2.anchorMin = Vector2.zero; bodyRt2.anchorMax = Vector2.one;
-                bodyRt2.offsetMin = bodyRt2.offsetMax = Vector2.zero;
+                bodyRt2.anchorMin = bodyRt2.anchorMax = bodyRt2.pivot = new Vector2(0.5f, 0.5f);
+                bodyRt2.anchoredPosition = Vector2.zero;
+                bodyRt2.sizeDelta = new Vector2(80f, 80f);
 
                 var bodyImg = bodyGO.GetComponent<Image>();
                 bodyImg.sprite = frames[0];
@@ -138,7 +141,7 @@ namespace GameIdle
                 bodyImg.preserveAspect = true;
 
                 var avatar = go.GetComponent<WorkerAvatar>();
-                avatar.InitSheet(rt, maskRt, bodyImg, frames, srt, RoamBounds);
+                avatar.InitSheet(rt, bodyRt2, bodyImg, frames, srt, RoamBounds);
             }
             else
             {
