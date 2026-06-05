@@ -1258,7 +1258,7 @@ namespace GameIdle
             var img = prestigeButton.GetComponent<Image>();
             if (img == null) img = prestigeButton.gameObject.AddComponent<Image>();
             img.sprite = Rounded(); img.type = Image.Type.Sliced;
-            img.color = NavyCard;
+            img.color = new Color(0.055f, 0.094f, 0.165f, 0.82f); // glass navy, welcome-panel hue
             prestigeButton.targetGraphic = img;
 
             var rt = prestigeButton.GetComponent<RectTransform>();
@@ -1344,8 +1344,8 @@ namespace GameIdle
             var img = prestigeButton?.GetComponent<Image>();
             if (img != null)
                 img.color = ready
-                    ? new Color(0.55f, 0.35f, 0.02f, 1f)
-                    : new Color(0.10f, 0.16f, 0.30f, 1f);  // brighter navy when inactive
+                    ? new Color(0.55f, 0.35f, 0.02f, 0.88f)   // glass amber when ready
+                    : new Color(0.055f, 0.094f, 0.165f, 0.82f); // glass navy when inactive
 
             if (_prestigeSheen != null)
                 _prestigeSheen.color = ready
