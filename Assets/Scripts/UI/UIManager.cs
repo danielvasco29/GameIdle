@@ -596,36 +596,42 @@ namespace GameIdle
             var plantsImg    = SpawnBgLayer("Backgrounds/bg_plants",     "BgPlants");
             var windowsImg   = SpawnBgLayer("Backgrounds/bg_windows",    "BgWindows");
 
-            // Fallback: solid navy if no floor texture
-            if (floorImg.sprite == null) floorImg.color = NavyDark;
+            // Use Backgrounds/ layers if all 4 exist, otherwise fall back to office_bg
+            bool hasAllLayers = floorImg.sprite != null && furnitureImg.sprite != null
+                                && plantsImg.sprite != null && windowsImg.sprite != null;
 
-            // Always try original office background first as base
-            var officeTex = Resources.Load<Texture2D>("UI/office_bg");
-            Image baseImg;
-            if (officeTex != null)
+            if (hasAllLayers)
             {
-                // Use original bg, destroy the floor layer placeholder
-                floorImg.sprite = Sprite.Create(officeTex, new Rect(0,0,officeTex.width,officeTex.height), new Vector2(0.5f,0.5f));
-                floorImg.color  = Color.white;
-                floorImg.type   = Image.Type.Simple;
-                floorImg.preserveAspect = false;
-                baseImg = floorImg;
-                // Destroy other layers — only overlay if we have real separate layers
-                Destroy(furnitureImg.gameObject);
-                Destroy(plantsImg.gameObject);
-                Destroy(windowsImg.gameObject);
+                // Full layered background with animations
+                if (plantsImg.sprite != null)
+                    StartCoroutine(AnimatePlants(plantsImg.GetComponent<RectTransform>()));
+                if (windowsImg.sprite != null)
+                    StartCoroutine(AnimateWindows(windowsImg));
+
                 floorImg.transform.SetAsFirstSibling();
+                furnitureImg.transform.SetSiblingIndex(1);
+                plantsImg.transform.SetSiblingIndex(2);
+                windowsImg.transform.SetSiblingIndex(3);
             }
             else
             {
-                // No original — use whatever Backgrounds/ file exists
-                Sprite found = floorImg.sprite ?? furnitureImg.sprite ?? plantsImg.sprite ?? windowsImg.sprite;
+                // Fall back to original office_bg
                 Destroy(furnitureImg.gameObject);
                 Destroy(plantsImg.gameObject);
                 Destroy(windowsImg.gameObject);
-                if (found != null) { floorImg.sprite = found; floorImg.color = Color.white; }
-                floorImg.type = Image.Type.Simple;
-                floorImg.preserveAspect = false;
+
+                var officeTex = Resources.Load<Texture2D>("UI/office_bg");
+                if (officeTex != null)
+                {
+                    floorImg.sprite = Sprite.Create(officeTex, new Rect(0,0,officeTex.width,officeTex.height), new Vector2(0.5f,0.5f));
+                    floorImg.color  = Color.white;
+                    floorImg.type   = Image.Type.Simple;
+                    floorImg.preserveAspect = false;
+                }
+                else if (floorImg.sprite == null)
+                {
+                    floorImg.color = NavyDark;
+                }
                 floorImg.transform.SetAsFirstSibling();
             }
 
