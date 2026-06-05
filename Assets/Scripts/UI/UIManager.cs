@@ -1375,8 +1375,8 @@ namespace GameIdle
             while (true)
             {
                 phase += Time.deltaTime * 0.08f;
-                float alpha = (Mathf.Sin(phase) * 0.5f + 0.5f) * 0.06f
-                            + (Mathf.Sin(phase * 2.7f) * 0.5f + 0.5f) * 0.03f;
+                float alpha = (Mathf.Sin(phase) * 0.5f + 0.5f) * 0.18f
+                            + (Mathf.Sin(phase * 2.7f) * 0.5f + 0.5f) * 0.08f;
                 img.color = new Color(1f, 0.97f, 0.88f, alpha);
                 yield return null;
             }
@@ -1416,7 +1416,7 @@ namespace GameIdle
                 var img = go.GetComponent<Image>();
                 img.sprite = UiSpriteFactory.RoundedBox();
                 img.type = Image.Type.Sliced;
-                img.color = new Color(colors[i].r, colors[i].g, colors[i].b, 0.18f);
+                img.color = new Color(colors[i].r, colors[i].g, colors[i].b, 0.45f);
                 img.raycastTarget = false;
                 go.transform.SetSiblingIndex(1);
                 StartCoroutine(AnimateMonitor(img, colors[i]));
@@ -1432,16 +1432,18 @@ namespace GameIdle
                 phase += Time.deltaTime * 0.4f;
                 blinkTimer -= Time.deltaTime;
 
-                float alpha = 0.12f + Mathf.Sin(phase) * 0.06f;
+                float alpha = 0.35f + Mathf.Sin(phase) * 0.15f;
 
                 // Occasional blink (simulates screen refresh)
                 if (blinkTimer <= 0f)
                 {
-                    img.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.35f);
+                    img.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.85f);
+                    yield return new WaitForSeconds(0.1f);
+                    img.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.1f);
+                    yield return new WaitForSeconds(0.06f);
+                    img.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.75f);
                     yield return new WaitForSeconds(0.08f);
-                    img.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.05f);
-                    yield return new WaitForSeconds(0.05f);
-                    blinkTimer = Random.Range(4f, 10f);
+                    blinkTimer = Random.Range(3f, 7f);
                 }
 
                 img.color = new Color(baseColor.r, baseColor.g, baseColor.b, alpha);
@@ -1456,7 +1458,7 @@ namespace GameIdle
             while (true)
             {
                 SpawnOneDust(parent);
-                yield return new WaitForSeconds(Random.Range(0.8f, 2.0f));
+                yield return new WaitForSeconds(Random.Range(0.3f, 1.0f));
             }
         }
 
@@ -1466,7 +1468,7 @@ namespace GameIdle
             go.transform.SetParent(parent, false);
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
-            float size = Random.Range(2f, 5f);
+            float size = Random.Range(3f, 8f);
             rt.sizeDelta = new Vector2(size, size);
             rt.anchoredPosition = new Vector2(
                 Random.Range(-500f, 500f),
@@ -1485,7 +1487,7 @@ namespace GameIdle
             float elapsed  = 0f;
             Vector2 startPos = rt.anchoredPosition;
             Vector2 drift = new Vector2(Random.Range(-15f, 15f), Random.Range(20f, 50f));
-            float maxAlpha = Random.Range(0.08f, 0.18f);
+            float maxAlpha = Random.Range(0.25f, 0.55f);
 
             while (elapsed < lifetime)
             {
