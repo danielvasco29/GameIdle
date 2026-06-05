@@ -661,14 +661,47 @@ namespace GameIdle
             tapFaceImg = AddCircle("Face", Vector2.zero, Vector2.zero, GreenBtn, true);
             tapBtn.targetGraphic = tapFaceImg;
 
-            // Sheen (claridade no topo — simula gradiente)
+            // Container circular com Mask — recorta os gradientes ao círculo
+            var shadeGO = new GameObject("FaceShade", typeof(RectTransform), typeof(Image), typeof(Mask));
+            shadeGO.transform.SetParent(tapGO.transform, false);
+            var shRT = shadeGO.GetComponent<RectTransform>();
+            shRT.anchorMin = Vector2.zero; shRT.anchorMax = Vector2.one;
+            shRT.offsetMin = shRT.offsetMax = Vector2.zero;
+            var shMaskImg = shadeGO.GetComponent<Image>();
+            shMaskImg.sprite = Circle(); shMaskImg.raycastTarget = false;
+            shadeGO.GetComponent<Mask>().showMaskGraphic = false;
+
+            // Gradiente claro no topo (highlight)
+            var gradTop = new GameObject("FaceGradTop", typeof(RectTransform), typeof(Image));
+            gradTop.transform.SetParent(shadeGO.transform, false);
+            var gtRT = gradTop.GetComponent<RectTransform>();
+            gtRT.anchorMin = Vector2.zero; gtRT.anchorMax = Vector2.one;
+            gtRT.offsetMin = gtRT.offsetMax = Vector2.zero;
+            var gtImg = gradTop.GetComponent<Image>();
+            gtImg.sprite = UiSpriteFactory.VerticalGradient();
+            gtImg.color = new Color(1f, 1f, 1f, 0.18f);
+            gtImg.raycastTarget = false;
+
+            // Gradiente escuro embaixo (sombra) — flip vertical
+            var gradBot = new GameObject("FaceGradBot", typeof(RectTransform), typeof(Image));
+            gradBot.transform.SetParent(shadeGO.transform, false);
+            var gbRT = gradBot.GetComponent<RectTransform>();
+            gbRT.anchorMin = Vector2.zero; gbRT.anchorMax = Vector2.one;
+            gbRT.offsetMin = gbRT.offsetMax = Vector2.zero;
+            gbRT.localScale = new Vector3(1f, -1f, 1f);
+            var gbImg = gradBot.GetComponent<Image>();
+            gbImg.sprite = UiSpriteFactory.VerticalGradient();
+            gbImg.color = new Color(0f, 0.15f, 0.05f, 0.38f);
+            gbImg.raycastTarget = false;
+
+            // Sheen (brilho concentrado no topo — glossy highlight)
             var sheenGO = new GameObject("Sheen", typeof(RectTransform), typeof(Image));
             sheenGO.transform.SetParent(tapGO.transform, false);
             var sheenRT = sheenGO.GetComponent<RectTransform>();
-            sheenRT.anchorMin = new Vector2(0.08f, 0.5f); sheenRT.anchorMax = new Vector2(0.92f, 0.92f);
+            sheenRT.anchorMin = new Vector2(0.16f, 0.54f); sheenRT.anchorMax = new Vector2(0.84f, 0.90f);
             sheenRT.offsetMin = sheenRT.offsetMax = Vector2.zero;
             var sheenImg = sheenGO.GetComponent<Image>();
-            sheenImg.sprite = Circle(); sheenImg.color = new Color(1f, 1f, 1f, 0.13f);
+            sheenImg.sprite = Circle(); sheenImg.color = new Color(1f, 1f, 1f, 0.22f);
             sheenImg.raycastTarget = false;
 
             // Label: ícone + texto
