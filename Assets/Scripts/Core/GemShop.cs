@@ -20,22 +20,32 @@ namespace GameIdle
         }
 
         // Catalog — index order is stable and used as the save key.
+        // Gem economy reference (prestigeRequirementGrowth = 5):
+        //   P#1=5  P#2=11  P#3=25  P#4=56  P#5=125  P#6=280  P#7=625  P#10=12639 cumulative
+        // Targets: lvl 1-5 accessible in 1-3 prestiges; max requires many prestiges.
         public static readonly Upgrade[] Upgrades =
         {
-            new() { id = "prod",       name = "Produção Turbo",       description = "Aumenta toda a produção por segundo.",
-                    baseCost = 3, costGrowth = 1.6, bonusPerLevel = 0.15, maxLevel = 50, effectSuffix = "produção" },
+            // prod: lvl5≈34 gems, lvl10≈250, max25≈30k
+            new() { id = "prod",       name = "Producao Turbo",       description = "Aumenta toda a producao por segundo.",
+                    baseCost = 2, costGrowth = 1.45, bonusPerLevel = 0.15, maxLevel = 25, effectSuffix = "producao" },
+            // tap: lvl5≈28 gems, lvl10≈180, max20≈4k
             new() { id = "tap",        name = "Clique Pesado",        description = "Aumenta o ganho de cada clique TRABALHAR.",
-                    baseCost = 2, costGrowth = 1.5, bonusPerLevel = 0.30, maxLevel = 50, effectSuffix = "por clique" },
-            new() { id = "prestige",   name = "Mestre do Prestígio",  description = "Aumenta o multiplicador ganho a cada prestígio.",
-                    baseCost = 5, costGrowth = 1.8, bonusPerLevel = 0.10, maxLevel = 30, effectSuffix = "mult. prestígio" },
-            new() { id = "start",      name = "Capital Inicial",      description = "Começa com mais dinheiro após cada prestígio.",
-                    baseCost = 4, costGrowth = 1.7, bonusPerLevel = 1.0,  maxLevel = 15, effectSuffix = "capital" },
-            new() { id = "turbo_cd",   name = "Turbo Acelerado",      description = "Reduz o cooldown do Turbo em 20s por nível.",
-                    baseCost = 6, costGrowth = 2.0, bonusPerLevel = 20.0, maxLevel = 5,  effectSuffix = "s cooldown" },
+                    baseCost = 2, costGrowth = 1.40, bonusPerLevel = 0.25, maxLevel = 20, effectSuffix = "por clique" },
+            // prestige: lvl5≈119 gems, lvl10≈1k, max20≈25k — intentionally expensive
+            new() { id = "prestige",   name = "Mestre do Prestigio",  description = "Aumenta o multiplicador ganho a cada prestigio.",
+                    baseCost = 5, costGrowth = 1.55, bonusPerLevel = 0.12, maxLevel = 20, effectSuffix = "mult. prestigio" },
+            // start: lvl1=4, max12≈3.4k
+            new() { id = "start",      name = "Capital Inicial",      description = "Comeca com mais dinheiro apos cada prestigio.",
+                    baseCost = 4, costGrowth = 1.70, bonusPerLevel = 1.0,  maxLevel = 12, effectSuffix = "capital" },
+            // turbo: total≈96 gems to max5 — fully unlockable around P#4-5
+            new() { id = "turbo_cd",   name = "Turbo Acelerado",      description = "Reduz o cooldown do Turbo em 20s por nivel.",
+                    baseCost = 5, costGrowth = 1.70, bonusPerLevel = 20.0, maxLevel = 5,  effectSuffix = "s cooldown" },
+            // offline: total≈236 gems to max8
             new() { id = "offline",    name = "Rendimento Offline",   description = "Aumenta os ganhos enquanto offline.",
-                    baseCost = 5, costGrowth = 1.9, bonusPerLevel = 0.50, maxLevel = 5,  effectSuffix = "ganho offline" },
-            new() { id = "gem_bonus",  name = "Cofre de Gemas",       description = "Ganha mais gemas a cada prestígio.",
-                    baseCost = 8, costGrowth = 2.2, bonusPerLevel = 0.10, maxLevel = 10, effectSuffix = "gemas prestígio" },
+                    baseCost = 4, costGrowth = 1.55, bonusPerLevel = 0.40, maxLevel = 8,  effectSuffix = "ganho offline" },
+            // gems: total≈2.7k to max10 — invest early for compounding benefit
+            new() { id = "gem_bonus",  name = "Cofre de Gemas",       description = "Ganha mais gemas a cada prestigio.",
+                    baseCost = 6, costGrowth = 1.80, bonusPerLevel = 0.15, maxLevel = 10, effectSuffix = "gemas prestigio" },
         };
 
         private static readonly int[] levels = new int[7];
@@ -79,13 +89,13 @@ namespace GameIdle
             int lvl = levels[i];
             return i switch
             {
-                0 => $"+{lvl * Upgrades[0].bonusPerLevel * 100:0}% produção",
-                1 => $"+{lvl * Upgrades[1].bonusPerLevel * 100:0}% por clique",
-                2 => $"+{lvl * Upgrades[2].bonusPerLevel * 100:0}% mult. prestígio",
-                3 => $"Início: ${NumberFormatter.Format(GetStartMoney())}",
+                0 => lvl == 0 ? "+0% producao" : $"+{lvl * Upgrades[0].bonusPerLevel * 100:0}% producao",
+                1 => lvl == 0 ? "+0% por clique" : $"+{lvl * Upgrades[1].bonusPerLevel * 100:0}% por clique",
+                2 => lvl == 0 ? "+0% mult. prestigio" : $"+{lvl * Upgrades[2].bonusPerLevel * 100:0}% mult. prestigio",
+                3 => $"Inicio: ${NumberFormatter.Format(GetStartMoney())}",
                 4 => $"-{lvl * (int)Upgrades[4].bonusPerLevel}s cooldown",
-                5 => $"+{lvl * Upgrades[5].bonusPerLevel * 100:0}% ganho offline",
-                6 => $"+{lvl * Upgrades[6].bonusPerLevel * 100:0}% gemas prestígio",
+                5 => lvl == 0 ? "+0% offline" : $"+{lvl * Upgrades[5].bonusPerLevel * 100:0}% offline",
+                6 => lvl == 0 ? "+0% gemas" : $"+{lvl * Upgrades[6].bonusPerLevel * 100:0}% gemas prestigio",
                 _ => ""
             };
         }
