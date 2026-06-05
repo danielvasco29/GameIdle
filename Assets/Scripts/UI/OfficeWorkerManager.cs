@@ -15,10 +15,16 @@ namespace GameIdle
         // Fixed spread positions so workers don't cluster — 10 spots across the office
         public static readonly Vector2[] SpreadPositions =
         {
-            new(-480f,  -40f), new(-320f,  -20f), new(-160f,   10f),
-            new(-440f, -150f), new(-240f, -120f), new(  40f,  -80f),
-            new( 200f,  -40f), new( 380f, -100f), new( 520f,  -60f),
-            new( 300f, -160f),
+            new( 490f, -140f), // impressora (canto direito)
+            new( 100f,   60f), // bebedor de água (centro-topo)
+            new( 380f,   20f), // sofá (direita)
+            new(-420f,  -60f), // mesa esquerda 1
+            new(-260f,  -30f), // mesa esquerda 2
+            new(-100f,  -10f), // mesa esquerda 3
+            new( 160f,  -80f), // centro
+            new( 320f, -100f), // mesa direita 1
+            new(-380f, -150f), // fundo esquerda
+            new( 220f, -150f), // fundo direita
         };
 
         public void Init(RectTransform panelMain)
