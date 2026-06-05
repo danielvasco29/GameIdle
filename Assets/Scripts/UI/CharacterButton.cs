@@ -142,9 +142,10 @@ namespace GameIdle
             var shadowGO = new GameObject("AvatarShadow", typeof(RectTransform), typeof(Image));
             shadowGO.transform.SetParent(transform, false);
             var shRT = shadowGO.GetComponent<RectTransform>();
-            shRT.anchorMin = shRT.anchorMax = shRT.pivot = new Vector2(0f, 0.5f);
-            shRT.anchoredPosition = new Vector2(54f, -36f);
-            shRT.sizeDelta = new Vector2(62f, 15f);
+            shRT.anchorMin = shRT.anchorMax = new Vector2(0f, 0.5f);
+            shRT.pivot = new Vector2(0.5f, 0.5f);
+            shRT.anchoredPosition = new Vector2(52f, -34f);
+            shRT.sizeDelta = new Vector2(58f, 14f);
             var shImg = shadowGO.GetComponent<Image>();
             shImg.sprite = GetCircleSprite();
             shImg.color  = new Color(0f, 0f, 0f, 0.22f);
@@ -154,9 +155,10 @@ namespace GameIdle
             var iconGO = new GameObject("Icon", typeof(RectTransform), typeof(Image));
             iconGO.transform.SetParent(transform, false);
             var iconRT = iconGO.GetComponent<RectTransform>();
-            iconRT.anchorMin = iconRT.anchorMax = iconRT.pivot = new Vector2(0f, 0.5f);
-            iconRT.anchoredPosition = new Vector2(54f, 4f);
-            iconRT.sizeDelta = new Vector2(98f, 98f);
+            iconRT.anchorMin = iconRT.anchorMax = new Vector2(0f, 0.5f);
+            iconRT.pivot = new Vector2(0.5f, 0.5f);
+            iconRT.anchoredPosition = new Vector2(52f, 2f);
+            iconRT.sizeDelta = new Vector2(92f, 92f);
             iconImage = iconGO.GetComponent<Image>();
             iconImage.preserveAspect = true;
             iconImage.raycastTarget = false;
