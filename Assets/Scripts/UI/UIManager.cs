@@ -596,44 +596,42 @@ namespace GameIdle
             var plantsImg    = SpawnBgLayer("Backgrounds/bg_plants",     "BgPlants");
             var windowsImg   = SpawnBgLayer("Backgrounds/bg_windows",    "BgWindows");
 
-            // Use Backgrounds/ layers if all 4 exist, otherwise fall back to office_bg
-            bool hasAllLayers = floorImg.sprite != null && furnitureImg.sprite != null
-                                && plantsImg.sprite != null && windowsImg.sprite != null;
+            // Always use office_bg as base, then overlay plants+windows on top
+            Destroy(furnitureImg.gameObject);
 
-            if (hasAllLayers)
+            var officeTex = Resources.Load<Texture2D>("UI/office_bg");
+            if (officeTex != null)
             {
-                // Full layered background with animations
-                if (plantsImg.sprite != null)
-                    StartCoroutine(AnimatePlants(plantsImg.GetComponent<RectTransform>()));
-                if (windowsImg.sprite != null)
-                    StartCoroutine(AnimateWindows(windowsImg));
-
-                floorImg.transform.SetAsFirstSibling();
-                furnitureImg.transform.SetSiblingIndex(1);
-                plantsImg.transform.SetSiblingIndex(2);
-                windowsImg.transform.SetSiblingIndex(3);
+                floorImg.sprite = Sprite.Create(officeTex, new Rect(0,0,officeTex.width,officeTex.height), new Vector2(0.5f,0.5f));
+                floorImg.color  = Color.white;
+                floorImg.type   = Image.Type.Simple;
+                floorImg.preserveAspect = false;
+            }
+            else if (floorImg.sprite != null)
+            {
+                floorImg.color = Color.white;
             }
             else
             {
-                // Fall back to original office_bg
-                Destroy(furnitureImg.gameObject);
-                Destroy(plantsImg.gameObject);
-                Destroy(windowsImg.gameObject);
-
-                var officeTex = Resources.Load<Texture2D>("UI/office_bg");
-                if (officeTex != null)
-                {
-                    floorImg.sprite = Sprite.Create(officeTex, new Rect(0,0,officeTex.width,officeTex.height), new Vector2(0.5f,0.5f));
-                    floorImg.color  = Color.white;
-                    floorImg.type   = Image.Type.Simple;
-                    floorImg.preserveAspect = false;
-                }
-                else if (floorImg.sprite == null)
-                {
-                    floorImg.color = NavyDark;
-                }
-                floorImg.transform.SetAsFirstSibling();
+                floorImg.color = NavyDark;
             }
+            floorImg.transform.SetAsFirstSibling();
+
+            // Plants overlay on top (animated sway)
+            if (plantsImg.sprite != null)
+            {
+                plantsImg.transform.SetSiblingIndex(1);
+                StartCoroutine(AnimatePlants(plantsImg.GetComponent<RectTransform>()));
+            }
+            else Destroy(plantsImg.gameObject);
+
+            // Windows overlay on top (animated light pulse)
+            if (windowsImg.sprite != null)
+            {
+                windowsImg.transform.SetSiblingIndex(2);
+                StartCoroutine(AnimateWindows(windowsImg));
+            }
+            else Destroy(windowsImg.gameObject);
 
             // Botão principal circular — camadas empilhadas: ring → glow → borda → face → sheen → label
             var tapGO = new GameObject("TapButton", typeof(RectTransform), typeof(Button));
