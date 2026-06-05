@@ -147,7 +147,8 @@ namespace GameIdle
         public int GetPrestigeGemReward()
         {
             if (TotalEarned < GetPrestigeRequirement()) return 0;
-            double base_ = 5.0 * Math.Sqrt(TotalEarned / prestigeBaseRequirement);
+            // Fixed reward based on prestige tier requirement, not live TotalEarned
+            double base_ = 5.0 * Math.Sqrt(GetPrestigeRequirement() / prestigeBaseRequirement);
             return Math.Max(1, (int)Math.Floor(base_ * GemShop.GetGemBonus()));
         }
 
