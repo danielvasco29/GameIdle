@@ -47,27 +47,40 @@ namespace GameIdle
             ttmp.color = GoldColor; ttmp.alignment = TextAlignmentOptions.Center; ttmp.raycastTarget = false;
             if (font != null) ttmp.font = font;
 
-            // ScrollView
-            var svGO = new GameObject("Scroll", typeof(RectTransform), typeof(Image), typeof(ScrollRect), typeof(RectMask2D));
+            // ScrollRect (sem máscara aqui)
+            var svGO = new GameObject("Scroll", typeof(RectTransform), typeof(ScrollRect));
             svGO.transform.SetParent(transform, false);
             var svrt = svGO.GetComponent<RectTransform>();
             svrt.anchorMin = new Vector2(0f, 0.10f); svrt.anchorMax = new Vector2(1f, 0.92f);
             svrt.offsetMin = new Vector2(12f, 4f); svrt.offsetMax = new Vector2(-12f, -4f);
-            svGO.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.15f);
             var scroll = svGO.GetComponent<ScrollRect>();
-            scroll.horizontal = false; scroll.vertical = true; scroll.scrollSensitivity = 20f;
+            scroll.horizontal = false; scroll.vertical = true; scroll.scrollSensitivity = 24f;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
 
+            // Viewport (com máscara) — filho do ScrollRect e atribuído explicitamente
+            var vpGO = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
+            vpGO.transform.SetParent(svGO.transform, false);
+            var vprt = vpGO.GetComponent<RectTransform>();
+            vprt.anchorMin = Vector2.zero; vprt.anchorMax = Vector2.one;
+            vprt.offsetMin = vprt.offsetMax = Vector2.zero;
+            vprt.pivot = new Vector2(0f, 1f);
+            vpGO.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.15f);
+
+            // Content — filho do Viewport
             var contentGO = new GameObject("Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
-            contentGO.transform.SetParent(svGO.transform, false);
+            contentGO.transform.SetParent(vpGO.transform, false);
             var crt = contentGO.GetComponent<RectTransform>();
             crt.anchorMin = new Vector2(0f, 1f); crt.anchorMax = new Vector2(1f, 1f);
             crt.pivot = new Vector2(0.5f, 1f); crt.anchoredPosition = Vector2.zero;
             var vlg = contentGO.GetComponent<VerticalLayoutGroup>();
             vlg.spacing = 6f; vlg.padding = new RectOffset(6, 6, 6, 6);
-            vlg.childForceExpandWidth = true; vlg.childForceExpandHeight = false; vlg.childControlHeight = true; vlg.childControlWidth = true;
+            vlg.childForceExpandWidth = true; vlg.childForceExpandHeight = false;
+            vlg.childControlHeight = true; vlg.childControlWidth = true;
             var csf = contentGO.GetComponent<ContentSizeFitter>();
             csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            scroll.content = crt;
+
+            scroll.viewport = vprt;
+            scroll.content  = crt;
 
             for (int i = 0; i < AchievementManager.All.Length; i++)
                 _rows[i] = BuildRow(contentGO.transform, AchievementManager.All[i], font);

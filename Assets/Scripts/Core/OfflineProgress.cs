@@ -15,7 +15,7 @@ namespace GameIdle
             long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             long elapsed = Math.Min(now - lastTimestamp, MaxOfflineSeconds);
 
-            if (elapsed < 10) return;   // ignore trivial gaps
+            if (elapsed < 5) return;   // ignore trivial gaps
 
             double mps = GameManager.Instance.MoneyPerSecond;
             if (mps <= 0) return;
