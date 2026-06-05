@@ -516,14 +516,16 @@ namespace GameIdle
             rankingPanel = panelGO.AddComponent<RankingPanel>();
             modalPanels.Add(panelGO);
 
-            // Ranking button — top-right corner, large enough to tap
+            // Ranking button — compact icon in top-right corner
             var btnGO = new GameObject("RankingButton", typeof(RectTransform), typeof(Image), typeof(Button));
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
             brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
-            brt.anchoredPosition = new Vector2(-6f, -6f);
-            brt.sizeDelta = new Vector2(80f, 44f);
-            btnGO.GetComponent<Image>().color = NavyCard;
+            brt.anchoredPosition = new Vector2(-6f, -7f);
+            brt.sizeDelta = new Vector2(52f, 40f);
+            var bImg2 = btnGO.GetComponent<Image>();
+            bImg2.sprite = Rounded(); bImg2.type = Image.Type.Sliced;
+            bImg2.color = new Color(0.08f, 0.13f, 0.22f, 0.9f);
             btnGO.GetComponent<Button>().onClick.AddListener(OpenRanking);
 
             var lblGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -532,10 +534,10 @@ namespace GameIdle
             lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
             lrt.offsetMin = lrt.offsetMax = Vector2.zero;
             var ltmp = lblGO.GetComponent<TextMeshProUGUI>();
-            ltmp.text = "TOP\nRANKING";
+            ltmp.text = "RANK";
             ltmp.fontSize = 11;
             ltmp.fontStyle = FontStyles.Bold;
-            ltmp.color = GoldColor;
+            ltmp.color = new Color(0.6f, 0.7f, 0.85f, 0.85f);
             ltmp.alignment = TextAlignmentOptions.Center;
             ltmp.raycastTarget = false;
             var ff = GetCachedFont();
@@ -933,14 +935,25 @@ namespace GameIdle
             // Estiliza textos do top bar (campos do scene)
             if (moneyText != null)
             {
+                // Reanchor to upper 60% so the /s subtitle fits below
+                var mrt2 = moneyText.rectTransform;
+                mrt2.anchorMin = new Vector2(0.2f, 0.42f);
+                mrt2.anchorMax = new Vector2(0.8f, 1f);
+                mrt2.offsetMin = mrt2.offsetMax = Vector2.zero;
                 moneyText.fontSize  = 26; moneyText.fontStyle = FontStyles.Bold;
                 moneyText.color     = Color.white; moneyText.alignment = TextAlignmentOptions.Center;
                 var mf = GetCachedFont(); if (mf != null) moneyText.font = mf;
             }
             if (mpsText != null)
             {
-                mpsText.fontSize  = 18; mpsText.fontStyle = FontStyles.Bold;
-                mpsText.color     = new Color(0.75f, 0.88f, 0.95f, 0.85f);
+                // Reanchor to sit as a subtitle below the money amount (center, lower half of nav bar)
+                var mrt = mpsText.rectTransform;
+                mrt.anchorMin = new Vector2(0.2f, 0f);
+                mrt.anchorMax = new Vector2(0.8f, 0.44f);
+                mrt.offsetMin = mrt.offsetMax = Vector2.zero;
+                mpsText.fontSize  = 14; mpsText.fontStyle = FontStyles.Bold;
+                mpsText.color     = new Color(0.65f, 0.82f, 0.95f, 0.72f);
+                mpsText.alignment = TextAlignmentOptions.Center;
                 var mf2 = GetCachedFont(); if (mf2 != null) mpsText.font = mf2;
             }
             if (prestigeInfoText != null) prestigeInfoText.gameObject.SetActive(false);
@@ -950,8 +963,8 @@ namespace GameIdle
             pillGO.transform.SetParent(canvas.transform, false);
             var prt = pillGO.GetComponent<RectTransform>();
             prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(1f, 1f);
-            prt.anchoredPosition = new Vector2(-98f, -6f);
-            prt.sizeDelta = new Vector2(120f, 40f);
+            prt.anchoredPosition = new Vector2(-64f, -7f);
+            prt.sizeDelta = new Vector2(110f, 40f);
             var pImg = pillGO.GetComponent<Image>();
             pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
             pImg.color  = NavyCard;

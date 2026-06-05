@@ -287,7 +287,7 @@ namespace GameIdle
                 SetAnchors(nameText.rectTransform,
                     new Vector2(0f, 0.58f), new Vector2(1f, 1f),
                     new Vector2(avatarW, 0f), new Vector2(-rightW, -4f));
-                nameText.fontSize  = 16;
+                nameText.fontSize  = 18;
                 nameText.fontStyle = FontStyles.Bold;
                 nameText.alignment = TextAlignmentOptions.BottomLeft;
                 nameText.color     = TextPrimary;
@@ -306,7 +306,7 @@ namespace GameIdle
                 SetAnchors(productionText.rectTransform,
                     new Vector2(0f, 0.05f), new Vector2(1f, 0.42f),
                     new Vector2(avatarW, 0f), new Vector2(-rightW, 0f));
-                productionText.fontSize  = 14;
+                productionText.fontSize  = 15;
                 productionText.fontStyle = FontStyles.Bold;
                 productionText.alignment = TextAlignmentOptions.MidlineLeft;
                 productionText.color     = GreenColor;
@@ -320,7 +320,7 @@ namespace GameIdle
                 SetAnchors(costText.rectTransform,
                     new Vector2(1f, 0.34f), new Vector2(1f, 0.66f),
                     new Vector2(-rightW, 0f), new Vector2(-rightInset, 0f));
-                costText.fontSize  = 18;
+                costText.fontSize  = 20;
                 costText.fontStyle = FontStyles.Bold;
                 costText.alignment = TextAlignmentOptions.MidlineRight;
                 costText.color     = GoldColor;
@@ -334,7 +334,7 @@ namespace GameIdle
                 SetAnchors(gainText.rectTransform,
                     new Vector2(1f, 0.04f), new Vector2(1f, 0.34f),
                     new Vector2(-rightW, 2f), new Vector2(-rightInset, 0f));
-                gainText.fontSize  = 12;
+                gainText.fontSize  = 13;
                 gainText.fontStyle = FontStyles.Bold;
                 gainText.alignment = TextAlignmentOptions.MidlineRight;
                 gainText.color     = GreenColor;
@@ -369,7 +369,7 @@ namespace GameIdle
                 var lrt = levelText.rectTransform;
                 lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
                 lrt.offsetMin = lrt.offsetMax = Vector2.zero;
-                levelText.fontSize  = 13;
+                levelText.fontSize  = 14;
                 levelText.fontStyle = FontStyles.Bold;
                 levelText.alignment = TextAlignmentOptions.Center;
                 levelText.color     = new Color(0.7f, 0.85f, 1f, 1f);
