@@ -28,6 +28,7 @@ namespace GameIdle
         [SerializeField] private PrestigePanel prestigePanel;
         private OfflineProgressPanel offlinePanel;
         private MissionPanel missionPanel;
+        private AchievementPanel achievementPanel;
 
         [Header("Toast")]
         [SerializeField] private ToastMessage toast;
@@ -293,7 +294,19 @@ namespace GameIdle
             StylePrestigeNotice();
             SetupRankingPanel();
             SetupShopAndSettings();
+
+            // Agora que offlinePanel existe, mostra o progresso offline pendente
+            // (GameManager.Start roda antes deste Start por causa do execution order).
+            if (_hasPendingOffline)
+            {
+                _hasPendingOffline = false;
+                offlinePanel.Show(_pendingOfflineEarned, _pendingOfflineSeconds);
+            }
         }
+
+        private bool   _hasPendingOffline;
+        private double _pendingOfflineEarned;
+        private long   _pendingOfflineSeconds;
 
         private void SetupShopAndSettings()
         {
@@ -361,6 +374,31 @@ namespace GameIdle
             mblt.text = "MISSOES"; mblt.fontSize = 11; mblt.fontStyle = FontStyles.Bold;
             mblt.color = TextSec; mblt.alignment = TextAlignmentOptions.Center; mblt.raycastTarget = false;
             var mf = GetCachedFont(); if (mf != null) mblt.font = mf;
+
+            // ── Achievement Panel ──────────────────────────────────────────
+            var achGO = new GameObject("AchievementPanel", typeof(RectTransform));
+            achGO.transform.SetParent(canvas.transform, false);
+            achievementPanel = achGO.AddComponent<AchievementPanel>();
+            achGO.SetActive(false);
+
+            // Botão Conquistas — ao lado de MISSOES
+            var aBtnGO = new GameObject("AchievementButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            aBtnGO.transform.SetParent(canvas.transform, false);
+            var abrt = aBtnGO.GetComponent<RectTransform>();
+            abrt.anchorMin = abrt.anchorMax = abrt.pivot = new Vector2(0f, 1f);
+            abrt.anchoredPosition = new Vector2(188f, -8f);
+            abrt.sizeDelta = new Vector2(110f, 36f);
+            var abImg = aBtnGO.GetComponent<Image>();
+            abImg.sprite = Rounded(); abImg.type = Image.Type.Sliced; abImg.color = NavyCard;
+            aBtnGO.GetComponent<Button>().onClick.AddListener(() => { if (achievementPanel != null) achievementPanel.Open(); });
+            var abl = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
+            abl.transform.SetParent(aBtnGO.transform, false);
+            var ablr = abl.GetComponent<RectTransform>();
+            ablr.anchorMin = Vector2.zero; ablr.anchorMax = Vector2.one; ablr.offsetMin = ablr.offsetMax = Vector2.zero;
+            var ablt = abl.GetComponent<TextMeshProUGUI>();
+            ablt.text = "CONQUISTAS"; ablt.fontSize = 11; ablt.fontStyle = FontStyles.Bold;
+            ablt.color = TextSec; ablt.alignment = TextAlignmentOptions.Center; ablt.raycastTarget = false;
+            var af = GetCachedFont(); if (af != null) ablt.font = af;
         }
 
         // The floating "Prestígio disponível" text used to overlap the prestige
@@ -1190,6 +1228,7 @@ namespace GameIdle
                 RefreshButtonAffordability();
                 RefreshNextUnlockBanner();
                 UpdateBoostButton();
+                AchievementManager.CheckAll(); // conquistas de dinheiro acumulado (idle)
             }
 
             effectsHUDTimer -= Time.deltaTime;
@@ -1513,7 +1552,14 @@ namespace GameIdle
             while (t != null) { if (!t.gameObject.activeSelf) t.gameObject.SetActive(true); t = t.parent; }
             toast.Show(message, color);
         }
-        public void ShowOfflineProgress(double earned, long seconds) { if (offlinePanel != null) offlinePanel.Show(earned, seconds); }
+        public void ShowOfflineProgress(double earned, long seconds)
+        {
+            if (offlinePanel != null) { offlinePanel.Show(earned, seconds); return; }
+            // UI ainda não montada — guarda para mostrar ao fim do PolishLayout
+            _hasPendingOffline = true;
+            _pendingOfflineEarned = earned;
+            _pendingOfflineSeconds = seconds;
+        }
         public void ShowEventPanel(EventData eventData) => eventPanel.Show(eventData);
 
         public void ShowAchievementToast(string name, string description, int gemReward)

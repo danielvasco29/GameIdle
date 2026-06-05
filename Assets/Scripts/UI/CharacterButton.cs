@@ -471,21 +471,25 @@ namespace GameIdle
 
         private IEnumerator HiredEffect()
         {
-            // Flash branco + texto "CONTRATADO!" voando
-            if (backgroundImage != null)
-            {
-                float t = 0f;
-                while (t < 0.15f) { t += Time.deltaTime; backgroundImage.color = Color.Lerp(Color.white, CardColor, t / 0.15f); yield return null; }
-                backgroundImage.color = CardColor;
-            }
+            // Toast visível (o card fica dentro do ScrollView com clipping,
+            // então um texto flutuante interno seria cortado).
+            if (UIManager.Instance != null)
+                UIManager.Instance.ShowToast($"Contratado: {character.data.characterName}!", new Color(0.4f, 1f, 0.6f));
 
-            var go = new GameObject("HiredText", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(FloatingText));
-            go.transform.SetParent(transform, false);
-            var rt = go.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(200f, 40f);
-            rt.anchoredPosition = new Vector2(0f, 60f);
-            var ft = go.GetComponent<FloatingText>();
-            ft.Init("CONTRATADO!", new Color(0.4f, 1f, 0.6f));
+            // Flash dourado pulsante no avatar para destacar a contratação
+            if (avatarBg != null)
+            {
+                Color orig = avatarBg.color;
+                Color gold = new(1f, 0.808f, 0.227f, 1f);
+                for (int i = 0; i < 2; i++)
+                {
+                    float t = 0f;
+                    while (t < 0.12f) { t += Time.deltaTime; avatarBg.color = Color.Lerp(orig, gold, t / 0.12f); yield return null; }
+                    t = 0f;
+                    while (t < 0.12f) { t += Time.deltaTime; avatarBg.color = Color.Lerp(gold, orig, t / 0.12f); yield return null; }
+                }
+                avatarBg.color = orig;
+            }
         }
 
         private IEnumerator UpgradeEffect()
