@@ -690,8 +690,8 @@ namespace GameIdle
             var pillGO = new GameObject("TapValuePill", typeof(RectTransform), typeof(Image));
             pillGO.transform.SetParent(pmGO.transform, false);
             var pillRT = pillGO.GetComponent<RectTransform>();
-            pillRT.anchorMin = pillRT.anchorMax = pillRT.pivot = new Vector2(0.5f, 0.5f);
-            pillRT.anchoredPosition = new Vector2(0f, -82f);
+            pillRT.anchorMin = pillRT.anchorMax = pillRT.pivot = new Vector2(1f, 0f);
+            pillRT.anchoredPosition = new Vector2(-30f, 265f);
             pillRT.sizeDelta = new Vector2(220f, 38f);
             var pillImg = pillGO.GetComponent<Image>();
             pillImg.sprite = Rounded(); pillImg.type = Image.Type.Sliced;
@@ -724,8 +724,8 @@ namespace GameIdle
             var boostGO = new GameObject("TurboButton", typeof(RectTransform), typeof(Image), typeof(Button));
             boostGO.transform.SetParent(pmGO.transform, false);
             var brt2 = boostGO.GetComponent<RectTransform>();
-            brt2.anchorMin = brt2.anchorMax = brt2.pivot = new Vector2(0.5f, 0.5f);
-            brt2.anchoredPosition = new Vector2(0f, -125f);
+            brt2.anchorMin = brt2.anchorMax = brt2.pivot = new Vector2(1f, 0f);
+            brt2.anchoredPosition = new Vector2(-30f, 258f);
             brt2.sizeDelta = new Vector2(178f, 46f);
             _boostBtnImg = boostGO.GetComponent<Image>();
             _boostBtnImg.sprite = Rounded(); _boostBtnImg.type = Image.Type.Sliced;
