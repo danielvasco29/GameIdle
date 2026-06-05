@@ -1264,8 +1264,8 @@ namespace GameIdle
                     GemShop.GetGemBonus()));
 
             prestigeButtonLabel.text = ready
-                ? $">> PRESTIGIAR  |  +{gems} GEMAS <<\n<size=78%><color=#ffe090>#{count} -> x{nextMult:F1} multiplicador de lucro</color></size>"
-                : $"PRESTIGIO #{count + 1}  |  meta ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}  +{previewGems} GEMAS\n<size=78%><color=#7ab8d4>#{count} -> x{nextMult:F1} multiplicador ao prestigiar</color></size>";
+                ? $">> PRESTIGIAR  |  x{nextMult:F1}  +{gems} GEMAS <<"
+                : $"PRESTIGIO #{count + 1}  |  x{nextMult:F1}  +{previewGems} GEMAS\n<size=75%><color=#7ab8d4>meta ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}</color></size>";
 
             var img = prestigeButton?.GetComponent<Image>();
             if (img != null)
