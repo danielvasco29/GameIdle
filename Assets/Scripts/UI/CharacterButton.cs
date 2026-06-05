@@ -385,16 +385,30 @@ namespace GameIdle
 
         private void SetupCostProgressBar()
         {
+            // Trilho de fundo (escuro) — dá a sensação de barra "encaixada"
+            var trackGO = new GameObject("CostTrack", typeof(RectTransform), typeof(Image));
+            trackGO.transform.SetParent(transform, false);
+            var trt = trackGO.GetComponent<RectTransform>();
+            trt.anchorMin = new Vector2(0f, 0f); trt.anchorMax = new Vector2(1f, 0f);
+            trt.offsetMin = new Vector2(10f, 4f); trt.offsetMax = new Vector2(-rightInsetBar, 8f);
+            var trackImg = trackGO.GetComponent<Image>();
+            trackImg.sprite = GetRoundedSprite(); trackImg.type = Image.Type.Sliced;
+            trackImg.color = new Color(0f, 0f, 0f, 0.30f);
+            trackImg.raycastTarget = false;
+
             var barGO = new GameObject("CostBar", typeof(RectTransform), typeof(Image));
-            barGO.transform.SetParent(transform, false);
+            barGO.transform.SetParent(trackGO.transform, false);
             var rt = barGO.GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0f, 0f); rt.anchorMax = new Vector2(1f, 0f);
-            rt.offsetMin = Vector2.zero; rt.offsetMax = new Vector2(0f, 3f);
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
             costProgressBar = barGO.GetComponent<Image>();
+            costProgressBar.sprite     = GetRoundedSprite();
             costProgressBar.type       = Image.Type.Filled;
             costProgressBar.fillMethod = Image.FillMethod.Horizontal;
             costProgressBar.raycastTarget = false;
         }
+
+        private const float rightInsetBar = 18f;
 
         public void Refresh()
         {
@@ -448,8 +462,8 @@ namespace GameIdle
                 float fill = Mathf.Clamp01((float)(GameManager.Instance.Money / buyCost));
                 costProgressBar.fillAmount = fill;
                 costProgressBar.color = affordable
-                    ? new Color(0.35f, 0.75f, 1f, 0.85f)
-                    : new Color(1f, 1f, 1f, 0.15f);
+                    ? new Color(0.35f, 0.75f, 1f, 1f)
+                    : new Color(GreenColor.r, GreenColor.g, GreenColor.b, 0.55f);
             }
 
             // Pulse the card when it first becomes affordable

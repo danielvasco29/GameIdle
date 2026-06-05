@@ -1674,12 +1674,15 @@ namespace GameIdle
             // [+192B/s /s] [x32 mult] [$4,7M total] [x4 prest]
             const float pillW = 200f, pillH = 62f, gap = 6f, topOff = -8f, leftOff = 10f;
 
+            // Unified navy background across all pills — only the accent bar and
+            // label carry color, which reads far more polished than mixed tints.
+            var pillBg = new Color(0.075f, 0.122f, 0.200f, 0.96f);
             var pillData = new (string label, Color labelColor, Color bgColor)[]
             {
-                ("POR SEGUNDO", NeonCyan,                            new Color(0.04f, 0.10f, 0.20f, 0.98f)),
-                ("MULTIPLICADOR", new Color(1f,  0.92f, 0.35f, 1f), new Color(0.11f, 0.09f, 0.02f, 0.98f)),
-                ("TOTAL GANHO",new Color(0.80f,0.90f,1f,    0.95f), new Color(0.04f, 0.08f, 0.18f, 0.98f)),
-                ("PRESTIGIO",NeonOrange,                             new Color(0.14f, 0.07f, 0.02f, 0.98f)),
+                ("POR SEGUNDO",   NeonCyan,                          pillBg),
+                ("MULTIPLICADOR", new Color(1f, 0.85f, 0.32f, 1f),   pillBg),
+                ("TOTAL GANHO",   new Color(0.55f, 0.78f, 1f, 1f),   pillBg),
+                ("PRESTIGIO",     NeonOrange,                        pillBg),
             };
 
             var textRefs = new TextMeshProUGUI[4];
@@ -1699,16 +1702,17 @@ namespace GameIdle
                 pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
                 pImg.color = d.bgColor; pImg.raycastTarget = false;
 
-                // Acento colorido lateral
+                // Acento colorido lateral — pílula arredondada inset (não flush na borda)
                 var acc = new GameObject("A", typeof(RectTransform), typeof(Image));
                 acc.transform.SetParent(pill.transform, false);
                 var art = acc.GetComponent<RectTransform>();
-                art.anchorMin = Vector2.zero; art.anchorMax = new Vector2(0f, 1f);
+                art.anchorMin = new Vector2(0f, 0.18f); art.anchorMax = new Vector2(0f, 0.82f);
                 art.pivot = new Vector2(0f, 0.5f);
                 art.sizeDelta = new Vector2(5f, 0f);
-                art.anchoredPosition = new Vector2(7f, 0f);
-                acc.GetComponent<Image>().color = d.labelColor;
-                acc.GetComponent<Image>().raycastTarget = false;
+                art.anchoredPosition = new Vector2(8f, 0f);
+                var accImg = acc.GetComponent<Image>();
+                accImg.sprite = Rounded(); accImg.type = Image.Type.Sliced;
+                accImg.color = d.labelColor; accImg.raycastTarget = false;
 
                 // Valor (linha de cima, grande)
                 var valGO = new GameObject("V", typeof(RectTransform), typeof(TextMeshProUGUI));
