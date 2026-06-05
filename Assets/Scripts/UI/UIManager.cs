@@ -1534,72 +1534,56 @@ namespace GameIdle
             var stale = panelMain.Find("StatsCard");
             if (stale != null) DestroyImmediate(stale.gameObject);
 
-            // Container strip no topo
-            var cardGO = new GameObject("StatsCard", typeof(RectTransform), typeof(Image));
-            cardGO.transform.SetParent(panelMain, false);
-            var crt = cardGO.GetComponent<RectTransform>();
-            crt.anchorMin = new Vector2(0f, 1f); crt.anchorMax = new Vector2(1f, 1f);
-            crt.offsetMin = new Vector2(10f, -152f); crt.offsetMax = new Vector2(-10f, -6f);
-            var cardImg = cardGO.GetComponent<Image>();
-            cardImg.sprite = Rounded(); cardImg.type = Image.Type.Sliced;
-            cardImg.color = new Color(0.07f, 0.12f, 0.20f, 0.92f);
-            cardImg.raycastTarget = false;
-
             TMP_FontAsset font = GetCachedFont();
 
-            // 4 mini-pills em layout 2×2
-            // [⚡ MPS]   [× MULT]
-            // [$ TOTAL]  [★ PRESTIGE]
-            // Labels curtos para cada stat (sem emoji — usamos cor como distinção)
-            var miniData = new (string label, Color labelColor, Color bgColor)[]
+            // 4 pills horizontais de largura fixa, ancoradas ao topo-esquerdo do painel
+            // [+192B/s /s] [x32 mult] [$4,7M total] [x4 prest]
+            const float pillW = 195f, pillH = 52f, gap = 6f, topOff = -8f, leftOff = 10f;
+
+            var pillData = new (string label, Color labelColor, Color bgColor)[]
             {
-                ("/s",   NeonCyan,                           new Color(0.08f, 0.18f, 0.28f, 1f)),
-                ("mult", new Color(1f, 0.92f, 0.35f, 1f),   new Color(0.16f, 0.14f, 0.06f, 1f)),
-                ("total",new Color(0.82f, 0.91f, 1f, 0.85f),new Color(0.10f, 0.16f, 0.26f, 1f)),
-                ("prest",NeonOrange,                         new Color(0.18f, 0.12f, 0.05f, 1f)),
+                ("/s",   NeonCyan,                            new Color(0.07f, 0.16f, 0.26f, 0.95f)),
+                ("mult", new Color(1f,  0.92f, 0.35f, 1f),   new Color(0.14f, 0.12f, 0.05f, 0.95f)),
+                ("total",new Color(0.80f,0.90f,1f,    0.85f),new Color(0.09f, 0.14f, 0.23f, 0.95f)),
+                ("prest",NeonOrange,                          new Color(0.16f, 0.10f, 0.04f, 0.95f)),
             };
 
             var textRefs = new TextMeshProUGUI[4];
-            const float pad = 5f, gap = 5f;
-            float halfW = 0.5f;
 
             for (int i = 0; i < 4; i++)
             {
-                int col = i % 2, row = i / 2;
-                var d = miniData[i];
+                var d = pillData[i];
+                float x = leftOff + i * (pillW + gap);
 
-                var pill = new GameObject($"Pill{i}", typeof(RectTransform), typeof(Image));
-                pill.transform.SetParent(cardGO.transform, false);
+                var pill = new GameObject($"StatPill{i}", typeof(RectTransform), typeof(Image));
+                pill.transform.SetParent(panelMain, false);
                 var prt = pill.GetComponent<RectTransform>();
-                prt.anchorMin = new Vector2(col * halfW, row == 0 ? 0.5f : 0f);
-                prt.anchorMax = new Vector2(col == 0 ? halfW : 1f, row == 0 ? 1f : 0.5f);
-                prt.offsetMin = new Vector2(col == 0 ? pad : gap * 0.5f, row == 0 ? gap * 0.5f : pad);
-                prt.offsetMax = new Vector2(col == 0 ? -gap * 0.5f : -pad, row == 0 ? -pad : -gap * 0.5f);
+                prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(0f, 1f);
+                prt.anchoredPosition = new Vector2(x, topOff);
+                prt.sizeDelta = new Vector2(pillW, pillH);
                 var pImg = pill.GetComponent<Image>();
                 pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
-                pImg.color = d.bgColor;
-                pImg.raycastTarget = false;
+                pImg.color = d.bgColor; pImg.raycastTarget = false;
 
-                // Barra colorida lateral esquerda
-                var accent = new GameObject("Accent", typeof(RectTransform), typeof(Image));
-                accent.transform.SetParent(pill.transform, false);
-                var art = accent.GetComponent<RectTransform>();
+                // Acento colorido lateral
+                var acc = new GameObject("A", typeof(RectTransform), typeof(Image));
+                acc.transform.SetParent(pill.transform, false);
+                var art = acc.GetComponent<RectTransform>();
                 art.anchorMin = Vector2.zero; art.anchorMax = new Vector2(0f, 1f);
                 art.pivot = new Vector2(0f, 0.5f);
                 art.sizeDelta = new Vector2(3f, 0f);
-                art.anchoredPosition = new Vector2(5f, 0f);
-                accent.GetComponent<Image>().color = d.labelColor;
-                accent.GetComponent<Image>().raycastTarget = false;
+                art.anchoredPosition = new Vector2(6f, 0f);
+                acc.GetComponent<Image>().color = d.labelColor;
+                acc.GetComponent<Image>().raycastTarget = false;
 
-                // Valor (texto principal, grande)
-                var valGO = new GameObject("Val", typeof(RectTransform), typeof(TextMeshProUGUI));
+                // Valor (linha de cima, grande)
+                var valGO = new GameObject("V", typeof(RectTransform), typeof(TextMeshProUGUI));
                 valGO.transform.SetParent(pill.transform, false);
                 var vrt = valGO.GetComponent<RectTransform>();
-                vrt.anchorMin = new Vector2(0f, 0.38f); vrt.anchorMax = Vector2.one;
-                vrt.offsetMin = new Vector2(12f, 0f); vrt.offsetMax = new Vector2(-6f, -2f);
+                vrt.anchorMin = new Vector2(0f, 0.42f); vrt.anchorMax = Vector2.one;
+                vrt.offsetMin = new Vector2(14f, 0f); vrt.offsetMax = new Vector2(-6f, -3f);
                 var vtmp = valGO.GetComponent<TextMeshProUGUI>();
-                vtmp.fontSize = 19f; vtmp.fontStyle = FontStyles.Bold;
-                vtmp.color = Color.white;
+                vtmp.fontSize = 18f; vtmp.fontStyle = FontStyles.Bold; vtmp.color = Color.white;
                 vtmp.alignment = TextAlignmentOptions.MidlineLeft;
                 vtmp.textWrappingMode = TextWrappingModes.NoWrap;
                 vtmp.overflowMode = TextOverflowModes.Ellipsis;
@@ -1607,18 +1591,18 @@ namespace GameIdle
                 if (font != null) vtmp.font = font;
                 textRefs[i] = vtmp;
 
-                // Label pequena em baixo
-                var lblGO = new GameObject("Lbl", typeof(RectTransform), typeof(TextMeshProUGUI));
+                // Label (linha de baixo, pequena, colorida)
+                var lblGO = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
                 lblGO.transform.SetParent(pill.transform, false);
-                var lrt2 = lblGO.GetComponent<RectTransform>();
-                lrt2.anchorMin = Vector2.zero; lrt2.anchorMax = new Vector2(1f, 0.42f);
-                lrt2.offsetMin = new Vector2(12f, 2f); lrt2.offsetMax = new Vector2(-6f, 0f);
-                var ltmp2 = lblGO.GetComponent<TextMeshProUGUI>();
-                ltmp2.text = d.label; ltmp2.fontSize = 11f; ltmp2.fontStyle = FontStyles.Bold;
-                ltmp2.color = new Color(d.labelColor.r, d.labelColor.g, d.labelColor.b, 0.70f);
-                ltmp2.alignment = TextAlignmentOptions.MidlineLeft;
-                ltmp2.raycastTarget = false;
-                if (font != null) ltmp2.font = font;
+                var lrt = lblGO.GetComponent<RectTransform>();
+                lrt.anchorMin = Vector2.zero; lrt.anchorMax = new Vector2(1f, 0.44f);
+                lrt.offsetMin = new Vector2(14f, 3f); lrt.offsetMax = new Vector2(-6f, 0f);
+                var ltmp = lblGO.GetComponent<TextMeshProUGUI>();
+                ltmp.text = d.label; ltmp.fontSize = 11f; ltmp.fontStyle = FontStyles.Bold;
+                ltmp.color = new Color(d.labelColor.r, d.labelColor.g, d.labelColor.b, 0.75f);
+                ltmp.alignment = TextAlignmentOptions.MidlineLeft;
+                ltmp.raycastTarget = false;
+                if (font != null) ltmp.font = font;
             }
 
             statMpsText      = textRefs[0];
