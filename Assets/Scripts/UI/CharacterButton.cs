@@ -109,6 +109,7 @@ namespace GameIdle
             backgroundImage.type   = Image.Type.Sliced;
             backgroundImage.color  = CardColor;
 
+            SetupDepth();
             SetupAvatar();
             SetupAffordableIndicator();
             SetupTierDots();
@@ -128,6 +129,51 @@ namespace GameIdle
             wasAffordable = false;
             SetupCostProgressBar();
             Refresh();
+        }
+
+        // Adds a top sheen + bottom shadow gradient and a thin top edge highlight
+        // so the flat card reads with subtle depth (glossy panel look).
+        private void SetupDepth()
+        {
+            var ex = transform.Find("CardDepth");
+            if (ex != null) { ex.SetParent(null); Destroy(ex.gameObject); }
+
+            // Top half sheen (white gradient, faint)
+            var sheen = new GameObject("CardDepth", typeof(RectTransform), typeof(Image));
+            sheen.transform.SetParent(transform, false);
+            sheen.transform.SetSiblingIndex(1); // above bg, below content
+            var srt = sheen.GetComponent<RectTransform>();
+            srt.anchorMin = new Vector2(0f, 0.5f); srt.anchorMax = Vector2.one;
+            srt.offsetMin = new Vector2(2f, 0f); srt.offsetMax = new Vector2(-2f, -2f);
+            var simg = sheen.GetComponent<Image>();
+            simg.sprite = UiSpriteFactory.VerticalGradient();
+            simg.color = new Color(1f, 1f, 1f, 0.06f);
+            simg.raycastTarget = false;
+
+            // Bottom shadow (dark gradient, flipped via negative scale)
+            var shadow = new GameObject("CardShadow", typeof(RectTransform), typeof(Image));
+            shadow.transform.SetParent(transform, false);
+            shadow.transform.SetSiblingIndex(1);
+            var shrt = shadow.GetComponent<RectTransform>();
+            shrt.anchorMin = Vector2.zero; shrt.anchorMax = new Vector2(1f, 0.5f);
+            shrt.offsetMin = new Vector2(2f, 2f); shrt.offsetMax = new Vector2(-2f, 0f);
+            shrt.localScale = new Vector3(1f, -1f, 1f); // flip so dark is at bottom
+            var shimg = shadow.GetComponent<Image>();
+            shimg.sprite = UiSpriteFactory.VerticalGradient();
+            shimg.color = new Color(0f, 0f, 0f, 0.22f);
+            shimg.raycastTarget = false;
+
+            // Thin bright edge at the very top (1px highlight line)
+            var edge = new GameObject("CardEdge", typeof(RectTransform), typeof(Image));
+            edge.transform.SetParent(transform, false);
+            edge.transform.SetSiblingIndex(2);
+            var ert = edge.GetComponent<RectTransform>();
+            ert.anchorMin = new Vector2(0f, 1f); ert.anchorMax = new Vector2(1f, 1f);
+            ert.pivot = new Vector2(0.5f, 1f);
+            ert.offsetMin = new Vector2(8f, -2f); ert.offsetMax = new Vector2(-8f, 0f);
+            var eimg = edge.GetComponent<Image>();
+            eimg.color = new Color(1f, 1f, 1f, 0.10f);
+            eimg.raycastTarget = false;
         }
 
         private void SetupAvatar()

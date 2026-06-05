@@ -936,6 +936,20 @@ namespace GameIdle
             var panelImg = panelLeft.GetComponent<Image>();
             if (panelImg != null) panelImg.color = new Color(0.063f, 0.106f, 0.176f, 1f);
 
+            // Sombra na borda direita — separa a sidebar da arte do escritório
+            if (panelLeft.transform.Find("RightShadow") == null)
+            {
+                var sh = new GameObject("RightShadow", typeof(RectTransform), typeof(Image));
+                sh.transform.SetParent(panelLeft.transform, false);
+                var shrt = sh.GetComponent<RectTransform>();
+                shrt.anchorMin = new Vector2(1f, 0f); shrt.anchorMax = new Vector2(1f, 1f);
+                shrt.pivot = new Vector2(1f, 0.5f);
+                shrt.sizeDelta = new Vector2(4f, 0f);
+                var shImg = sh.GetComponent<Image>();
+                shImg.color = new Color(0f, 0f, 0f, 0.28f);
+                shImg.raycastTarget = false;
+            }
+
             // Fit the card to the visible width (minus the ~17px scrollbar and the
             // grid's 10px side padding) so cost + level are never clipped.
             if (charactersContent != null)
@@ -964,6 +978,31 @@ namespace GameIdle
             var img = stripeGO.GetComponent<Image>();
             img.color = NavyDark;
             img.raycastTarget = false;
+
+            // Sheen no topo da barra (gradiente claro sutil)
+            var sheen = new GameObject("TopBarSheen", typeof(RectTransform), typeof(Image));
+            sheen.transform.SetParent(topBar, false);
+            sheen.transform.SetSiblingIndex(1);
+            var shrt = sheen.GetComponent<RectTransform>();
+            shrt.anchorMin = new Vector2(0f, 0.35f); shrt.anchorMax = Vector2.one;
+            shrt.offsetMin = shrt.offsetMax = Vector2.zero;
+            var shImg = sheen.GetComponent<Image>();
+            shImg.sprite = UiSpriteFactory.VerticalGradient();
+            shImg.color = new Color(1f, 1f, 1f, 0.05f);
+            shImg.raycastTarget = false;
+
+            // Sombra projetada abaixo da barra (separa do campo de jogo)
+            var drop = new GameObject("TopBarDrop", typeof(RectTransform), typeof(Image));
+            drop.transform.SetParent(topBar, false);
+            var drt = drop.GetComponent<RectTransform>();
+            drt.anchorMin = new Vector2(0f, 0f); drt.anchorMax = new Vector2(1f, 0f);
+            drt.pivot = new Vector2(0.5f, 1f);
+            drt.sizeDelta = new Vector2(0f, 10f);
+            drt.localScale = new Vector3(1f, -1f, 1f); // dark fades downward
+            var dImg = drop.GetComponent<Image>();
+            dImg.sprite = UiSpriteFactory.VerticalGradient();
+            dImg.color = new Color(0f, 0f, 0f, 0.30f);
+            dImg.raycastTarget = false;
         }
 
         // Top-right gem pill + coin icon next to money. Gems are a new currency
@@ -1708,6 +1747,27 @@ namespace GameIdle
                 var pImg = pill.GetComponent<Image>();
                 pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
                 pImg.color = d.bgColor; pImg.raycastTarget = false;
+
+                // Sheen no topo (gradiente claro) para dar profundidade
+                var sheen = new GameObject("Sheen", typeof(RectTransform), typeof(Image));
+                sheen.transform.SetParent(pill.transform, false);
+                var shrt = sheen.GetComponent<RectTransform>();
+                shrt.anchorMin = new Vector2(0f, 0.45f); shrt.anchorMax = Vector2.one;
+                shrt.offsetMin = new Vector2(2f, 0f); shrt.offsetMax = new Vector2(-2f, -2f);
+                var shImg = sheen.GetComponent<Image>();
+                shImg.sprite = UiSpriteFactory.VerticalGradient();
+                shImg.color = new Color(1f, 1f, 1f, 0.07f);
+                shImg.raycastTarget = false;
+
+                // Linha de luz no topo (1px highlight)
+                var edge = new GameObject("Edge", typeof(RectTransform), typeof(Image));
+                edge.transform.SetParent(pill.transform, false);
+                var ert = edge.GetComponent<RectTransform>();
+                ert.anchorMin = new Vector2(0f, 1f); ert.anchorMax = new Vector2(1f, 1f);
+                ert.pivot = new Vector2(0.5f, 1f);
+                ert.offsetMin = new Vector2(6f, -2f); ert.offsetMax = new Vector2(-6f, 0f);
+                edge.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.09f);
+                edge.GetComponent<Image>().raycastTarget = false;
 
                 // Acento colorido lateral — pílula arredondada inset (não flush na borda)
                 var acc = new GameObject("A", typeof(RectTransform), typeof(Image));

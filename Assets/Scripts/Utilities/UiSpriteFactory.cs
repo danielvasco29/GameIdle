@@ -11,7 +11,30 @@ namespace GameIdle
         private static Sprite box;
         private static Sprite roundedBox;
         private static Sprite star;
+        private static Sprite vGradient;
         private static Material whiteDiscardMat;
+
+        // Vertical white gradient: opaque white at the TOP fading to transparent
+        // at the bottom. Tint + flip it to make highlights (top) or shadows
+        // (bottom) for a sense of depth.
+        public static Sprite VerticalGradient()
+        {
+            if (vGradient != null) return vGradient;
+            const int h = 64;
+            var tex = new Texture2D(4, h, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            var px = new Color32[4 * h];
+            for (int y = 0; y < h; y++)
+            {
+                float a = Mathf.Pow(y / (float)(h - 1), 1.4f); // bright at top
+                var c = new Color32(255, 255, 255, (byte)(a * 255));
+                for (int x = 0; x < 4; x++) px[y * 4 + x] = c;
+            }
+            tex.SetPixels32(px);
+            tex.Apply();
+            vGradient = Sprite.Create(tex, new Rect(0, 0, 4, h), new Vector2(0.5f, 0.5f), 100f);
+            vGradient.name = "GenVGradient";
+            return vGradient;
+        }
 
         // Material that discards near-white/background pixels from GPT-generated sprites.
         public static Material WhiteDiscardMaterial()
