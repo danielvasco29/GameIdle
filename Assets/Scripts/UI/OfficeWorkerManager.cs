@@ -141,6 +141,7 @@ namespace GameIdle
 
                 var bodyImg = bodyGO.GetComponent<Image>();
                 bodyImg.sprite = frames[0];
+                bodyImg.material = UiSpriteFactory.WhiteDiscardMaterial();
                 bodyImg.raycastTarget = false;
                 bodyImg.preserveAspect = true;
 
@@ -205,6 +206,7 @@ namespace GameIdle
                     prt2.offsetMin = prt2.offsetMax = Vector2.zero;
                     var portImg2 = portGO2.GetComponent<Image>();
                     portImg2.sprite = frames[0];
+                    portImg2.material = UiSpriteFactory.WhiteDiscardMaterial();
                     portImg2.raycastTarget = false;
                     portImg2.preserveAspect = true;
                 }
