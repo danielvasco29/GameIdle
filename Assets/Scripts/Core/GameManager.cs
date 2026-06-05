@@ -156,7 +156,32 @@ namespace GameIdle
             OnStatsUpdated?.Invoke();
         }
 
-        public double GetTapValue() => System.Math.Max(1.0, MoneyPerSecond * 0.5) * GemShop.GetTapMult();
+        // ── Tap Boost ────────────────────────────────────────────────────────
+        private float _tapBoostEnd      = -1f;
+        private float _tapBoostCoolEnd  = -1f;
+        private const float BoostDuration  = 30f;
+        private const float BoostCooldown  = 120f;
+        private const double BoostMult     = 5.0;
+
+        public bool  TapBoostActive             => Time.time < _tapBoostEnd;
+        public float TapBoostRemaining          => Mathf.Max(0f, _tapBoostEnd - Time.time);
+        public float TapBoostCooldownRemaining  => Mathf.Max(0f, _tapBoostCoolEnd - Time.time);
+        public bool  TapBoostOnCooldown         => !TapBoostActive && Time.time < _tapBoostCoolEnd;
+
+        public void ActivateTapBoost()
+        {
+            if (TapBoostActive || TapBoostOnCooldown) return;
+            _tapBoostEnd     = Time.time + BoostDuration;
+            _tapBoostCoolEnd = Time.time + BoostDuration + BoostCooldown;
+            OnStatsUpdated?.Invoke();
+        }
+
+        public double GetTapValue()
+        {
+            double base_ = System.Math.Max(1.0, MoneyPerSecond * 0.5) * GemShop.GetTapMult();
+            return TapBoostActive ? base_ * BoostMult : base_;
+        }
+
         public void Tap() => AddMoney(GetTapValue());
 
         public void Prestige()

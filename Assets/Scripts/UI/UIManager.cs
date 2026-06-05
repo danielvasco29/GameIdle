@@ -65,6 +65,20 @@ namespace GameIdle
         private Image tapGlowImg;
         private bool _tapPunching;
 
+        // Boost TURBO
+        private Image _boostBtnImg;
+        private TextMeshProUGUI _boostBtnText;
+        private static readonly Color BoostReady    = new(0.18f, 0.72f, 0.42f, 1f);
+        private static readonly Color BoostActive   = new(1f, 0.75f, 0.08f, 1f);
+        private static readonly Color BoostCooldown = new(0.25f, 0.28f, 0.38f, 1f);
+
+        // Próximo desbloqueio — pulse
+        private Image _nextUnlockBannerBg;
+        private bool  _nextUnlockWasAffordable;
+
+        // Office workers
+        private OfficeWorkerManager _workerManager;
+
         // Próximo desbloqueio
         private TextMeshProUGUI nextUnlockNameText;
         private TextMeshProUGUI nextUnlockCostText;
@@ -493,12 +507,71 @@ namespace GameIdle
             holdBtn.Init(OnTapClicked);
 
             StartCoroutine(PulseTapButton());
+
+            // ── Botão TURBO ────────────────────────────────────────────────
+            var boostGO = new GameObject("TurboButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            boostGO.transform.SetParent(pmGO.transform, false);
+            var brt2 = boostGO.GetComponent<RectTransform>();
+            brt2.anchorMin = brt2.anchorMax = brt2.pivot = new Vector2(0.5f, 0.5f);
+            brt2.anchoredPosition = new Vector2(0f, -130f);
+            brt2.sizeDelta = new Vector2(160f, 44f);
+            _boostBtnImg = boostGO.GetComponent<Image>();
+            _boostBtnImg.sprite = Rounded(); _boostBtnImg.type = Image.Type.Sliced;
+            _boostBtnImg.color = BoostReady;
+            boostGO.GetComponent<Button>().onClick.AddListener(OnTurboClicked);
+
+            var btLabel = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            btLabel.transform.SetParent(boostGO.transform, false);
+            var btlRT = btLabel.GetComponent<RectTransform>();
+            btlRT.anchorMin = Vector2.zero; btlRT.anchorMax = Vector2.one;
+            btlRT.offsetMin = btlRT.offsetMax = Vector2.zero;
+            _boostBtnText = btLabel.GetComponent<TextMeshProUGUI>();
+            _boostBtnText.text = "TURBO  x5  30s";
+            _boostBtnText.fontSize = 15; _boostBtnText.fontStyle = FontStyles.Bold;
+            _boostBtnText.alignment = TextAlignmentOptions.Center;
+            _boostBtnText.color = Color.white; _boostBtnText.raycastTarget = false;
+            var btf = GetCachedFont(); if (btf != null) _boostBtnText.font = btf;
+
+            // ── Office Worker Manager ──────────────────────────────────────
+            var workerGO = new GameObject("OfficeWorkerManager", typeof(OfficeWorkerManager));
+            workerGO.transform.SetParent(pmGO.transform, false);
+            _workerManager = workerGO.GetComponent<OfficeWorkerManager>();
+            _workerManager.Init(panelMain);
         }
 
         private void UpdateTapValueText()
         {
             if (tapValueText == null || GameManager.Instance == null) return;
             tapValueText.text = $"+${NumberFormatter.Format(GameManager.Instance.GetTapValue())} / tap";
+        }
+
+        private void OnTurboClicked()
+        {
+            GameManager.Instance.ActivateTapBoost();
+            UpdateBoostButton();
+            UpdateTapValueText();
+        }
+
+        private void UpdateBoostButton()
+        {
+            if (_boostBtnImg == null || _boostBtnText == null) return;
+            var gm = GameManager.Instance;
+            if (gm.TapBoostActive)
+            {
+                _boostBtnImg.color  = BoostActive;
+                _boostBtnText.text  = $"TURBO  x5  {Mathf.CeilToInt(gm.TapBoostRemaining)}s";
+            }
+            else if (gm.TapBoostOnCooldown)
+            {
+                _boostBtnImg.color = BoostCooldown;
+                int rem = Mathf.CeilToInt(gm.TapBoostCooldownRemaining);
+                _boostBtnText.text = $"TURBO  {rem / 60}:{(rem % 60):D2}";
+            }
+            else
+            {
+                _boostBtnImg.color = BoostReady;
+                _boostBtnText.text = "TURBO  x5  30s";
+            }
         }
 
         private void OnTapClicked()
@@ -1084,6 +1157,7 @@ namespace GameIdle
                 uiRefreshTimer = UiRefreshInterval;
                 RefreshButtonAffordability();
                 RefreshNextUnlockBanner();
+                UpdateBoostButton();
             }
 
             effectsHUDTimer -= Time.deltaTime;
@@ -1269,8 +1343,9 @@ namespace GameIdle
             brt.anchorMax = new Vector2(1f, 0f);
             brt.offsetMin = Vector2.zero;
             brt.offsetMax = new Vector2(0f, 75f);
-            bannerGO.GetComponent<Image>().color = NavyDark;
-            bannerGO.GetComponent<Image>().raycastTarget = false;
+            _nextUnlockBannerBg = bannerGO.GetComponent<Image>();
+            _nextUnlockBannerBg.color = NavyDark;
+            _nextUnlockBannerBg.raycastTarget = false;
 
             // Título "PRÓXIMO DESBLOQUEIO"
             CreateBannerLabel(bannerGO.transform, "Title",
@@ -1341,14 +1416,36 @@ namespace GameIdle
                 nextUnlockNameText.text = "Todos desbloqueados!";
                 if (nextUnlockCostText != null) nextUnlockCostText.text = "";
                 if (nextUnlockBar != null) nextUnlockBar.fillAmount = 1f;
+                _nextUnlockWasAffordable = false;
                 return;
             }
             nextUnlockNameText.text = $">> {next.data.characterName}";
             double cost = via.GetCurrentCost();
             if (nextUnlockCostText != null)
                 nextUnlockCostText.text = $"${NumberFormatter.Format(cost)}";
+
+            bool affordable = GameManager.Instance.Money >= cost;
             if (nextUnlockBar != null)
                 nextUnlockBar.fillAmount = Mathf.Clamp01((float)(GameManager.Instance.Money / cost));
+
+            // Pulsa o banner ao ficar acessível pela primeira vez
+            if (affordable && !_nextUnlockWasAffordable)
+                StartCoroutine(PulseNextUnlockBanner());
+            _nextUnlockWasAffordable = affordable;
+        }
+
+        private IEnumerator PulseNextUnlockBanner()
+        {
+            if (_nextUnlockBannerBg == null) yield break;
+            var highlight = new Color(NeonOrange.r, NeonOrange.g, NeonOrange.b, 0.35f);
+            for (int i = 0; i < 3; i++)
+            {
+                float e = 0f;
+                while (e < 0.18f) { e += Time.deltaTime; _nextUnlockBannerBg.color = Color.Lerp(NavyDark, highlight, e / 0.18f); yield return null; }
+                e = 0f;
+                while (e < 0.18f) { e += Time.deltaTime; _nextUnlockBannerBg.color = Color.Lerp(highlight, NavyDark, e / 0.18f); yield return null; }
+            }
+            _nextUnlockBannerBg.color = NavyDark;
         }
 
         public void ShowToast(string message, Color? color = null)
