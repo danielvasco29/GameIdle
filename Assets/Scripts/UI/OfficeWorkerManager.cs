@@ -113,25 +113,15 @@ namespace GameIdle
                 sImg.color = new Color(0f, 0f, 0f, 0.25f);
                 sImg.raycastTarget = false;
 
-                // Mask container — clips sprite to circle, hides white bg from non-transparent sheets
-                var maskGO = new GameObject("Mask", typeof(RectTransform), typeof(Image), typeof(Mask));
-                maskGO.transform.SetParent(go.transform, false);
-                var maskRt = maskGO.GetComponent<RectTransform>();
-                maskRt.anchorMin = maskRt.anchorMax = maskRt.pivot = new Vector2(0.5f, 0.5f);
-                maskRt.anchoredPosition = Vector2.zero;
-                maskRt.sizeDelta = new Vector2(80f, 80f);
-                var maskImg = maskGO.GetComponent<Image>();
-                maskImg.sprite = UiSpriteFactory.Circle();
-                maskImg.raycastTarget = false;
-                maskGO.GetComponent<Mask>().showMaskGraphic = false;
-
+                // Sprite direto sem máscara — sem círculo branco
                 var bodyGO = new GameObject("Body", typeof(RectTransform), typeof(Image));
-                bodyGO.transform.SetParent(maskGO.transform, false);
+                bodyGO.transform.SetParent(go.transform, false);
                 var bodyRt = bodyGO.GetComponent<RectTransform>();
-                bodyRt.anchorMin = Vector2.zero; bodyRt.anchorMax = Vector2.one;
-                bodyRt.offsetMin = bodyRt.offsetMax = Vector2.zero;
+                bodyRt.anchorMin = bodyRt.anchorMax = bodyRt.pivot = new Vector2(0.5f, 0.5f);
+                bodyRt.anchoredPosition = Vector2.zero;
+                bodyRt.sizeDelta = new Vector2(80f, 80f);
                 // Use maskRt as the transform we animate (it moves with the character)
-                bodyRt = maskRt;
+                bodyRt = bodyRt;
 
                 var bodyImg = bodyGO.GetComponent<Image>();
                 bodyImg.sprite = frames[0];
@@ -139,7 +129,8 @@ namespace GameIdle
                 bodyImg.preserveAspect = true;
 
                 var avatar = go.GetComponent<WorkerAvatar>();
-                avatar.InitSheet(rt, bodyRt, bodyImg, frames, srt, RoamBounds);
+                var sheetBodyRt = bodyGO.GetComponent<RectTransform>();
+                avatar.InitSheet(rt, sheetBodyRt, bodyImg, frames, srt, RoamBounds);
             }
             else
             {
