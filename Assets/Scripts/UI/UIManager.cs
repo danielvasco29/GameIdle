@@ -1275,7 +1275,7 @@ namespace GameIdle
 
             prestigeButtonLabel.text = ready
                 ? $">> PRESTIGIAR  |  x{nextMult:F1}  +{gems} GEMAS <<"
-                : $"PRESTIGIO #{count + 1}  |  x{nextMult:F1}  +{previewGems} GEMAS\n<size=72%><color=#f0c060>meta ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}</color></size>";
+                : $"PRESTIGIO #{count + 1}  |  x{nextMult:F1}  +{previewGems} GEMAS  |  meta ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}";
 
             var img = prestigeButton?.GetComponent<Image>();
             if (img != null)
@@ -1288,10 +1288,8 @@ namespace GameIdle
                     ? new Color(1f, 0.88f, 0.3f, 0.22f)
                     : new Color(0.5f, 0.75f, 1f, 0.07f);   // subtle blue sheen when inactive
 
-            prestigeButtonLabel.color = ready
-                ? new Color(1f, 0.95f, 0.70f)
-                : Color.white;
-            prestigeButtonLabel.fontSize = ready ? 18f : 17f;
+            prestigeButtonLabel.color = ready ? new Color(1f, 0.95f, 0.70f) : Color.white;
+            prestigeButtonLabel.fontSize = 17f;
         }
 
         // ── Floating Money ────────────────────────────────────────────────────
