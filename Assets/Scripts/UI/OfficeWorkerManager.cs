@@ -12,24 +12,32 @@ namespace GameIdle
 
         private static readonly Rect RoamBounds = new Rect(-500f, -180f, 1000f, 200f);
 
+        // Posições atualmente reservadas por algum worker (evita dois no mesmo spot).
+        internal static readonly HashSet<int> ClaimedTargets = new();
+
         // Fixed spread positions so workers don't cluster — 10 spots across the office
+        // 10 spots bem espaçados (>= ~200px entre vizinhos) em duas fileiras, para
+        // que, com a reserva 1-por-spot, os personagens nunca se sobreponham.
         public static readonly Vector2[] SpreadPositions =
         {
-            new( 490f, -140f), // impressora (canto direito)
-            new( 100f,   60f), // bebedor de água (centro-topo)
-            new( 380f,   20f), // sofá (direita)
-            new(-420f,  -60f), // mesa esquerda 1
-            new(-260f,  -30f), // mesa esquerda 2
-            new(-100f,  -10f), // mesa esquerda 3
-            new( 160f,  -80f), // centro
-            new( 320f, -100f), // mesa direita 1
-            new(-380f, -150f), // fundo esquerda
-            new( 220f, -150f), // fundo direita
+            // fileira de trás (mais ao fundo)
+            new(-420f,   20f),
+            new(-210f,   40f),
+            new(   0f,   25f),
+            new( 210f,   35f),
+            new( 420f,   10f),
+            // fileira da frente
+            new(-350f, -120f),
+            new(-120f, -140f),
+            new( 110f, -130f),
+            new( 340f, -110f),
+            new( 480f, -150f), // impressora (canto direito)
         };
 
         public void Init(RectTransform panelMain)
         {
             _panel = panelMain;
+            ClaimedTargets.Clear(); // limpa reservas de uma sessão anterior (editor replay)
             if (CharacterManager.Instance != null)
                 CharacterManager.Instance.OnCharactersUpdated += SyncWorkers;
             SyncWorkers();
@@ -211,7 +219,9 @@ namespace GameIdle
                 avatar.InitProcedural(rt, bodyRt, legL, legR, footL, footR, srt, RoamBounds);
             }
 
-            return go.GetComponent<WorkerAvatar>();
+            var wa = go.GetComponent<WorkerAvatar>();
+            wa.ClaimSpawn(index % SpreadPositions.Length);
+            return wa;
         }
 
         private static RectTransform MakeLeg(Transform parent, string name, Color color, Vector2 pos)
@@ -326,15 +336,51 @@ namespace GameIdle
         }
 
         private int _lastTargetIndex = -1;
+        private int _claimedIndex = -1;
+
+        // Reserva o spot inicial para que nenhum outro worker o tome.
+        public void ClaimSpawn(int index)
+        {
+            _claimedIndex = index;
+            _lastTargetIndex = index;
+            OfficeWorkerManager.ClaimedTargets.Add(index);
+        }
+
+        private void OnDestroy()
+        {
+            if (_claimedIndex >= 0)
+                OfficeWorkerManager.ClaimedTargets.Remove(_claimedIndex);
+        }
 
         private void PickNewTarget()
         {
             var positions = OfficeWorkerManager.SpreadPositions;
-            // Pick a different position from last one to avoid staying in place
-            int idx;
-            do { idx = Random.Range(0, positions.Length); }
-            while (idx == _lastTargetIndex && positions.Length > 1);
+            var claimed = OfficeWorkerManager.ClaimedTargets;
+
+            // Libera o spot atual antes de procurar um novo livre.
+            if (_claimedIndex >= 0) claimed.Remove(_claimedIndex);
+
+            // Escolhe um spot que não esteja reservado por outro worker (e != atual).
+            int idx = -1;
+            int tries = 0;
+            do
+            {
+                int cand = Random.Range(0, positions.Length);
+                if (cand != _lastTargetIndex && !claimed.Contains(cand)) { idx = cand; break; }
+            }
+            while (++tries < 40);
+
+            // Fallback: se tudo reservado, pega qualquer um diferente do atual.
+            if (idx < 0)
+            {
+                do { idx = Random.Range(0, positions.Length); }
+                while (idx == _lastTargetIndex && positions.Length > 1);
+            }
+
+            _claimedIndex = idx;
             _lastTargetIndex = idx;
+            claimed.Add(idx);
+
             _target = positions[idx] + new Vector2(Random.Range(-10f, 10f), Random.Range(-8f, 8f));
             _walkSpeed = Random.Range(55f, 85f);
             _walking = true;
