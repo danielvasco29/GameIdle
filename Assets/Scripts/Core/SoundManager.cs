@@ -232,39 +232,77 @@ namespace GameIdle
             }
         }
 
-        // Conversa estilo Simlish: sequência de sílabas vogais com pitch variando.
+        // Vogais (F1,F2) — pares de formantes que dão o caráter "a/e/i/o/u".
+        private static readonly float[,] Vowels =
+        {
+            { 800f, 1150f }, // a
+            { 500f, 1800f }, // é
+            { 320f, 2300f }, // i
+            { 500f,  900f }, // ó
+            { 350f,  800f }, // u
+        };
+
+        // Conversa estilo Simlish: frase de sílabas-vogais com entonação. Usa
+        // síntese de formantes (fonte glotal + 2 ressonadores) para soar "falado".
         private AudioClip MakeChatter(int variant)
         {
             int n = Rate * 16 / 10; // 1.6 s
             var data = new float[n];
-            float basePitch = 150f + variant * 22f + Random.Range(-18f, 18f);
+            float basePitch = 142f + variant * 16f + Random.Range(-10f, 10f);
             int syl = Random.Range(4, 7);
-            float pos = 0.05f;
+            bool question = variant == 2;            // uma variação "pergunta" (sobe no fim)
+            float pos = 0.06f;
             for (int s = 0; s < syl; s++)
             {
-                int semis = Random.Range(-3, 5);
-                float pitch = basePitch * Mathf.Pow(2f, semis / 12f);
-                float dur = Random.Range(0.10f, 0.20f);
+                int vi = Random.Range(0, 5);
+                // contorno da frase: leve arco + ajuste na última sílaba
+                int contour = (s == syl - 1) ? (question ? 4 : -3) : Random.Range(-2, 3);
+                float pitch = basePitch * Mathf.Pow(2f, contour / 12f);
+                float dur = Random.Range(0.11f, 0.20f);
                 if (pos + dur > n / (float)Rate - 0.05f) break;
-                RenderSyllable(data, (int)(pos * Rate), pitch, dur, 0.55f);
-                pos += dur + Random.Range(0.04f, 0.11f);
+
+                // consoante leve (rufo curto) antes de ~metade das sílabas
+                if (Random.value < 0.5f) RenderKey(data, (int)(pos * Rate) - Rate / 200, 0.10f);
+
+                RenderSyllable(data, (int)(pos * Rate), pitch, dur, Vowels[vi, 0], Vowels[vi, 1], 0.5f);
+                pos += dur + Random.Range(0.03f, 0.10f);
             }
+
+            // Normaliza o clip (os ressonadores têm ganho imprevisível)
+            float peak = 0f;
+            for (int i = 0; i < n; i++) peak = Mathf.Max(peak, Mathf.Abs(data[i]));
+            if (peak > 0.0001f) { float g = 0.7f / peak; for (int i = 0; i < n; i++) data[i] *= g; }
+
             return Make("chatter" + variant, data);
         }
 
-        private static void RenderSyllable(float[] data, int start, float pitch, float dur, float vol)
+        // Síntese de formantes: pulsos glotais (no pitch) excitam dois ressonadores
+        // de 2 polos sintonizados nas frequências de formante da vogal.
+        private static void RenderSyllable(float[] data, int start, float pitch, float dur,
+            float f1, float f2, float vol)
         {
             int d = (int)(dur * Rate);
+            float r1 = Mathf.Exp(-Mathf.PI * 90f / Rate);
+            float r2 = Mathf.Exp(-Mathf.PI * 110f / Rate);
+            float a1 = 2f * r1 * Mathf.Cos(2f * Mathf.PI * f1 / Rate), c1 = -r1 * r1;
+            float a2 = 2f * r2 * Mathf.Cos(2f * Mathf.PI * f2 / Rate), c2 = -r2 * r2;
+            float y1a = 0f, y1b = 0f, y2a = 0f, y2b = 0f;
+            float phase = 0f;
+
             for (int i = 0; i < d && start + i < data.Length; i++)
             {
                 float t = (float)i / Rate;
-                float env = Mathf.Sin(Mathf.PI * t / dur);        // entra/sai suave (vogal)
+                float p = pitch * (1f + 0.015f * Mathf.Sin(2f * Mathf.PI * 5.5f * t)); // vibrato
+                phase += p / Rate;
+                float x = 0f;
+                if (phase >= 1f) { phase -= 1f; x = 1f; }            // pulso glotal
+
+                float y1 = x + a1 * y1a + c1 * y1b; y1b = y1a; y1a = y1;
+                float y2 = x + a2 * y2a + c2 * y2b; y2b = y2a; y2a = y2;
+
+                float env = Mathf.Sin(Mathf.PI * t / dur);           // vogal entra/sai suave
                 if (env < 0f) env = 0f;
-                float vib = pitch * (1f + 0.02f * Mathf.Sin(2f * Mathf.PI * 5f * t));
-                float w = 2f * Mathf.PI * vib * t;
-                float voice = Mathf.Sin(w) + 0.5f * Mathf.Sin(2f * w) + 0.3f * Mathf.Sin(3f * w);
-                float formant = Mathf.Sin(2f * Mathf.PI * 720f * t) * 0.15f; // realce de formante
-                data[start + i] += (voice * 0.4f + formant) * env * vol;
+                data[start + i] += (0.7f * y1 + 0.5f * y2) * env * vol;
             }
         }
 
