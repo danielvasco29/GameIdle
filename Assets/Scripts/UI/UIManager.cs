@@ -1386,9 +1386,12 @@ namespace GameIdle
             // Approximate monitor positions in Panel_Main local space
             var monitorPositions = new Vector2[]
             {
-                new(-430f, -30f), new(-310f, -10f), new(-190f,  10f),
-                new(-380f,-110f), new(-260f, -70f), new( 100f, -80f),
-                new( 220f, -40f), new( 360f, -60f),
+                // Mesas da esquerda (fileira de cima)
+                new(-460f, 20f), new(-340f, 50f), new(-220f, 75f),
+                // Mesas da esquerda (fileira de baixo)
+                new(-420f, -60f), new(-300f, -30f),
+                // Mesas da direita
+                new( 320f, -30f), new( 440f, -55f), new( 540f, -75f),
             };
 
             var colors = new Color[]
