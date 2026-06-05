@@ -16,22 +16,23 @@ namespace GameIdle
         internal static readonly HashSet<int> ClaimedTargets = new();
 
         // Fixed spread positions so workers don't cluster — 10 spots across the office
-        // 10 spots bem espaçados (>= ~200px entre vizinhos) em duas fileiras, para
-        // que, com a reserva 1-por-spot, os personagens nunca se sobreponham.
+        // 10 spots espalhados pelos landmarks e pelo chão aberto. Evita de
+        // propósito o canto inferior-direito (mesa colada no botão TRABALHAR).
+        // Com a reserva 1-por-spot, os personagens não se sobrepõem.
         public static readonly Vector2[] SpreadPositions =
         {
-            // fileira de trás (mais ao fundo)
-            new(-420f,   20f),
-            new(-210f,   40f),
-            new(   0f,   25f),
-            new( 210f,   35f),
-            new( 420f,   10f),
-            // fileira da frente
-            new(-350f, -120f),
-            new(-120f, -140f),
-            new( 110f, -130f),
-            new( 340f, -110f),
-            new( 480f, -150f), // impressora (canto direito)
+            // fileira de trás / landmarks
+            new(-380f,   10f), // mesa esquerda
+            new(-200f,   30f), // chão fundo-esquerda
+            new(  20f,   55f), // bebedouro de água (centro-topo)
+            new( 210f,   35f), // chão fundo-centro
+            new( 380f,   20f), // sofá (direita, em cima)
+            // fileira da frente (longe do canto do botão)
+            new(-360f, -110f), // chão frente-esquerda
+            new(-150f, -120f), // chão frente-centro-esquerda
+            new(  60f, -120f), // chão frente-centro
+            new( 250f,  -70f), // chão centro-direita (acima da zona do botão)
+            new( -40f,  -30f), // chão central
         };
 
         public void Init(RectTransform panelMain)
