@@ -621,6 +621,29 @@ namespace GameIdle
             }
             floorImg.transform.SetAsFirstSibling();
 
+            // Estende o escritorio para tras de TODA a interface (sidebar + topo),
+            // movendo-o para o Panel_BG em tela cheia. Assim os paineis translucidos
+            // (sidebar, barra superior, pills) revelam o cenario por tras.
+            var bgPanel = GameObject.Find("Panel_BG");
+            if (bgPanel != null && floorImg != null)
+            {
+                // limpa um floor antigo deixado no Panel_BG em replays do editor
+                var stale = bgPanel.transform.Find("BgFloor");
+                if (stale != null && stale != floorImg.transform)
+                    DestroyImmediate(stale.gameObject);
+
+                floorImg.transform.SetParent(bgPanel.transform, false);
+                var frt = floorImg.rectTransform;
+                frt.anchorMin = Vector2.zero; frt.anchorMax = Vector2.one;
+                frt.offsetMin = frt.offsetMax = Vector2.zero;
+                floorImg.transform.SetAsLastSibling(); // cobre o tom escuro do Panel_BG
+
+                // Panel_Main fica transparente para revelar o escritorio atras dos
+                // workers / tap button / pills.
+                var pmImg = pmGO.GetComponent<Image>();
+                if (pmImg != null) pmImg.color = new Color(0f, 0f, 0f, 0f);
+            }
+
             // ── Monitor glows removidos ───────────────────────────────────────
 
             // Botão principal circular — camadas empilhadas: ring → glow → borda → face → sheen → label
@@ -922,9 +945,9 @@ namespace GameIdle
             rt.sizeDelta        = new Vector2(panelW, rt.sizeDelta.y);
             rt.anchoredPosition = new Vector2(panelW * 0.5f, rt.anchoredPosition.y);
 
-            // Navy background for the sidebar — matches the welcome panel hue
+            // Navy background for the sidebar — same glass hue as the welcome panel
             var panelImg = panelLeft.GetComponent<Image>();
-            if (panelImg != null) panelImg.color = new Color(0.055f, 0.094f, 0.165f, 0.92f);
+            if (panelImg != null) panelImg.color = new Color(0.055f, 0.094f, 0.165f, 0.82f);
 
             // Sombra na borda direita — separa a sidebar da arte do escritório
             if (panelLeft.transform.Find("RightShadow") == null)
@@ -959,15 +982,11 @@ namespace GameIdle
 
             var topBar = titleGO.transform.parent;
             if (topBar == null) return;
-            var stripeGO = new GameObject("TopBarStripe", typeof(RectTransform), typeof(Image));
-            stripeGO.transform.SetParent(topBar, false);
-            stripeGO.transform.SetAsFirstSibling();
-            var rt = stripeGO.GetComponent<RectTransform>();
-            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-            var img = stripeGO.GetComponent<Image>();
-            img.color = new Color(0.055f, 0.094f, 0.165f, 0.92f); // glass navy, welcome-panel hue
-            img.raycastTarget = false;
+            // O proprio Panel_TopBar tem fundo opaco — torna translucido para o
+            // escritorio aparecer por tras (mesma pegada do painel Bem-vindo).
+            var topBarImg = topBar.GetComponent<Image>();
+            if (topBarImg != null)
+                topBarImg.color = new Color(0.055f, 0.094f, 0.165f, 0.82f); // glass navy
         }
 
         // Top-right gem pill + coin icon next to money. Gems are a new currency
@@ -1099,7 +1118,7 @@ namespace GameIdle
             hrt.offsetMin = new Vector2(0f, -32f); hrt.offsetMax = Vector2.zero;
             var himg = headerGO.GetComponent<Image>();
             himg.sprite = Rounded(); himg.type = Image.Type.Sliced;
-            himg.color = NavyDark;
+            himg.color = new Color(0.055f, 0.094f, 0.165f, 0.82f); // glass navy header
             himg.raycastTarget = false;
 
             var labelGO = new GameObject("EquipeLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
