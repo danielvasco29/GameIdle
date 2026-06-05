@@ -120,9 +120,6 @@ namespace GameIdle
         // Ranking panel
         private RankingPanel rankingPanel;
 
-        // Bulk-buy mode toggle (x1 / x10 / Máx)
-        private Button[] buyModeButtons;
-        private static readonly int[] BuyModeValues = { 1, 10, -1 };
 
         // Gem currency display (created at runtime — gems are a new system)
         private TextMeshProUGUI gemText;
@@ -300,7 +297,6 @@ namespace GameIdle
             SetupTopSeparator();
             SetupEffectsHUD();
             SetupEquipeHeader();
-            SetupBuyModeBar();
             ApplyNeonTheme();
             SetupPrestigeProgressBar();
             StylePrestigeButton();
@@ -1063,105 +1059,6 @@ namespace GameIdle
         // Dedicated bar (below the FUNCIONÁRIOS header) holding the x1/x10/Máx
         // toggle. Buttons are left-anchored so they stay in the visible column
         // — the right edge of Panel_Left is hidden behind the office artwork.
-        private void SetupBuyModeBar()
-        {
-            var panelLeft = GameObject.Find("Panel_Left");
-            if (panelLeft == null) return;
-
-            // Push the scroll list down to make room under the 32px header.
-            var scrollView = panelLeft.transform.Find("ScrollView");
-            if (scrollView != null)
-            {
-                var srt = scrollView.GetComponent<RectTransform>();
-                srt.offsetMax = new Vector2(srt.offsetMax.x, -66f);
-            }
-
-            var barGO = new GameObject("BuyModeBar", typeof(RectTransform), typeof(Image));
-            barGO.transform.SetParent(panelLeft.transform, false);
-            var barRT = barGO.GetComponent<RectTransform>();
-            barRT.anchorMin = new Vector2(0f, 1f); barRT.anchorMax = new Vector2(1f, 1f);
-            barRT.offsetMin = new Vector2(0f, -66f); barRT.offsetMax = new Vector2(0f, -34f);
-            var barImg = barGO.GetComponent<Image>();
-            barImg.color = new Color(0.07f, 0.11f, 0.18f, 1f);
-            barImg.raycastTarget = false;
-
-            // Label "Comprar:"
-            var hintGO = new GameObject("BuyHint", typeof(RectTransform), typeof(TextMeshProUGUI));
-            hintGO.transform.SetParent(barGO.transform, false);
-            var hrt2 = hintGO.GetComponent<RectTransform>();
-            hrt2.anchorMin = hrt2.anchorMax = hrt2.pivot = new Vector2(0f, 0.5f);
-            hrt2.anchoredPosition = new Vector2(10f, 0f);
-            hrt2.sizeDelta = new Vector2(72f, 24f);
-            var htmp = hintGO.GetComponent<TextMeshProUGUI>();
-            htmp.text = "Comprar:"; htmp.fontSize = 11; htmp.fontStyle = FontStyles.Bold;
-            htmp.color = TextSec; htmp.alignment = TextAlignmentOptions.MidlineLeft;
-            htmp.raycastTarget = false;
-            var hf = GetCachedFont(); if (hf != null) htmp.font = hf;
-
-            // Track pill (fundo do grupo de botões)
-            var trackGO = new GameObject("BuyTrack", typeof(RectTransform), typeof(Image));
-            trackGO.transform.SetParent(barGO.transform, false);
-            var trkRT = trackGO.GetComponent<RectTransform>();
-            trkRT.anchorMin = trkRT.anchorMax = trkRT.pivot = new Vector2(0f, 0.5f);
-            trkRT.anchoredPosition = new Vector2(82f, 0f);
-            trkRT.sizeDelta = new Vector2(174f, 26f);
-            var trkImg = trackGO.GetComponent<Image>();
-            trkImg.sprite = Rounded(); trkImg.type = Image.Type.Sliced;
-            trkImg.color = NavyCard; trkImg.raycastTarget = false;
-
-            // x1 / x10 / MÁX buttons dentro do track
-            string[] labels = { "x1", "x10", "MÁX" };
-            const float bw = 54f, gap = 2f, startX = 4f;
-            buyModeButtons = new Button[3];
-            for (int i = 0; i < 3; i++)
-            {
-                var bGO = new GameObject($"BuyMode{i}", typeof(RectTransform), typeof(Image), typeof(Button));
-                bGO.transform.SetParent(trackGO.transform, false);
-                var brt = bGO.GetComponent<RectTransform>();
-                brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 0.5f);
-                brt.anchoredPosition = new Vector2(startX + i * (bw + gap), 0f);
-                brt.sizeDelta = new Vector2(bw, 22f);
-                var bImg = bGO.GetComponent<Image>();
-                bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
-                int captured = i;
-                bGO.GetComponent<Button>().onClick.AddListener(() => SetBuyMode(captured));
-
-                var tGO = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
-                tGO.transform.SetParent(bGO.transform, false);
-                var trtl = tGO.GetComponent<RectTransform>();
-                trtl.anchorMin = Vector2.zero; trtl.anchorMax = Vector2.one;
-                trtl.offsetMin = trtl.offsetMax = Vector2.zero;
-                var ttmp = tGO.GetComponent<TextMeshProUGUI>();
-                ttmp.text = labels[i]; ttmp.fontSize = 12; ttmp.fontStyle = FontStyles.Bold;
-                ttmp.alignment = TextAlignmentOptions.Center; ttmp.raycastTarget = false;
-                var bf = GetCachedFont(); if (bf != null) ttmp.font = bf;
-
-                buyModeButtons[i] = bGO.GetComponent<Button>();
-            }
-            RefreshBuyModeButtons();
-        }
-
-        private void SetBuyMode(int i)
-        {
-            CharacterManager.BuyAmount = BuyModeValues[i];
-            RefreshBuyModeButtons();
-            RefreshButtonAffordability();
-            if (SoundManager.Instance != null) SoundManager.Instance.PlayClick();
-        }
-
-        private void RefreshBuyModeButtons()
-        {
-            if (buyModeButtons == null) return;
-            for (int i = 0; i < buyModeButtons.Length; i++)
-            {
-                if (buyModeButtons[i] == null) continue;
-                bool active = CharacterManager.BuyAmount == BuyModeValues[i];
-                var img = buyModeButtons[i].GetComponent<Image>();
-                if (img != null) img.color = active ? GoldColor : NavyCard;
-                var lbl = buyModeButtons[i].GetComponentInChildren<TextMeshProUGUI>();
-                if (lbl != null) lbl.color = active ? NavyDark : TextSec;
-            }
-        }
 
         // ── Effects HUD ───────────────────────────────────────────────────────
 
