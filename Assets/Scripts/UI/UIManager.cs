@@ -79,7 +79,9 @@ namespace GameIdle
         private TextMeshProUGUI tapValueText;
         private Image tapFaceImg;
         private Image tapGlowImg;
+        private Image _tapRingImg;
         private bool _tapPunching;
+        private Image _prestigeSheen;
 
         // Boost TURBO
         private Image _boostBtnImg;
@@ -348,7 +350,7 @@ namespace GameIdle
             brt.sizeDelta = new Vector2(76f, 36f);
             var bImg = btnGO.GetComponent<Image>();
             bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
-            bImg.color = NavyCard;
+            bImg.color = new Color(0.10f, 0.16f, 0.26f, 1f);
             btnGO.GetComponent<Button>().onClick.AddListener(() => { if (settingsPanel != null) { CloseAllModals(); settingsPanel.Open(); } });
             var ml = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
             ml.transform.SetParent(btnGO.transform, false);
@@ -356,7 +358,7 @@ namespace GameIdle
             mlr.anchorMin = Vector2.zero; mlr.anchorMax = Vector2.one;
             mlr.offsetMin = mlr.offsetMax = Vector2.zero;
             var mlt = ml.GetComponent<TextMeshProUGUI>();
-            mlt.text = "MENU"; mlt.fontSize = 13; mlt.fontStyle = FontStyles.Bold;
+            mlt.text = "☰  MENU"; mlt.fontSize = 12; mlt.fontStyle = FontStyles.Bold;
             mlt.color = TextSec; mlt.alignment = TextAlignmentOptions.Center;
             mlt.raycastTarget = false;
             var f = GetCachedFont(); if (f != null) mlt.font = f;
@@ -381,15 +383,16 @@ namespace GameIdle
             mbrt.anchoredPosition = new Vector2(92f, -8f);
             mbrt.sizeDelta = new Vector2(90f, 36f);
             var mbImg = mBtnGO.GetComponent<Image>();
-            mbImg.sprite = Rounded(); mbImg.type = Image.Type.Sliced; mbImg.color = NavyCard;
+            mbImg.sprite = Rounded(); mbImg.type = Image.Type.Sliced;
+            mbImg.color = new Color(0.10f, 0.20f, 0.32f, 1f);
             mBtnGO.GetComponent<Button>().onClick.AddListener(() => { if (missionPanel != null) { CloseAllModals(); missionPanel.Open(); } });
             var mbl = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
             mbl.transform.SetParent(mBtnGO.transform, false);
             var mblr = mbl.GetComponent<RectTransform>();
             mblr.anchorMin = Vector2.zero; mblr.anchorMax = Vector2.one; mblr.offsetMin = mblr.offsetMax = Vector2.zero;
             var mblt = mbl.GetComponent<TextMeshProUGUI>();
-            mblt.text = "MISSOES"; mblt.fontSize = 11; mblt.fontStyle = FontStyles.Bold;
-            mblt.color = TextSec; mblt.alignment = TextAlignmentOptions.Center; mblt.raycastTarget = false;
+            mblt.text = "✦ MISSÕES"; mblt.fontSize = 10; mblt.fontStyle = FontStyles.Bold;
+            mblt.color = NeonCyan; mblt.alignment = TextAlignmentOptions.Center; mblt.raycastTarget = false;
             var mf = GetCachedFont(); if (mf != null) mblt.font = mf;
             _missionDot = MakeNotifyDot(mBtnGO.transform);
 
@@ -415,15 +418,16 @@ namespace GameIdle
             abrt.anchoredPosition = new Vector2(188f, -8f);
             abrt.sizeDelta = new Vector2(110f, 36f);
             var abImg = aBtnGO.GetComponent<Image>();
-            abImg.sprite = Rounded(); abImg.type = Image.Type.Sliced; abImg.color = NavyCard;
+            abImg.sprite = Rounded(); abImg.type = Image.Type.Sliced;
+            abImg.color = new Color(0.16f, 0.14f, 0.08f, 1f);
             aBtnGO.GetComponent<Button>().onClick.AddListener(() => { if (achievementPanel != null) { CloseAllModals(); achievementPanel.Open(); } });
             var abl = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
             abl.transform.SetParent(aBtnGO.transform, false);
             var ablr = abl.GetComponent<RectTransform>();
             ablr.anchorMin = Vector2.zero; ablr.anchorMax = Vector2.one; ablr.offsetMin = ablr.offsetMax = Vector2.zero;
             var ablt = abl.GetComponent<TextMeshProUGUI>();
-            ablt.text = "CONQUISTAS"; ablt.fontSize = 11; ablt.fontStyle = FontStyles.Bold;
-            ablt.color = TextSec; ablt.alignment = TextAlignmentOptions.Center; ablt.raycastTarget = false;
+            ablt.text = "★ CONQUISTAS"; ablt.fontSize = 10; ablt.fontStyle = FontStyles.Bold;
+            ablt.color = GoldColor; ablt.alignment = TextAlignmentOptions.Center; ablt.raycastTarget = false;
             var af = GetCachedFont(); if (af != null) ablt.font = af;
             _achievementDot = MakeNotifyDot(aBtnGO.transform);
 
@@ -443,7 +447,7 @@ namespace GameIdle
             bbrt.sizeDelta = new Vector2(80f, 36f);
             var bbImg = bBtnGO.GetComponent<Image>();
             bbImg.sprite = Rounded(); bbImg.type = Image.Type.Sliced;
-            bbImg.color = new Color(0.18f, 0.28f, 0.42f, 1f);
+            bbImg.color = new Color(0.18f, 0.14f, 0.06f, 1f);
             bBtnGO.GetComponent<Button>().onClick.AddListener(() =>
             {
                 if (activeEffectsPanel != null) { CloseAllModals(); activeEffectsPanel.Open(); }
@@ -586,17 +590,16 @@ namespace GameIdle
             }
             bgImg.raycastTarget = false;
 
-            // Botão principal — container só com o Button; as camadas visuais
-            // são filhas para podermos empilhar brilho/sombra/face/brilho-topo.
+            // Botão principal circular — camadas empilhadas: ring → glow → borda → face → sheen → label
             var tapGO = new GameObject("TapButton", typeof(RectTransform), typeof(Button));
             tapGO.transform.SetParent(pmGO.transform, false);
             tapButtonRT = tapGO.GetComponent<RectTransform>();
             tapButtonRT.anchorMin = tapButtonRT.anchorMax = tapButtonRT.pivot = new Vector2(0.5f, 0.5f);
-            tapButtonRT.anchoredPosition = new Vector2(0f, 50f);
-            tapButtonRT.sizeDelta = new Vector2(228f, 228f);
+            tapButtonRT.anchoredPosition = new Vector2(0f, 40f);
+            tapButtonRT.sizeDelta = new Vector2(220f, 220f);
             var tapBtn = tapGO.GetComponent<Button>();
 
-            Image AddLayer(string name, Vector2 offMin, Vector2 offMax, Color col, bool ray)
+            Image AddCircle(string name, Vector2 offMin, Vector2 offMax, Color col, bool ray)
             {
                 var go = new GameObject(name, typeof(RectTransform), typeof(Image));
                 go.transform.SetParent(tapGO.transform, false);
@@ -604,37 +607,49 @@ namespace GameIdle
                 rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
                 rt.offsetMin = offMin; rt.offsetMax = offMax;
                 var im = go.GetComponent<Image>();
-                im.sprite = Rounded(); im.type = Image.Type.Sliced;
+                im.sprite = Circle(); im.type = Image.Type.Simple;
                 im.color = col; im.raycastTarget = ray;
                 return im;
             }
 
-            // back → front
-            tapGlowImg = AddLayer("Glow",   new Vector2(-26f, -26f), new Vector2(26f, 26f),
-                                  new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.22f), false);
-            AddLayer("Shadow", new Vector2(-3f, -14f), new Vector2(9f, -3f), new Color(0f, 0f, 0f, 0.38f), false);
-            AddLayer("Border", new Vector2(-3f, -3f), new Vector2(3f, 3f), new Color(0.13f, 0.46f, 0.21f, 1f), false);
-            tapFaceImg = AddLayer("Face", Vector2.zero, Vector2.zero, GreenBtn, true);
+            // Anel exterior pulsante — maior que o botão
+            _tapRingImg = AddCircle("Ring", new Vector2(-34f, -34f), new Vector2(34f, 34f),
+                new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.18f), false);
+
+            // Glow difuso
+            tapGlowImg = AddCircle("Glow", new Vector2(-20f, -20f), new Vector2(20f, 20f),
+                new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.30f), false);
+
+            // Borda escura (circle ligeiramente maior que face)
+            AddCircle("Border", new Vector2(-2f, -2f), new Vector2(2f, 2f),
+                new Color(0.10f, 0.38f, 0.18f, 1f), false);
+
+            // Face principal
+            tapFaceImg = AddCircle("Face", Vector2.zero, Vector2.zero, GreenBtn, true);
             tapBtn.targetGraphic = tapFaceImg;
 
-            // Brilho no topo (sheen) — meia altura superior, bem suave
-            var sheen = AddLayer("Sheen", Vector2.zero, Vector2.zero, new Color(1f, 1f, 1f, 0.10f), false);
-            sheen.rectTransform.anchorMin = new Vector2(0f, 0.5f);
-            sheen.rectTransform.anchorMax = new Vector2(1f, 1f);
-            sheen.rectTransform.offsetMin = new Vector2(10f, 4f);
-            sheen.rectTransform.offsetMax = new Vector2(-10f, -10f);
+            // Sheen (claridade no topo — simula gradiente)
+            var sheenGO = new GameObject("Sheen", typeof(RectTransform), typeof(Image));
+            sheenGO.transform.SetParent(tapGO.transform, false);
+            var sheenRT = sheenGO.GetComponent<RectTransform>();
+            sheenRT.anchorMin = new Vector2(0.08f, 0.5f); sheenRT.anchorMax = new Vector2(0.92f, 0.92f);
+            sheenRT.offsetMin = sheenRT.offsetMax = Vector2.zero;
+            var sheenImg = sheenGO.GetComponent<Image>();
+            sheenImg.sprite = Circle(); sheenImg.color = new Color(1f, 1f, 1f, 0.13f);
+            sheenImg.raycastTarget = false;
 
+            // Label: ícone + texto
             var labelGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGO.transform.SetParent(tapGO.transform, false);
             var lRT = labelGO.GetComponent<RectTransform>();
-            lRT.anchorMin = Vector2.zero;
-            lRT.anchorMax = Vector2.one;
-            lRT.offsetMin = lRT.offsetMax = Vector2.zero;
+            lRT.anchorMin = Vector2.zero; lRT.anchorMax = Vector2.one;
+            lRT.offsetMin = new Vector2(8f, 8f); lRT.offsetMax = new Vector2(-8f, -8f);
             var lTMP = labelGO.GetComponent<TextMeshProUGUI>();
-            lTMP.text = "<size=30>TRABALHAR</size>\n<size=20><color=#d4f0d8>[ >_ ]</color></size>";
+            lTMP.text = "<size=14><color=#c8f0d0>TRABALHAR</color></size>\n<size=38>⚡</size>\n<size=12><color=#a8ddb0>segure para auto</color></size>";
             lTMP.fontStyle = FontStyles.Bold;
             lTMP.color = Color.white;
             lTMP.alignment = TextAlignmentOptions.Center;
+            lTMP.textWrappingMode = TextWrappingModes.Normal;
             lTMP.raycastTarget = false;
             var lf = GetCachedFont(); if (lf != null) lTMP.font = lf;
 
@@ -677,12 +692,21 @@ namespace GameIdle
             boostGO.transform.SetParent(pmGO.transform, false);
             var brt2 = boostGO.GetComponent<RectTransform>();
             brt2.anchorMin = brt2.anchorMax = brt2.pivot = new Vector2(0.5f, 0.5f);
-            brt2.anchoredPosition = new Vector2(0f, -130f);
-            brt2.sizeDelta = new Vector2(160f, 44f);
+            brt2.anchoredPosition = new Vector2(0f, -125f);
+            brt2.sizeDelta = new Vector2(178f, 46f);
             _boostBtnImg = boostGO.GetComponent<Image>();
             _boostBtnImg.sprite = Rounded(); _boostBtnImg.type = Image.Type.Sliced;
             _boostBtnImg.color = BoostReady;
             boostGO.GetComponent<Button>().onClick.AddListener(OnTurboClicked);
+            // Sheen layer
+            var bSheen = new GameObject("Sheen", typeof(RectTransform), typeof(Image));
+            bSheen.transform.SetParent(boostGO.transform, false);
+            var bSrt = bSheen.GetComponent<RectTransform>();
+            bSrt.anchorMin = new Vector2(0f, 0.5f); bSrt.anchorMax = Vector2.one;
+            bSrt.offsetMin = new Vector2(4f, 0f); bSrt.offsetMax = new Vector2(-4f, -3f);
+            var bSImg = bSheen.GetComponent<Image>();
+            bSImg.sprite = Rounded(); bSImg.type = Image.Type.Sliced;
+            bSImg.color = new Color(1f, 1f, 1f, 0.10f); bSImg.raycastTarget = false;
 
             var btLabel = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
             btLabel.transform.SetParent(boostGO.transform, false);
@@ -690,8 +714,8 @@ namespace GameIdle
             btlRT.anchorMin = Vector2.zero; btlRT.anchorMax = Vector2.one;
             btlRT.offsetMin = btlRT.offsetMax = Vector2.zero;
             _boostBtnText = btLabel.GetComponent<TextMeshProUGUI>();
-            _boostBtnText.text = "TURBO  x5  30s";
-            _boostBtnText.fontSize = 15; _boostBtnText.fontStyle = FontStyles.Bold;
+            _boostBtnText.text = "⚡ TURBO  ×5  30s";
+            _boostBtnText.fontSize = 14; _boostBtnText.fontStyle = FontStyles.Bold;
             _boostBtnText.alignment = TextAlignmentOptions.Center;
             _boostBtnText.color = Color.white; _boostBtnText.raycastTarget = false;
             var btf = GetCachedFont(); if (btf != null) _boostBtnText.font = btf;
@@ -801,26 +825,40 @@ namespace GameIdle
         private IEnumerator PulseTapButton()
         {
             if (tapFaceImg == null) yield break;
-            var c1  = GreenBtn;
-            var c2  = new Color(0.31f, 0.85f, 0.43f, 1f);
-            var g1  = new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.16f);
-            var g2  = new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.42f);
+            var c1 = GreenBtn;
+            var c2 = new Color(0.33f, 0.88f, 0.46f, 1f);
+            var g1 = new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.22f);
+            var g2 = new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.48f);
+            var r1 = new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.12f);
+            var r2 = new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.32f);
+            var rs1 = Vector3.one;
+            var rs2 = Vector3.one * 1.06f;
             while (tapFaceImg != null)
             {
-                float e = 0f;
-                while (e < 0.9f)
+                float e = 0f; const float dur = 1.1f;
+                while (e < dur)
                 {
-                    e += Time.deltaTime; float t = e / 0.9f;
+                    e += Time.deltaTime; float t = Mathf.SmoothStep(0f, 1f, e / dur);
                     tapFaceImg.color = Color.Lerp(c1, c2, t);
-                    if (tapGlowImg != null) tapGlowImg.color = Color.Lerp(g1, g2, t);
+                    if (tapGlowImg  != null) tapGlowImg.color  = Color.Lerp(g1, g2, t);
+                    if (_tapRingImg != null)
+                    {
+                        _tapRingImg.color = Color.Lerp(r1, r2, t);
+                        _tapRingImg.rectTransform.localScale = Vector3.Lerp(rs1, rs2, t);
+                    }
                     yield return null;
                 }
                 e = 0f;
-                while (e < 0.9f)
+                while (e < dur)
                 {
-                    e += Time.deltaTime; float t = e / 0.9f;
+                    e += Time.deltaTime; float t = Mathf.SmoothStep(0f, 1f, e / dur);
                     tapFaceImg.color = Color.Lerp(c2, c1, t);
-                    if (tapGlowImg != null) tapGlowImg.color = Color.Lerp(g2, g1, t);
+                    if (tapGlowImg  != null) tapGlowImg.color  = Color.Lerp(g2, g1, t);
+                    if (_tapRingImg != null)
+                    {
+                        _tapRingImg.color = Color.Lerp(r2, r1, t);
+                        _tapRingImg.rectTransform.localScale = Vector3.Lerp(rs2, rs1, t);
+                    }
                     yield return null;
                 }
             }
@@ -998,16 +1036,17 @@ namespace GameIdle
             hrt.anchorMin = new Vector2(0f, 1f); hrt.anchorMax = new Vector2(1f, 1f);
             hrt.offsetMin = new Vector2(0f, -32f); hrt.offsetMax = Vector2.zero;
             var himg = headerGO.GetComponent<Image>();
-            himg.color = NavyDark;
+            himg.sprite = Rounded(); himg.type = Image.Type.Sliced;
+            himg.color = new Color(0.08f, 0.13f, 0.22f, 1f);
             himg.raycastTarget = false;
 
             var labelGO = new GameObject("EquipeLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGO.transform.SetParent(headerGO.transform, false);
             var lrt = labelGO.GetComponent<RectTransform>();
             lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
-            lrt.offsetMin = new Vector2(12f, 0f); lrt.offsetMax = Vector2.zero;
+            lrt.offsetMin = new Vector2(14f, 0f); lrt.offsetMax = Vector2.zero;
             var ltmp = labelGO.GetComponent<TextMeshProUGUI>();
-            ltmp.text = "FUNCIONÁRIOS"; ltmp.fontSize = 13; ltmp.fontStyle = FontStyles.Bold;
+            ltmp.text = "👥  FUNCIONÁRIOS"; ltmp.fontSize = 12; ltmp.fontStyle = FontStyles.Bold;
             ltmp.color = GoldColor; ltmp.alignment = TextAlignmentOptions.MidlineLeft;
             ltmp.raycastTarget = false;
             var lf = GetCachedFont(); if (lf != null) ltmp.font = lf;
@@ -1035,10 +1074,10 @@ namespace GameIdle
             barRT.anchorMin = new Vector2(0f, 1f); barRT.anchorMax = new Vector2(1f, 1f);
             barRT.offsetMin = new Vector2(0f, -66f); barRT.offsetMax = new Vector2(0f, -34f);
             var barImg = barGO.GetComponent<Image>();
-            barImg.color = NavyCard;
+            barImg.color = new Color(0.07f, 0.11f, 0.18f, 1f);
             barImg.raycastTarget = false;
 
-            // "Comprar:" hint at the left
+            // Label "Comprar:"
             var hintGO = new GameObject("BuyHint", typeof(RectTransform), typeof(TextMeshProUGUI));
             hintGO.transform.SetParent(barGO.transform, false);
             var hrt2 = hintGO.GetComponent<RectTransform>();
@@ -1046,23 +1085,34 @@ namespace GameIdle
             hrt2.anchoredPosition = new Vector2(10f, 0f);
             hrt2.sizeDelta = new Vector2(72f, 24f);
             var htmp = hintGO.GetComponent<TextMeshProUGUI>();
-            htmp.text = "Comprar:"; htmp.fontSize = 12; htmp.fontStyle = FontStyles.Bold;
+            htmp.text = "Comprar:"; htmp.fontSize = 11; htmp.fontStyle = FontStyles.Bold;
             htmp.color = TextSec; htmp.alignment = TextAlignmentOptions.MidlineLeft;
             htmp.raycastTarget = false;
             var hf = GetCachedFont(); if (hf != null) htmp.font = hf;
 
-            // x1 / x10 / Máx buttons, left-aligned right after the hint
+            // Track pill (fundo do grupo de botões)
+            var trackGO = new GameObject("BuyTrack", typeof(RectTransform), typeof(Image));
+            trackGO.transform.SetParent(barGO.transform, false);
+            var trkRT = trackGO.GetComponent<RectTransform>();
+            trkRT.anchorMin = trkRT.anchorMax = trkRT.pivot = new Vector2(0f, 0.5f);
+            trkRT.anchoredPosition = new Vector2(82f, 0f);
+            trkRT.sizeDelta = new Vector2(174f, 26f);
+            var trkImg = trackGO.GetComponent<Image>();
+            trkImg.sprite = Rounded(); trkImg.type = Image.Type.Sliced;
+            trkImg.color = NavyCard; trkImg.raycastTarget = false;
+
+            // x1 / x10 / MÁX buttons dentro do track
             string[] labels = { "x1", "x10", "MÁX" };
-            const float bw = 52f, gap = 6f, startX = 84f;
+            const float bw = 54f, gap = 2f, startX = 4f;
             buyModeButtons = new Button[3];
             for (int i = 0; i < 3; i++)
             {
                 var bGO = new GameObject($"BuyMode{i}", typeof(RectTransform), typeof(Image), typeof(Button));
-                bGO.transform.SetParent(barGO.transform, false);
+                bGO.transform.SetParent(trackGO.transform, false);
                 var brt = bGO.GetComponent<RectTransform>();
                 brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 0.5f);
                 brt.anchoredPosition = new Vector2(startX + i * (bw + gap), 0f);
-                brt.sizeDelta = new Vector2(bw, 26f);
+                brt.sizeDelta = new Vector2(bw, 22f);
                 var bImg = bGO.GetComponent<Image>();
                 bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
                 int captured = i;
@@ -1070,11 +1120,11 @@ namespace GameIdle
 
                 var tGO = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
                 tGO.transform.SetParent(bGO.transform, false);
-                var trt = tGO.GetComponent<RectTransform>();
-                trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
-                trt.offsetMin = trt.offsetMax = Vector2.zero;
+                var trtl = tGO.GetComponent<RectTransform>();
+                trtl.anchorMin = Vector2.zero; trtl.anchorMax = Vector2.one;
+                trtl.offsetMin = trtl.offsetMax = Vector2.zero;
                 var ttmp = tGO.GetComponent<TextMeshProUGUI>();
-                ttmp.text = labels[i]; ttmp.fontSize = 13; ttmp.fontStyle = FontStyles.Bold;
+                ttmp.text = labels[i]; ttmp.fontSize = 12; ttmp.fontStyle = FontStyles.Bold;
                 ttmp.alignment = TextAlignmentOptions.Center; ttmp.raycastTarget = false;
                 var bf = GetCachedFont(); if (bf != null) ttmp.font = bf;
 
@@ -1219,16 +1269,36 @@ namespace GameIdle
             img.color = NavyCard;
             prestigeButton.targetGraphic = img;
 
-            // Collapse the vertical stretch (anchorMin.y != anchorMax.y in scene) to a
-            // single point at the bottom so sizeDelta.y becomes the true fixed height.
             var rt = prestigeButton.GetComponent<RectTransform>();
-            float anchorX0 = rt.anchorMin.x; // keep horizontal anchors from scene
+            float anchorX0 = rt.anchorMin.x;
             float anchorX1 = rt.anchorMax.x;
             rt.anchorMin        = new Vector2(anchorX0, 0f);
             rt.anchorMax        = new Vector2(anchorX1, 0f);
             rt.pivot            = new Vector2(0.5f, 0f);
-            rt.sizeDelta        = new Vector2(0f, 52f);   // 52 px tall, full width between anchors
-            rt.anchoredPosition = new Vector2(0f, 10f);   // 10 px from bottom of parent
+            rt.sizeDelta        = new Vector2(0f, 62f);
+            rt.anchoredPosition = new Vector2(0f, 8f);
+
+            // Sheen (topo do botão, visível quando pronto)
+            var sheenGO = new GameObject("Sheen", typeof(RectTransform), typeof(Image));
+            sheenGO.transform.SetParent(prestigeButton.transform, false);
+            var srt = sheenGO.GetComponent<RectTransform>();
+            srt.anchorMin = new Vector2(0f, 0.45f); srt.anchorMax = Vector2.one;
+            srt.offsetMin = new Vector2(4f, 0f); srt.offsetMax = new Vector2(-4f, -4f);
+            _prestigeSheen = sheenGO.GetComponent<Image>();
+            _prestigeSheen.sprite = Rounded(); _prestigeSheen.type = Image.Type.Sliced;
+            _prestigeSheen.color = new Color(1f, 1f, 1f, 0.07f);
+            _prestigeSheen.raycastTarget = false;
+
+            // Ícone estrela à esquerda
+            var starGO = new GameObject("StarIcon", typeof(RectTransform), typeof(Image));
+            starGO.transform.SetParent(prestigeButton.transform, false);
+            var strt = starGO.GetComponent<RectTransform>();
+            strt.anchorMin = strt.anchorMax = strt.pivot = new Vector2(0f, 0.5f);
+            strt.anchoredPosition = new Vector2(18f, 0f);
+            strt.sizeDelta = new Vector2(28f, 28f);
+            var stImg = starGO.GetComponent<Image>();
+            stImg.sprite = UiSpriteFactory.Star(); stImg.color = GoldColor;
+            stImg.raycastTarget = false;
 
             var labelGO = prestigeButton.transform.Find("PrestigeButtonLabel");
             TextMeshProUGUI label = labelGO != null
@@ -1239,7 +1309,7 @@ namespace GameIdle
                 var go = new GameObject("PrestigeButtonLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
                 go.transform.SetParent(prestigeButton.transform, false);
                 var lrt = go.GetComponent<RectTransform>();
-                lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
+                lrt.anchorMin = new Vector2(0.05f, 0f); lrt.anchorMax = Vector2.one;
                 lrt.offsetMin = lrt.offsetMax = Vector2.zero;
                 label = go.GetComponent<TextMeshProUGUI>();
             }
@@ -1269,12 +1339,19 @@ namespace GameIdle
             bool ready      = GameManager.Instance.CanPrestige();
 
             prestigeButtonLabel.text = ready
-                ? $"PRESTIGIAR  •  +{GameManager.Instance.GetPrestigeGemReward()} gemas\n<size=80%>#{count} → x{nextMult:F1}</size>"
-                : $"PRESTÍGIO  •  meta ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}\n<size=80%>#{count} → x{nextMult:F1}</size>";
+                ? $"✦  PRESTIGIAR  •  +{GameManager.Instance.GetPrestigeGemReward()} gemas  ✦\n<size=80%><color=#ffe090>#{count} → x{nextMult:F1} multiplicador</color></size>"
+                : $"PRESTÍGIO  #{count}  •  meta ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}\n<size=80%><color=#7ab8d4>#{count} → x{nextMult:F1}</color></size>";
 
             var img = prestigeButton?.GetComponent<Image>();
             if (img != null)
-                img.color = ready ? GreenBtn : NavyCard;
+                img.color = ready ? new Color(0.72f, 0.48f, 0.06f, 1f) : NavyCard;
+
+            if (_prestigeSheen != null)
+                _prestigeSheen.color = ready
+                    ? new Color(1f, 0.95f, 0.5f, 0.18f)
+                    : new Color(1f, 1f, 1f, 0.06f);
+
+            prestigeButtonLabel.color = ready ? new Color(1f, 0.97f, 0.82f) : Color.white;
         }
 
         // ── Floating Money ────────────────────────────────────────────────────
@@ -1435,42 +1512,90 @@ namespace GameIdle
         {
             if (panelMain == null) return;
 
-            // Remove stale StatsCard from backup scene
             var stale = panelMain.Find("StatsCard");
             if (stale != null) DestroyImmediate(stale.gameObject);
 
-            // Card de stats no topo do Panel_Main
+            // Container strip no topo
             var cardGO = new GameObject("StatsCard", typeof(RectTransform), typeof(Image));
             cardGO.transform.SetParent(panelMain, false);
             var crt = cardGO.GetComponent<RectTransform>();
-            crt.anchorMin = new Vector2(0f, 1f);
-            crt.anchorMax = new Vector2(1f, 1f);
-            crt.offsetMin = new Vector2(12f, -108f);
-            crt.offsetMax = new Vector2(-12f, -8f);
-            cardGO.GetComponent<Image>().color = NavyCard;
-            cardGO.GetComponent<Image>().raycastTarget = false;
+            crt.anchorMin = new Vector2(0f, 1f); crt.anchorMax = new Vector2(1f, 1f);
+            crt.offsetMin = new Vector2(10f, -116f); crt.offsetMax = new Vector2(-10f, -6f);
+            var cardImg = cardGO.GetComponent<Image>();
+            cardImg.sprite = Rounded(); cardImg.type = Image.Type.Sliced;
+            cardImg.color = new Color(0.07f, 0.12f, 0.20f, 0.92f);
+            cardImg.raycastTarget = false;
 
-            // Linha 1: MPS (esquerda) + Multiplicador (direita)
-            statMpsText = CreateBannerLabel(cardGO.transform, "StatMPS",
-                new Vector2(0f, 0.5f), new Vector2(0.58f, 1f),
-                new Vector2(10f, 0f), new Vector2(0f, -4f),
-                "", 16, NeonCyan, TextAlignmentOptions.MidlineLeft);
+            TMP_FontAsset font = GetCachedFont();
 
-            statMultText = CreateBannerLabel(cardGO.transform, "StatMult",
-                new Vector2(0.58f, 0.5f), new Vector2(1f, 1f),
-                Vector2.zero, new Vector2(-10f, -4f),
-                "", 15, new Color(1f, 0.92f, 0.35f), TextAlignmentOptions.MidlineRight);
+            // 4 mini-pills em layout 2×2
+            // [⚡ MPS]   [× MULT]
+            // [$ TOTAL]  [★ PRESTIGE]
+            var miniData = new (string icon, Color iconColor, string tag, TextAlignmentOptions align)[]
+            {
+                ("⚡", NeonCyan,              "MPS",      TextAlignmentOptions.MidlineLeft),
+                ("×",  new Color(1f,0.92f,0.35f,1f), "MULT", TextAlignmentOptions.MidlineRight),
+                ("$",  new Color(0.8f,0.9f,1f,0.75f),"TOTAL",TextAlignmentOptions.MidlineLeft),
+                ("★",  NeonOrange,            "PRESTIGE", TextAlignmentOptions.MidlineRight),
+            };
 
-            // Linha 2: Total ganho (esquerda) + Prestígio (direita)
-            statTotalText = CreateBannerLabel(cardGO.transform, "StatTotal",
-                new Vector2(0f, 0f), new Vector2(0.58f, 0.5f),
-                new Vector2(10f, 4f), new Vector2(0f, 0f),
-                "", 13, new Color(1f, 1f, 1f, 0.65f), TextAlignmentOptions.MidlineLeft);
+            var textRefs = new TextMeshProUGUI[4];
+            const float pad = 6f, gap = 5f;
+            float halfW = 0.5f;
 
-            statPrestigeText = CreateBannerLabel(cardGO.transform, "StatPrestige",
-                new Vector2(0.58f, 0f), new Vector2(1f, 0.5f),
-                Vector2.zero, new Vector2(-10f, 0f),
-                "", 13, NeonOrange, TextAlignmentOptions.MidlineRight);
+            for (int i = 0; i < 4; i++)
+            {
+                int col = i % 2, row = i / 2;
+                var d = miniData[i];
+
+                var pill = new GameObject($"Pill{i}", typeof(RectTransform), typeof(Image));
+                pill.transform.SetParent(cardGO.transform, false);
+                var prt = pill.GetComponent<RectTransform>();
+                prt.anchorMin = new Vector2(col * halfW, row == 0 ? 0.5f : 0f);
+                prt.anchorMax = new Vector2(col == 0 ? halfW : 1f, row == 0 ? 1f : 0.5f);
+                prt.offsetMin = new Vector2(col == 0 ? pad : gap * 0.5f, row == 0 ? gap * 0.5f : pad);
+                prt.offsetMax = new Vector2(col == 0 ? -gap * 0.5f : -pad, row == 0 ? -pad : -gap * 0.5f);
+                var pImg = pill.GetComponent<Image>();
+                pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
+                pImg.color = new Color(0.12f, 0.20f, 0.32f, 1f);
+                pImg.raycastTarget = false;
+
+                // Ícone colorido à esquerda
+                var iconGO = new GameObject("Icon", typeof(RectTransform), typeof(TextMeshProUGUI));
+                iconGO.transform.SetParent(pill.transform, false);
+                var irt = iconGO.GetComponent<RectTransform>();
+                irt.anchorMin = new Vector2(0f, 0f); irt.anchorMax = new Vector2(0f, 1f);
+                irt.pivot = new Vector2(0f, 0.5f);
+                irt.sizeDelta = new Vector2(28f, 0f);
+                irt.anchoredPosition = new Vector2(col == 1 ? 0f : 6f, 0f);
+                if (col == 1) { irt.anchorMin = new Vector2(1f,0f); irt.anchorMax = new Vector2(1f,1f); irt.pivot = new Vector2(1f,0.5f); irt.anchoredPosition = new Vector2(-4f,0f); }
+                var itmp = iconGO.GetComponent<TextMeshProUGUI>();
+                itmp.text = d.icon; itmp.fontSize = 14; itmp.fontStyle = FontStyles.Bold;
+                itmp.color = d.iconColor; itmp.alignment = TextAlignmentOptions.Center;
+                itmp.raycastTarget = false;
+                if (font != null) itmp.font = font;
+
+                // Valor
+                var valGO = new GameObject("Val", typeof(RectTransform), typeof(TextMeshProUGUI));
+                valGO.transform.SetParent(pill.transform, false);
+                var vrt = valGO.GetComponent<RectTransform>();
+                vrt.anchorMin = Vector2.zero; vrt.anchorMax = Vector2.one;
+                vrt.offsetMin = new Vector2(col == 0 ? 28f : 4f, 2f);
+                vrt.offsetMax = new Vector2(col == 1 ? -28f : -4f, -2f);
+                var vtmp = valGO.GetComponent<TextMeshProUGUI>();
+                vtmp.fontSize = col == 0 ? 14f : 13f; vtmp.fontStyle = FontStyles.Bold;
+                vtmp.color = d.iconColor; vtmp.alignment = d.align;
+                vtmp.textWrappingMode = TextWrappingModes.NoWrap;
+                vtmp.overflowMode = TextOverflowModes.Ellipsis;
+                vtmp.raycastTarget = false;
+                if (font != null) vtmp.font = font;
+                textRefs[i] = vtmp;
+            }
+
+            statMpsText      = textRefs[0];
+            statMultText     = textRefs[1];
+            statTotalText    = textRefs[2];
+            statPrestigeText = textRefs[3];
 
             RefreshMainStats();
         }
@@ -1482,10 +1607,10 @@ namespace GameIdle
             double mult = CharacterManager.Instance.GetTotalMultiplier()
                           * GameManager.Instance.PrestigeMultiplier
                           * GemShop.GetPrestigeBonus() * GemShop.GetProductionMult();
-            statMultText.text  = $"x{mult:F2} mult";
-            statTotalText.text = $"Total: ${NumberFormatter.Format(GameManager.Instance.TotalEarned)}";
+            statMultText.text  = $"x{NumberFormatter.Format(mult)} mult";
+            statTotalText.text = $"${NumberFormatter.Format(GameManager.Instance.TotalEarned)} total";
             int pc = GameManager.Instance.PrestigeCount;
-            statPrestigeText.text = pc > 0 ? $"[P] Prestígio x{pc}" : "";
+            statPrestigeText.text = pc > 0 ? $"x{pc} prestígio" : "sem prestígio";
         }
 
         // ── Próximo Desbloqueio ───────────────────────────────────────────────
