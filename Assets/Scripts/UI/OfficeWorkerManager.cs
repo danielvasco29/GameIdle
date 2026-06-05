@@ -92,6 +92,20 @@ namespace GameIdle
             if (hasSpriteSheet)
             {
                 // ── Sprite-sheet character ────────────────────────────────────
+                // Shadow first (lowest sibling)
+                var shadowGO = new GameObject("Shadow", typeof(RectTransform), typeof(Image));
+                shadowGO.transform.SetParent(go.transform, false);
+                shadowGO.transform.SetAsFirstSibling();
+                var srt = shadowGO.GetComponent<RectTransform>();
+                srt.anchorMin = srt.anchorMax = srt.pivot = new Vector2(0.5f, 0.5f);
+                srt.anchoredPosition = new Vector2(0f, -38f);
+                srt.sizeDelta = new Vector2(44f, 10f);
+                var sImg = shadowGO.GetComponent<Image>();
+                sImg.sprite = UiSpriteFactory.Circle();
+                sImg.color = new Color(0f, 0f, 0f, 0.25f);
+                sImg.raycastTarget = false;
+
+                // Sprite displayed directly — no white box background
                 var bodyGO = new GameObject("Body", typeof(RectTransform), typeof(Image));
                 bodyGO.transform.SetParent(go.transform, false);
                 var bodyRt = bodyGO.GetComponent<RectTransform>();
@@ -103,19 +117,8 @@ namespace GameIdle
                 bodyImg.sprite = frames[0];
                 bodyImg.raycastTarget = false;
                 bodyImg.preserveAspect = true;
-
-                // Shadow
-                var shadowGO = new GameObject("Shadow", typeof(RectTransform), typeof(Image));
-                shadowGO.transform.SetParent(go.transform, false);
-                shadowGO.transform.SetAsFirstSibling();
-                var srt = shadowGO.GetComponent<RectTransform>();
-                srt.anchorMin = srt.anchorMax = srt.pivot = new Vector2(0.5f, 0f);
-                srt.anchoredPosition = new Vector2(0f, -32f);
-                srt.sizeDelta = new Vector2(40f, 10f);
-                var sImg = shadowGO.GetComponent<Image>();
-                sImg.sprite = UiSpriteFactory.Circle();
-                sImg.color = new Color(0f, 0f, 0f, 0.2f);
-                sImg.raycastTarget = false;
+                // Use Alpha8 blending so white pixels in non-transparent sheets look better
+                bodyImg.material = null;
 
                 var avatar = go.GetComponent<WorkerAvatar>();
                 avatar.InitSheet(rt, bodyRt, bodyImg, frames, srt, RoamBounds);

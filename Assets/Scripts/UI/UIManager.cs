@@ -599,39 +599,41 @@ namespace GameIdle
             // Fallback: solid navy if no floor texture
             if (floorImg.sprite == null) floorImg.color = NavyDark;
 
-            bool hasLayers = floorImg.sprite != null || furnitureImg.sprite != null;
+            // Collect all available sprites in priority order
+            var allSprites = new[] { floorImg.sprite, furnitureImg.sprite, plantsImg.sprite, windowsImg.sprite };
+            bool hasAny = System.Array.Exists(allSprites, s => s != null);
+            bool hasMultiple = System.Array.FindAll(allSprites, s => s != null).Length > 1;
 
-            if (!hasLayers)
+            if (!hasMultiple)
             {
-                // Only one or zero layers — find whichever exists and use as full bg
-                Sprite fullBg = windowsImg.sprite ?? plantsImg.sprite;
+                // Single image mode — use whichever layer was found as full background
+                Sprite found = floorImg.sprite ?? furnitureImg.sprite ?? plantsImg.sprite ?? windowsImg.sprite;
                 Destroy(furnitureImg.gameObject);
                 Destroy(plantsImg.gameObject);
                 Destroy(windowsImg.gameObject);
-                if (fullBg != null)
+
+                if (found != null)
                 {
-                    floorImg.sprite = fullBg;
+                    floorImg.sprite = found;
                     floorImg.color  = Color.white;
-                    floorImg.type   = Image.Type.Simple;
-                    floorImg.preserveAspect = false;
                 }
                 else
                 {
-                    // Try legacy single bg
-                    var legacyTex = Resources.Load<Texture2D>("UI/office_bg");
-                    if (legacyTex != null)
+                    // Try legacy path
+                    var lt = Resources.Load<Texture2D>("UI/office_bg");
+                    if (lt != null)
                     {
-                        floorImg.sprite = Sprite.Create(legacyTex, new Rect(0,0,legacyTex.width,legacyTex.height), new Vector2(0.5f,0.5f));
+                        floorImg.sprite = Sprite.Create(lt, new Rect(0,0,lt.width,lt.height), new Vector2(0.5f,0.5f));
                         floorImg.color  = Color.white;
-                        floorImg.type   = Image.Type.Simple;
-                        floorImg.preserveAspect = false;
                     }
                 }
+                floorImg.type = Image.Type.Simple;
+                floorImg.preserveAspect = false;
                 floorImg.transform.SetAsFirstSibling();
             }
             else
             {
-                // Full layered background
+                // Full layered background with animations
                 if (plantsImg.sprite != null)
                     StartCoroutine(AnimatePlants(plantsImg.GetComponent<RectTransform>()));
                 if (windowsImg.sprite != null)
