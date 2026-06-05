@@ -36,7 +36,10 @@ namespace GameIdle
 
         private AudioSource src;
         private AudioSource musicSrc;
+        private AudioSource ambientSrc;
         private AudioClip clickClip, buyClip, prestigeClip, errorClip, coinClip;
+        private AudioClip typingClip;
+        private AudioClip[] chatterClips;
 
         private void Awake()
         {
@@ -64,6 +67,39 @@ namespace GameIdle
             musicSrc.volume = 0.32f;
             musicSrc.clip = MakeMusicLoop();
             if (!MusicMuted) musicSrc.Play();
+
+            // Ambiente do escritório: teclado + conversas (Simlish)
+            ambientSrc = gameObject.AddComponent<AudioSource>();
+            ambientSrc.playOnAwake = false;
+            ambientSrc.spatialBlend = 0f;
+            typingClip   = MakeTyping();
+            chatterClips = new[] { MakeChatter(0), MakeChatter(1), MakeChatter(2) };
+            StartCoroutine(AmbientLoop());
+        }
+
+        private System.Collections.IEnumerator AmbientLoop()
+        {
+            // Espera inicial para não disparar tudo junto com a música
+            yield return new WaitForSeconds(Random.Range(3f, 7f));
+            while (true)
+            {
+                yield return new WaitForSeconds(Random.Range(5f, 11f));
+                if (Muted || ambientSrc == null) continue;
+
+                // Quase sempre um período de digitação...
+                ambientSrc.pitch = Random.Range(0.96f, 1.06f);
+                ambientSrc.PlayOneShot(typingClip, 0.22f);
+
+                // ...e de vez em quando uma conversinha por cima
+                if (Random.value < 0.45f && chatterClips != null)
+                {
+                    yield return new WaitForSeconds(Random.Range(0.4f, 1.6f));
+                    if (Muted) continue;
+                    var c = chatterClips[Random.Range(0, chatterClips.Length)];
+                    ambientSrc.pitch = Random.Range(0.92f, 1.12f);
+                    ambientSrc.PlayOneShot(c, 0.16f);
+                }
+            }
         }
 
         private void PlayClip(AudioClip clip, float pitch = 1f, float vol = 1f)
@@ -166,6 +202,70 @@ namespace GameIdle
             RenderTock(data, 0,                    200f, 26f, 0.55f);
             RenderTock(data, (int)(0.11f * Rate),  150f, 24f, 0.55f);
             return Make("error", data);
+        }
+
+        // ── Ambiente: teclado e conversas (Simlish) ─────────────────────────────
+
+        // Período de digitação: vários toques de tecla curtos espalhados.
+        private AudioClip MakeTyping()
+        {
+            int n = Rate * 18 / 10; // 1.8 s
+            var data = new float[n];
+            int clicks = Random.Range(13, 20);
+            for (int k = 0; k < clicks; k++)
+                RenderKey(data, Random.Range(0, n - Rate / 8), Random.Range(0.5f, 1f));
+            return Make("typing", data);
+        }
+
+        private static void RenderKey(float[] data, int start, float vol)
+        {
+            int dur = Rate * 4 / 100; // 40 ms
+            float hp = 0f, prev = 0f;
+            for (int i = 0; i < dur && start + i < data.Length; i++)
+            {
+                float t = (float)i / Rate;
+                float env = Mathf.Exp(-t * 130f);
+                float raw = Random.value * 2f - 1f;
+                hp = 0.85f * (hp + raw - prev); prev = raw;       // clicky passa-altas
+                float body = Mathf.Sin(2f * Mathf.PI * 2100f * t) * Mathf.Exp(-t * 220f);
+                data[start + i] += (hp * 0.5f + body * 0.30f) * env * vol * 0.5f;
+            }
+        }
+
+        // Conversa estilo Simlish: sequência de sílabas vogais com pitch variando.
+        private AudioClip MakeChatter(int variant)
+        {
+            int n = Rate * 16 / 10; // 1.6 s
+            var data = new float[n];
+            float basePitch = 150f + variant * 22f + Random.Range(-18f, 18f);
+            int syl = Random.Range(4, 7);
+            float pos = 0.05f;
+            for (int s = 0; s < syl; s++)
+            {
+                int semis = Random.Range(-3, 5);
+                float pitch = basePitch * Mathf.Pow(2f, semis / 12f);
+                float dur = Random.Range(0.10f, 0.20f);
+                if (pos + dur > n / (float)Rate - 0.05f) break;
+                RenderSyllable(data, (int)(pos * Rate), pitch, dur, 0.55f);
+                pos += dur + Random.Range(0.04f, 0.11f);
+            }
+            return Make("chatter" + variant, data);
+        }
+
+        private static void RenderSyllable(float[] data, int start, float pitch, float dur, float vol)
+        {
+            int d = (int)(dur * Rate);
+            for (int i = 0; i < d && start + i < data.Length; i++)
+            {
+                float t = (float)i / Rate;
+                float env = Mathf.Sin(Mathf.PI * t / dur);        // entra/sai suave (vogal)
+                if (env < 0f) env = 0f;
+                float vib = pitch * (1f + 0.02f * Mathf.Sin(2f * Mathf.PI * 5f * t));
+                float w = 2f * Mathf.PI * vib * t;
+                float voice = Mathf.Sin(w) + 0.5f * Mathf.Sin(2f * w) + 0.3f * Mathf.Sin(3f * w);
+                float formant = Mathf.Sin(2f * Mathf.PI * 720f * t) * 0.15f; // realce de formante
+                data[start + i] += (voice * 0.4f + formant) * env * vol;
+            }
         }
 
         // ── Música de fundo: lounge/jazz relaxado (pegada Sims 1) ───────────────
