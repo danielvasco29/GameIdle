@@ -145,14 +145,7 @@ namespace GameIdle
             }
             else
             {
-                // ── Procedural avatar (circle + legs) ────────────────────────
-                // Layout (root pivot center): body at +18px top, legs below body, feet below legs
-                // root sizeDelta = 64x90, center = (0,0)
-                // body center at (0, +18): 52x52 circle
-                // legs at (-10, -14) and (+10, -14): pivot top, hang down
-                // feet at (-10, -36) and (+10, -36)
-                // shadow at (0, -43)
-
+                // ── Procedural avatar: sprite flutuante com pernas, sem círculo ──
                 var shadowGO = new GameObject("Shadow", typeof(RectTransform), typeof(Image));
                 shadowGO.transform.SetParent(go.transform, false);
                 shadowGO.transform.SetAsFirstSibling();
@@ -166,9 +159,9 @@ namespace GameIdle
                 sImg.raycastTarget = false;
 
                 Color legColor = new Color(
-                    Mathf.Clamp01(ci.data.tintColor.r * 0.55f),
-                    Mathf.Clamp01(ci.data.tintColor.g * 0.55f),
-                    Mathf.Clamp01(ci.data.tintColor.b * 0.55f), 1f);
+                    Mathf.Clamp01(ci.data.tintColor.r * 0.6f),
+                    Mathf.Clamp01(ci.data.tintColor.g * 0.6f),
+                    Mathf.Clamp01(ci.data.tintColor.b * 0.6f), 1f);
                 var legL = MakeLeg(go.transform, "LegL", legColor, new Vector2(-10f, -14f));
                 var legR = MakeLeg(go.transform, "LegR", legColor, new Vector2( 10f, -14f));
 
@@ -176,6 +169,7 @@ namespace GameIdle
                 var footL = MakeFoot(go.transform, "FootL", footColor, new Vector2(-10f, -36f));
                 var footR = MakeFoot(go.transform, "FootR", footColor, new Vector2( 10f, -36f));
 
+                // Body: tinted circle only if no portrait available
                 var bodyGO = new GameObject("Body", typeof(RectTransform), typeof(Image));
                 bodyGO.transform.SetParent(go.transform, false);
                 var bodyRt = bodyGO.GetComponent<RectTransform>();
@@ -183,30 +177,42 @@ namespace GameIdle
                 bodyRt.anchoredPosition = new Vector2(0f, 22f);
                 bodyRt.sizeDelta = new Vector2(66f, 66f);
 
-                var bgImg = bodyGO.GetComponent<Image>();
-                bgImg.sprite = UiSpriteFactory.Circle();
-                bgImg.color = new Color(ci.data.tintColor.r, ci.data.tintColor.g, ci.data.tintColor.b, 0.92f);
-                bgImg.raycastTarget = false;
+                bool hasPortrait = frames != null && frames.Length == 1;
+                if (hasPortrait)
+                {
+                    // Show portrait clipped to circle — no white background ring
+                    var bodyImg2 = bodyGO.GetComponent<Image>();
+                    bodyImg2.color = new Color(0f, 0f, 0f, 0f); // transparent body
 
-                var maskGO = new GameObject("Mask", typeof(RectTransform), typeof(Image), typeof(Mask));
-                maskGO.transform.SetParent(bodyGO.transform, false);
-                var mrt = maskGO.GetComponent<RectTransform>();
-                mrt.anchorMin = Vector2.zero; mrt.anchorMax = Vector2.one;
-                mrt.offsetMin = mrt.offsetMax = Vector2.zero;
-                var mImg = maskGO.GetComponent<Image>();
-                mImg.sprite = UiSpriteFactory.Circle();
-                mImg.raycastTarget = false;
-                maskGO.GetComponent<Mask>().showMaskGraphic = false;
+                    var maskGO2 = new GameObject("Mask", typeof(RectTransform), typeof(Image), typeof(Mask));
+                    maskGO2.transform.SetParent(bodyGO.transform, false);
+                    var mrt2 = maskGO2.GetComponent<RectTransform>();
+                    mrt2.anchorMin = Vector2.zero; mrt2.anchorMax = Vector2.one;
+                    mrt2.offsetMin = mrt2.offsetMax = Vector2.zero;
+                    var mImg2 = maskGO2.GetComponent<Image>();
+                    mImg2.sprite = UiSpriteFactory.Circle();
+                    mImg2.raycastTarget = false;
+                    maskGO2.GetComponent<Mask>().showMaskGraphic = false;
 
-                var portGO = new GameObject("Portrait", typeof(RectTransform), typeof(Image));
-                portGO.transform.SetParent(maskGO.transform, false);
-                var prt = portGO.GetComponent<RectTransform>();
-                prt.anchorMin = Vector2.zero; prt.anchorMax = Vector2.one;
-                prt.offsetMin = prt.offsetMax = Vector2.zero;
-                var portImg = portGO.GetComponent<Image>();
-                portImg.raycastTarget = false;
-                if (frames != null && frames.Length == 1)
-                    portImg.sprite = frames[0];
+                    var portGO2 = new GameObject("Portrait", typeof(RectTransform), typeof(Image));
+                    portGO2.transform.SetParent(maskGO2.transform, false);
+                    var prt2 = portGO2.GetComponent<RectTransform>();
+                    prt2.anchorMin = Vector2.zero; prt2.anchorMax = Vector2.one;
+                    prt2.offsetMin = prt2.offsetMax = Vector2.zero;
+                    var portImg2 = portGO2.GetComponent<Image>();
+                    portImg2.sprite = frames[0];
+                    portImg2.raycastTarget = false;
+                    portImg2.preserveAspect = true;
+                }
+                else
+                {
+                    // No image — use tinted circle (small, subtle)
+                    var bodyImg2 = bodyGO.GetComponent<Image>();
+                    bodyImg2.sprite = UiSpriteFactory.Circle();
+                    bodyImg2.color = new Color(
+                        ci.data.tintColor.r, ci.data.tintColor.g, ci.data.tintColor.b, 0.80f);
+                    bodyImg2.raycastTarget = false;
+                }
 
                 var avatar = go.GetComponent<WorkerAvatar>();
                 avatar.InitProcedural(rt, bodyRt, legL, legR, footL, footR, srt, RoamBounds);
@@ -326,12 +332,17 @@ namespace GameIdle
             }
         }
 
+        private int _lastTargetIndex = -1;
+
         private void PickNewTarget()
         {
-            // Pick a random spread position + small jitter so workers aim for different spots
             var positions = OfficeWorkerManager.SpreadPositions;
-            var base_ = positions[Random.Range(0, positions.Length)];
-            _target = base_ + new Vector2(Random.Range(-40f, 40f), Random.Range(-20f, 20f));
+            // Pick a different position from last one to avoid staying in place
+            int idx;
+            do { idx = Random.Range(0, positions.Length); }
+            while (idx == _lastTargetIndex && positions.Length > 1);
+            _lastTargetIndex = idx;
+            _target = positions[idx] + new Vector2(Random.Range(-25f, 25f), Random.Range(-15f, 15f));
             _walkSpeed = Random.Range(55f, 85f);
             _walking = true;
         }
