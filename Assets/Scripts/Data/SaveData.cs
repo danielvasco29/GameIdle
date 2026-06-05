@@ -22,6 +22,19 @@ namespace GameIdle
         public List<int> gemUpgrades = new();
         public long lastLoginTimestamp;
         public List<CharacterSaveData> characters = new();
+
+        // Conquistas
+        public List<string> unlockedAchievements = new();
+
+        // Missões diárias
+        public string lastMissionDate = "";
+        public List<int>  missionProgress = new();
+        public List<bool> missionClaimed  = new();
+
+        // Contadores para conquistas/missões
+        public int lifetimeTapCount;
+        public int lifetimePrestigeCount;
+        public int lifetimeHireCount;
     }
 
     [Serializable]

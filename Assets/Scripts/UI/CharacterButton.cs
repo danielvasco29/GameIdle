@@ -452,17 +452,40 @@ namespace GameIdle
 
         private void OnUpgradeClicked()
         {
+            int prevLevel = character.level;
             bool success = CharacterManager.Instance.TryUpgrade(characterIndex);
             if (success)
             {
                 if (SoundManager.Instance != null) SoundManager.Instance.PlayBuy();
+                GameManager.Instance.IncrementHireCount();
                 StartCoroutine(UpgradeEffect());
+                if (prevLevel == 0)
+                    StartCoroutine(HiredEffect());
             }
             else
             {
                 if (SoundManager.Instance != null) SoundManager.Instance.PlayError();
                 UIManager.Instance.ShowToast("Dinheiro insuficiente!", new Color(1f, 0.3f, 0.3f));
             }
+        }
+
+        private IEnumerator HiredEffect()
+        {
+            // Flash branco + texto "CONTRATADO!" voando
+            if (backgroundImage != null)
+            {
+                float t = 0f;
+                while (t < 0.15f) { t += Time.deltaTime; backgroundImage.color = Color.Lerp(Color.white, CardColor, t / 0.15f); yield return null; }
+                backgroundImage.color = CardColor;
+            }
+
+            var go = new GameObject("HiredText", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(FloatingText));
+            go.transform.SetParent(transform, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(200f, 40f);
+            rt.anchoredPosition = new Vector2(0f, 60f);
+            var ft = go.GetComponent<FloatingText>();
+            ft.Init("CONTRATADO!", new Color(0.4f, 1f, 0.6f));
         }
 
         private IEnumerator UpgradeEffect()

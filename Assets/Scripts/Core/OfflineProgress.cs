@@ -20,7 +20,7 @@ namespace GameIdle
             double mps = GameManager.Instance.MoneyPerSecond;
             if (mps <= 0) return;
 
-            double earned = elapsed * mps;
+            double earned = elapsed * mps * GemShop.GetOfflineMult();
             UIManager.Instance.ShowOfflineProgress(earned, elapsed);
         }
     }

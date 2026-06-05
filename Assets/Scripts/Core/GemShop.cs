@@ -22,17 +22,23 @@ namespace GameIdle
         // Catalog — index order is stable and used as the save key.
         public static readonly Upgrade[] Upgrades =
         {
-            new() { id = "prod",     name = "Produção Turbo",       description = "Aumenta toda a produção por segundo.",
+            new() { id = "prod",       name = "Produção Turbo",       description = "Aumenta toda a produção por segundo.",
                     baseCost = 3, costGrowth = 1.6, bonusPerLevel = 0.15, maxLevel = 50, effectSuffix = "produção" },
-            new() { id = "tap",      name = "Clique Pesado",        description = "Aumenta o ganho de cada clique TRABALHAR.",
+            new() { id = "tap",        name = "Clique Pesado",        description = "Aumenta o ganho de cada clique TRABALHAR.",
                     baseCost = 2, costGrowth = 1.5, bonusPerLevel = 0.30, maxLevel = 50, effectSuffix = "por clique" },
-            new() { id = "prestige", name = "Mestre do Prestígio",  description = "Aumenta o multiplicador ganho a cada prestígio.",
+            new() { id = "prestige",   name = "Mestre do Prestígio",  description = "Aumenta o multiplicador ganho a cada prestígio.",
                     baseCost = 5, costGrowth = 1.8, bonusPerLevel = 0.10, maxLevel = 30, effectSuffix = "mult. prestígio" },
-            new() { id = "start",    name = "Capital Inicial",      description = "Começa com mais dinheiro após cada prestígio.",
+            new() { id = "start",      name = "Capital Inicial",      description = "Começa com mais dinheiro após cada prestígio.",
                     baseCost = 4, costGrowth = 1.7, bonusPerLevel = 1.0,  maxLevel = 15, effectSuffix = "capital" },
+            new() { id = "turbo_cd",   name = "Turbo Acelerado",      description = "Reduz o cooldown do Turbo em 20s por nível.",
+                    baseCost = 6, costGrowth = 2.0, bonusPerLevel = 20.0, maxLevel = 5,  effectSuffix = "s cooldown" },
+            new() { id = "offline",    name = "Rendimento Offline",   description = "Aumenta os ganhos enquanto offline.",
+                    baseCost = 5, costGrowth = 1.9, bonusPerLevel = 0.50, maxLevel = 5,  effectSuffix = "ganho offline" },
+            new() { id = "gem_bonus",  name = "Cofre de Gemas",       description = "Ganha mais gemas a cada prestígio.",
+                    baseCost = 8, costGrowth = 2.2, bonusPerLevel = 0.10, maxLevel = 10, effectSuffix = "gemas prestígio" },
         };
 
-        private static readonly int[] levels = new int[4];
+        private static readonly int[] levels = new int[7];
 
         public static int GetLevel(int i) => (i >= 0 && i < levels.Length) ? levels[i] : 0;
 
@@ -59,10 +65,13 @@ namespace GameIdle
         }
 
         // ── Bonus accessors (used by GameManager) ────────────────────────────
-        public static double GetProductionMult()  => 1.0 + levels[0] * Upgrades[0].bonusPerLevel;
-        public static double GetTapMult()          => 1.0 + levels[1] * Upgrades[1].bonusPerLevel;
-        public static double GetPrestigeBonus()    => 1.0 + levels[2] * Upgrades[2].bonusPerLevel;
-        public static double GetStartMoney()       => 10.0 * Math.Pow(10.0, levels[3] * Upgrades[3].bonusPerLevel);
+        public static double GetProductionMult()        => 1.0 + levels[0] * Upgrades[0].bonusPerLevel;
+        public static double GetTapMult()               => 1.0 + levels[1] * Upgrades[1].bonusPerLevel;
+        public static double GetPrestigeBonus()         => 1.0 + levels[2] * Upgrades[2].bonusPerLevel;
+        public static double GetStartMoney()            => 10.0 * Math.Pow(10.0, levels[3] * Upgrades[3].bonusPerLevel);
+        public static float  GetTurboCooldownReduction()=> (float)(levels[4] * Upgrades[4].bonusPerLevel);
+        public static double GetOfflineMult()           => 1.0 + levels[5] * Upgrades[5].bonusPerLevel;
+        public static double GetGemBonus()              => 1.0 + levels[6] * Upgrades[6].bonusPerLevel;
 
         // Human-readable current total effect, for the shop UI.
         public static string GetEffectText(int i)
@@ -74,6 +83,9 @@ namespace GameIdle
                 1 => $"+{lvl * Upgrades[1].bonusPerLevel * 100:0}% por clique",
                 2 => $"+{lvl * Upgrades[2].bonusPerLevel * 100:0}% mult. prestígio",
                 3 => $"Início: ${NumberFormatter.Format(GetStartMoney())}",
+                4 => $"-{lvl * (int)Upgrades[4].bonusPerLevel}s cooldown",
+                5 => $"+{lvl * Upgrades[5].bonusPerLevel * 100:0}% ganho offline",
+                6 => $"+{lvl * Upgrades[6].bonusPerLevel * 100:0}% gemas prestígio",
                 _ => ""
             };
         }

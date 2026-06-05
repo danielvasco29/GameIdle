@@ -29,6 +29,9 @@ namespace GameIdle
 
         public event Action OnMoneyChanged;
         public event Action OnStatsUpdated;
+        public event Action OnPrestige;
+        public event Action OnTap;
+        public event Action OnHire;
 
         private void Awake()
         {
@@ -44,6 +47,12 @@ namespace GameIdle
             RecalculateStats();
             OfflineProgress.Calculate();
             GameEventSystem.Instance.StartEventCycle();
+            DailyMissionSystem.CheckDailyReset();
+
+            // Hook eventos → conquistas e missões diárias
+            OnTap     += () => { DailyMissionSystem.RegisterTap();     AchievementManager.CheckAll(); };
+            OnHire    += () => { DailyMissionSystem.RegisterHire();    AchievementManager.CheckAll(); };
+            OnPrestige+= () => { DailyMissionSystem.RegisterPrestige();AchievementManager.CheckAll(); };
         }
 
         private void Update()
@@ -138,7 +147,8 @@ namespace GameIdle
         public int GetPrestigeGemReward()
         {
             if (TotalEarned < GetPrestigeRequirement()) return 0;
-            return Math.Max(1, (int)Math.Floor(5.0 * Math.Sqrt(TotalEarned / prestigeBaseRequirement)));
+            double base_ = 5.0 * Math.Sqrt(TotalEarned / prestigeBaseRequirement);
+            return Math.Max(1, (int)Math.Floor(base_ * GemShop.GetGemBonus()));
         }
 
         public bool SpendGems(int amount)
@@ -171,8 +181,9 @@ namespace GameIdle
         public void ActivateTapBoost()
         {
             if (TapBoostActive || TapBoostOnCooldown) return;
+            float cd = Mathf.Max(20f, BoostCooldown - GemShop.GetTurboCooldownReduction());
             _tapBoostEnd     = Time.time + BoostDuration;
-            _tapBoostCoolEnd = Time.time + BoostDuration + BoostCooldown;
+            _tapBoostCoolEnd = Time.time + BoostDuration + cd;
             OnStatsUpdated?.Invoke();
         }
 
@@ -182,7 +193,7 @@ namespace GameIdle
             return TapBoostActive ? base_ * BoostMult : base_;
         }
 
-        public void Tap() => AddMoney(GetTapValue());
+        public void Tap() { AddMoney(GetTapValue()); IncrementTapCount(); }
 
         public void Prestige()
         {
@@ -202,6 +213,8 @@ namespace GameIdle
             UIManager.Instance.ShowToast(
                 $"Prestígio #{PrestigeCount}! x{PrestigeMultiplier:F1} • +{gemsGained} gemas",
                 new UnityEngine.Color(1f, 0.84f, 0f));
+            LifetimePrestigeCount++;
+            OnPrestige?.Invoke();
             SaveSystem.Save();
         }
 
@@ -224,6 +237,14 @@ namespace GameIdle
             SaveSystem.Save();
         }
 
+        // Lifetime counters (persisted)
+        public int LifetimeTapCount     { get; private set; }
+        public int LifetimePrestigeCount { get; private set; }
+        public int LifetimeHireCount    { get; private set; }
+
+        public void IncrementTapCount()  { LifetimeTapCount++;     OnTap?.Invoke(); }
+        public void IncrementHireCount() { LifetimeHireCount++;    OnHire?.Invoke(); }
+
         public void ApplySaveData(SaveData data)
         {
             Money = data.money;
@@ -233,6 +254,11 @@ namespace GameIdle
             Gems = data.gems;
             GemShop.LoadLevels(data.gemUpgrades);
             LastLoginTimestamp = data.lastLoginTimestamp;
+            LifetimeTapCount      = data.lifetimeTapCount;
+            LifetimePrestigeCount = data.lifetimePrestigeCount;
+            LifetimeHireCount     = data.lifetimeHireCount;
+            AchievementManager.Load(data.unlockedAchievements);
+            DailyMissionSystem.Load(data.lastMissionDate, data.missionProgress, data.missionClaimed);
         }
 
         public SaveData GetSaveData()
@@ -247,7 +273,14 @@ namespace GameIdle
                 gems = Gems,
                 gemUpgrades = GemShop.GetLevels(),
                 lastLoginTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                characters = CharacterManager.Instance.GetSaveData()
+                characters = CharacterManager.Instance.GetSaveData(),
+                unlockedAchievements = AchievementManager.GetSaved(),
+                lastMissionDate  = DailyMissionSystem.LastMissionDate,
+                missionProgress  = DailyMissionSystem.GetProgressSave(),
+                missionClaimed   = DailyMissionSystem.GetClaimedSave(),
+                lifetimeTapCount      = LifetimeTapCount,
+                lifetimePrestigeCount = LifetimePrestigeCount,
+                lifetimeHireCount     = LifetimeHireCount,
             };
         }
 

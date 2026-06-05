@@ -26,7 +26,8 @@ namespace GameIdle
         [Header("Painéis")]
         [SerializeField] private EventPanel eventPanel;
         [SerializeField] private PrestigePanel prestigePanel;
-        [SerializeField] private OfflineProgressPanel offlinePanel;
+        private OfflineProgressPanel offlinePanel;
+        private MissionPanel missionPanel;
 
         [Header("Toast")]
         [SerializeField] private ToastMessage toast;
@@ -330,6 +331,36 @@ namespace GameIdle
             mlt.color = TextSec; mlt.alignment = TextAlignmentOptions.Center;
             mlt.raycastTarget = false;
             var f = GetCachedFont(); if (f != null) mlt.font = f;
+
+            // ── Offline Progress Panel ─────────────────────────────────────
+            var offlineGO = new GameObject("OfflineProgressPanel", typeof(RectTransform));
+            offlineGO.transform.SetParent(canvas.transform, false);
+            offlinePanel = offlineGO.AddComponent<OfflineProgressPanel>();
+
+            // ── Mission Panel ──────────────────────────────────────────────
+            var missionGO = new GameObject("MissionPanel", typeof(RectTransform));
+            missionGO.transform.SetParent(canvas.transform, false);
+            missionPanel = missionGO.AddComponent<MissionPanel>();
+            missionGO.SetActive(false);
+
+            // Botão Missões — ao lado do MENU
+            var mBtnGO = new GameObject("MissionButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            mBtnGO.transform.SetParent(canvas.transform, false);
+            var mbrt = mBtnGO.GetComponent<RectTransform>();
+            mbrt.anchorMin = mbrt.anchorMax = mbrt.pivot = new Vector2(0f, 1f);
+            mbrt.anchoredPosition = new Vector2(92f, -8f);
+            mbrt.sizeDelta = new Vector2(90f, 36f);
+            var mbImg = mBtnGO.GetComponent<Image>();
+            mbImg.sprite = Rounded(); mbImg.type = Image.Type.Sliced; mbImg.color = NavyCard;
+            mBtnGO.GetComponent<Button>().onClick.AddListener(() => { if (missionPanel != null) missionPanel.Open(); });
+            var mbl = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
+            mbl.transform.SetParent(mBtnGO.transform, false);
+            var mblr = mbl.GetComponent<RectTransform>();
+            mblr.anchorMin = Vector2.zero; mblr.anchorMax = Vector2.one; mblr.offsetMin = mblr.offsetMax = Vector2.zero;
+            var mblt = mbl.GetComponent<TextMeshProUGUI>();
+            mblt.text = "MISSOES"; mblt.fontSize = 11; mblt.fontStyle = FontStyles.Bold;
+            mblt.color = TextSec; mblt.alignment = TextAlignmentOptions.Center; mblt.raycastTarget = false;
+            var mf = GetCachedFont(); if (mf != null) mblt.font = mf;
         }
 
         // The floating "Prestígio disponível" text used to overlap the prestige
@@ -548,6 +579,7 @@ namespace GameIdle
         private void OnTurboClicked()
         {
             GameManager.Instance.ActivateTapBoost();
+            AchievementManager.RegisterTurboUse();
             UpdateBoostButton();
             UpdateTapValueText();
         }
@@ -1483,5 +1515,10 @@ namespace GameIdle
         }
         public void ShowOfflineProgress(double earned, long seconds) { if (offlinePanel != null) offlinePanel.Show(earned, seconds); }
         public void ShowEventPanel(EventData eventData) => eventPanel.Show(eventData);
+
+        public void ShowAchievementToast(string name, string description, int gemReward)
+        {
+            ShowToast($"Conquista: {name} • +{gemReward} gemas", new Color(1f, 0.84f, 0.1f));
+        }
     }
 }
