@@ -36,6 +36,7 @@ namespace GameIdle
             new(-150f, 120f), // centro-fundo
             new( 180f,  20f), // centro-direita
             new(-200f, -120f), // frente-esquerda
+            new(  -4f, 232f), // em frente à estante / lousa
         };
 
         // Quais spots são mesas (o personagem fica mais tempo "trabalhando").
@@ -44,6 +45,7 @@ namespace GameIdle
             true,  true,  true,  true,
             false, false,
             false, false, false, false,
+            false,
         };
 
         public void Init(RectTransform panelMain)
