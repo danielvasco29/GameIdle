@@ -599,19 +599,36 @@ namespace GameIdle
             // Fallback: solid navy if no floor texture
             if (floorImg.sprite == null) floorImg.color = NavyDark;
 
-            // Animate plants (gentle sway)
-            if (plantsImg.sprite != null)
-                StartCoroutine(AnimatePlants(plantsImg.GetComponent<RectTransform>()));
+            // If only windows layer exists and others are missing, treat it as full background
+            bool onlyWindows = floorImg.sprite == null && furnitureImg.sprite == null
+                               && plantsImg.sprite == null && windowsImg.sprite != null;
+            if (onlyWindows)
+            {
+                // Move windows to be the floor (full bg), hide other layers
+                floorImg.sprite  = windowsImg.sprite;
+                floorImg.color   = Color.white;
+                floorImg.type    = Image.Type.Simple;
+                floorImg.preserveAspect = false;
+                Destroy(windowsImg.gameObject);
+                Destroy(furnitureImg.gameObject);
+                Destroy(plantsImg.gameObject);
+            }
+            else
+            {
+                // Animate plants (gentle sway)
+                if (plantsImg.sprite != null)
+                    StartCoroutine(AnimatePlants(plantsImg.GetComponent<RectTransform>()));
 
-            // Animate windows (light pulse)
-            if (windowsImg.sprite != null)
-                StartCoroutine(AnimateWindows(windowsImg));
+                // Animate windows (light pulse)
+                if (windowsImg.sprite != null)
+                    StartCoroutine(AnimateWindows(windowsImg));
 
-            // Sort layers
-            floorImg.transform.SetAsFirstSibling();
-            furnitureImg.transform.SetSiblingIndex(1);
-            plantsImg.transform.SetSiblingIndex(2);
-            windowsImg.transform.SetSiblingIndex(3);
+                // Sort layers
+                floorImg.transform.SetAsFirstSibling();
+                furnitureImg.transform.SetSiblingIndex(1);
+                plantsImg.transform.SetSiblingIndex(2);
+                windowsImg.transform.SetSiblingIndex(3);
+            }
 
             // Botão principal circular — camadas empilhadas: ring → glow → borda → face → sheen → label
             var tapGO = new GameObject("TapButton", typeof(RectTransform), typeof(Button));

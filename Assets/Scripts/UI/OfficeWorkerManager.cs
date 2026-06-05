@@ -81,7 +81,7 @@ namespace GameIdle
 
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(56f, 80f);
+            rt.sizeDelta = new Vector2(64f, 90f);
 
             float startX = RoamBounds.xMin + (index + 0.5f) * (RoamBounds.width / 10f);
             rt.anchoredPosition = new Vector2(startX, Random.Range(RoamBounds.yMin, RoamBounds.yMax));
@@ -122,11 +122,41 @@ namespace GameIdle
             else
             {
                 // ── Procedural avatar (circle + legs) ────────────────────────
+                // Layout (root pivot center): body at +18px top, legs below body, feet below legs
+                // root sizeDelta = 64x90, center = (0,0)
+                // body center at (0, +18): 52x52 circle
+                // legs at (-10, -14) and (+10, -14): pivot top, hang down
+                // feet at (-10, -36) and (+10, -36)
+                // shadow at (0, -43)
+
+                var shadowGO = new GameObject("Shadow", typeof(RectTransform), typeof(Image));
+                shadowGO.transform.SetParent(go.transform, false);
+                shadowGO.transform.SetAsFirstSibling();
+                var srt = shadowGO.GetComponent<RectTransform>();
+                srt.anchorMin = srt.anchorMax = srt.pivot = new Vector2(0.5f, 0.5f);
+                srt.anchoredPosition = new Vector2(0f, -43f);
+                srt.sizeDelta = new Vector2(42f, 10f);
+                var sImg = shadowGO.GetComponent<Image>();
+                sImg.sprite = UiSpriteFactory.Circle();
+                sImg.color = new Color(0f, 0f, 0f, 0.22f);
+                sImg.raycastTarget = false;
+
+                Color legColor = new Color(
+                    Mathf.Clamp01(ci.data.tintColor.r * 0.55f),
+                    Mathf.Clamp01(ci.data.tintColor.g * 0.55f),
+                    Mathf.Clamp01(ci.data.tintColor.b * 0.55f), 1f);
+                var legL = MakeLeg(go.transform, "LegL", legColor, new Vector2(-10f, -14f));
+                var legR = MakeLeg(go.transform, "LegR", legColor, new Vector2( 10f, -14f));
+
+                Color footColor = new Color(0.18f, 0.12f, 0.08f, 1f);
+                var footL = MakeFoot(go.transform, "FootL", footColor, new Vector2(-10f, -36f));
+                var footR = MakeFoot(go.transform, "FootR", footColor, new Vector2( 10f, -36f));
+
                 var bodyGO = new GameObject("Body", typeof(RectTransform), typeof(Image));
                 bodyGO.transform.SetParent(go.transform, false);
                 var bodyRt = bodyGO.GetComponent<RectTransform>();
-                bodyRt.anchorMin = bodyRt.anchorMax = bodyRt.pivot = new Vector2(0.5f, 1f);
-                bodyRt.anchoredPosition = Vector2.zero;
+                bodyRt.anchorMin = bodyRt.anchorMax = bodyRt.pivot = new Vector2(0.5f, 0.5f);
+                bodyRt.anchoredPosition = new Vector2(0f, 18f);
                 bodyRt.sizeDelta = new Vector2(52f, 52f);
 
                 var bgImg = bodyGO.GetComponent<Image>();
@@ -134,7 +164,6 @@ namespace GameIdle
                 bgImg.color = new Color(ci.data.tintColor.r, ci.data.tintColor.g, ci.data.tintColor.b, 0.92f);
                 bgImg.raycastTarget = false;
 
-                // Portrait mask
                 var maskGO = new GameObject("Mask", typeof(RectTransform), typeof(Image), typeof(Mask));
                 maskGO.transform.SetParent(bodyGO.transform, false);
                 var mrt = maskGO.GetComponent<RectTransform>();
@@ -154,30 +183,6 @@ namespace GameIdle
                 portImg.raycastTarget = false;
                 if (frames != null && frames.Length == 1)
                     portImg.sprite = frames[0];
-
-                // Legs
-                Color legColor = new Color(
-                    Mathf.Clamp01(ci.data.tintColor.r * 0.55f),
-                    Mathf.Clamp01(ci.data.tintColor.g * 0.55f),
-                    Mathf.Clamp01(ci.data.tintColor.b * 0.55f), 1f);
-                var legL = MakeLeg(go.transform, "LegL", legColor, new Vector2(-10f, -48f));
-                var legR = MakeLeg(go.transform, "LegR", legColor, new Vector2( 10f, -48f));
-
-                Color footColor = new Color(0.18f, 0.12f, 0.08f, 1f);
-                var footL = MakeFoot(go.transform, "FootL", footColor, new Vector2(-10f, -72f));
-                var footR = MakeFoot(go.transform, "FootR", footColor, new Vector2( 10f, -72f));
-
-                var shadowGO = new GameObject("Shadow", typeof(RectTransform), typeof(Image));
-                shadowGO.transform.SetParent(go.transform, false);
-                shadowGO.transform.SetAsFirstSibling();
-                var srt = shadowGO.GetComponent<RectTransform>();
-                srt.anchorMin = srt.anchorMax = srt.pivot = new Vector2(0.5f, 0f);
-                srt.anchoredPosition = new Vector2(0f, -74f);
-                srt.sizeDelta = new Vector2(42f, 12f);
-                var sImg = shadowGO.GetComponent<Image>();
-                sImg.sprite = UiSpriteFactory.Circle();
-                sImg.color = new Color(0f, 0f, 0f, 0.22f);
-                sImg.raycastTarget = false;
 
                 var avatar = go.GetComponent<WorkerAvatar>();
                 avatar.InitProcedural(rt, bodyRt, legL, legR, footL, footR, srt, RoamBounds);
@@ -377,8 +382,8 @@ namespace GameIdle
 
             float liftL = Mathf.Max(0f, sinL) * legLiftAmp;
             float liftR = Mathf.Max(0f, sinR) * legLiftAmp;
-            _footL.anchoredPosition = new Vector2(-10f, -72f + liftL);
-            _footR.anchoredPosition = new Vector2( 10f, -72f + liftR);
+            _footL.anchoredPosition = new Vector2(-10f, -36f + liftL);
+            _footR.anchoredPosition = new Vector2( 10f, -36f + liftR);
 
             float scaleFL = 1f + Mathf.Max(0f, -sinL) * 0.25f;
             float scaleFR = 1f + Mathf.Max(0f, -sinR) * 0.25f;
@@ -419,8 +424,8 @@ namespace GameIdle
             {
                 if (_legL) _legL.localRotation = Quaternion.identity;
                 if (_legR) _legR.localRotation = Quaternion.identity;
-                if (_footL) { _footL.anchoredPosition = new Vector2(-10f, -72f); _footL.localScale = Vector3.one; }
-                if (_footR) { _footR.anchoredPosition = new Vector2( 10f, -72f); _footR.localScale = Vector3.one; }
+                if (_footL) { _footL.anchoredPosition = new Vector2(-10f, -36f); _footL.localScale = Vector3.one; }
+                if (_footR) { _footR.anchoredPosition = new Vector2( 10f, -36f); _footR.localScale = Vector3.one; }
                 if (_bodyProcRt) { _bodyProcRt.anchoredPosition = Vector2.zero; _bodyProcRt.localRotation = Quaternion.identity; }
                 if (_shadow) _shadow.localScale = Vector3.one;
             }
