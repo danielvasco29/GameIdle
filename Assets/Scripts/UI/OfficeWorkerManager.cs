@@ -335,11 +335,10 @@ namespace GameIdle
                     yield return StartCoroutine(WalkToTarget());
                     _walking = false;
                     _seated = _seatedTarget;
-                    // Sentado: fica mais tempo "trabalhando"; em pé: pausa curta.
+                    // Na mesa: fica mais tempo "trabalhando"; em pé livre: pausa curta.
                     _idleDuration = _seated ? Random.Range(7f, 14f) : Random.Range(2f, 6f);
                     _idleTimer = 0f;
-                    if (_seated) SetSeatedPose();
-                    else         SetIdlePose();
+                    SetIdlePose(); // sempre em pé (sprites só têm pose em pé)
                 }
                 else
                 {
@@ -507,41 +506,19 @@ namespace GameIdle
             }
         }
 
-        // Pose sentada: corpo abaixado na cadeira; no modo procedural as pernas
-        // ficam dobradas para a frente como se estivessem sob a mesa.
-        private void SetSeatedPose()
-        {
-            if (_sheetMode)
-            {
-                if (_frames != null && _frames.Length > 0) _bodyImg.sprite = _frames[0];
-                _frameIndex = 0;
-                if (_bodyRt) _bodyRt.anchoredPosition = new Vector2(0f, -14f);
-            }
-            else
-            {
-                // Coxas para a frente (sentado) e pés recolhidos
-                if (_legL) _legL.localRotation = Quaternion.Euler(0f, 0f,  78f);
-                if (_legR) _legR.localRotation = Quaternion.Euler(0f, 0f, -78f);
-                if (_footL) { _footL.anchoredPosition = new Vector2(-16f, -20f); _footL.localScale = Vector3.one; }
-                if (_footR) { _footR.anchoredPosition = new Vector2( 16f, -20f); _footR.localScale = Vector3.one; }
-                if (_bodyProcRt) { _bodyProcRt.anchoredPosition = new Vector2(0f, -8f); _bodyProcRt.localRotation = Quaternion.identity; }
-                if (_shadow) _shadow.localScale = new Vector3(1.1f, 0.9f, 1f);
-            }
-        }
-
-        // Micro-movimento de "digitando" enquanto sentado.
+        // Micro-movimento de "digitando" em pé na mesa (leve balanço do corpo).
         private void TickWorking()
         {
             _workPhase += Time.deltaTime * 3.2f;
-            float b = Mathf.Sin(_workPhase) * 1.1f;
+            float b = Mathf.Sin(_workPhase) * 1.3f;
             if (_sheetMode)
             {
-                if (_bodyRt) _bodyRt.anchoredPosition = new Vector2(0f, -14f + b);
+                if (_bodyRt) _bodyRt.anchoredPosition = new Vector2(0f, b);
             }
             else if (_bodyProcRt)
             {
-                _bodyProcRt.anchoredPosition = new Vector2(0f, -8f + b);
-                _bodyProcRt.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin(_workPhase * 0.6f) * 1.2f);
+                _bodyProcRt.anchoredPosition = new Vector2(0f, Mathf.Abs(b) * 0.6f);
+                _bodyProcRt.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin(_workPhase * 0.6f) * 1.4f);
             }
         }
 
