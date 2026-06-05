@@ -51,14 +51,14 @@ namespace GameIdle
         private float uiRefreshTimer;
         private const float UiRefreshInterval = 0.1f;
 
-        // Idle Startup Tycoon palette
-        private static readonly Color NavyDark    = new(0.086f, 0.137f, 0.220f, 1f); // #16233a
-        private static readonly Color NavyCard    = new(0.106f, 0.169f, 0.275f, 1f); // #1b2b46
-        private static readonly Color GoldColor   = new(1f,     0.808f, 0.227f, 1f); // #ffce3a
-        private static readonly Color GreenBtn    = new(0.247f, 0.749f, 0.353f, 1f); // #3fbf5a
-        private static readonly Color BlueAccent  = new(0.290f, 0.620f, 1f,    1f);  // #4a9eff
-        private static readonly Color TextPrimary = new(0.933f, 0.953f, 0.980f, 1f); // #eef3fa
-        private static readonly Color TextSec     = new(0.624f, 0.698f, 0.788f, 1f); // #9fb2c9
+        // Grafite + Verde Neon palette
+        private static readonly Color NavyDark    = new(0.063f, 0.071f, 0.078f, 1f); // grafite escuro
+        private static readonly Color NavyCard    = new(0.125f, 0.145f, 0.157f, 1f); // grafite card
+        private static readonly Color GoldColor   = new(0.314f, 0.941f, 0.549f, 1f); // verde neon (titulos/dinheiro)
+        private static readonly Color GreenBtn    = new(0.314f, 0.961f, 0.588f, 1f); // verde neon botoes
+        private static readonly Color BlueAccent  = new(0.275f, 0.820f, 0.541f, 1f); // verde-agua accent
+        private static readonly Color TextPrimary = new(0.922f, 0.961f, 0.941f, 1f); // quase branco
+        private static readonly Color TextSec     = new(0.667f, 0.784f, 0.725f, 1f); // verde acinzentado
         // Keep aliases used elsewhere in the file
         private static readonly Color NeonGreen  = GreenBtn;
         private static readonly Color NeonCyan   = BlueAccent;
@@ -230,7 +230,7 @@ namespace GameIdle
 
                 var glg = contentGO.GetComponent<GridLayoutGroup>();
                 if (glg == null) glg = contentGO.AddComponent<GridLayoutGroup>();
-                glg.cellSize        = new Vector2(460f, 112f);
+                glg.cellSize        = new Vector2(460f, 120f);
                 glg.spacing         = new Vector2(0f, 9f);
                 glg.padding         = new RectOffset(10, 10, 10, 10);
                 glg.childAlignment  = TextAnchor.UpperCenter;
@@ -808,9 +808,12 @@ namespace GameIdle
                 var go = new GameObject("FloatTap", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(FloatingText));
                 go.transform.SetParent(panelMain, false);
                 var rt = go.GetComponent<RectTransform>();
-                rt.sizeDelta = new Vector2(200f, 40f);
-                rt.anchoredPosition = new Vector2(Random.Range(-60f, 60f), Random.Range(20f, 90f));
-                go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(val)}", NeonGreen);
+                rt.sizeDelta = new Vector2(260f, 60f);
+                rt.anchoredPosition = new Vector2(Random.Range(-80f, 80f), Random.Range(30f, 100f));
+                // Turbo tap = gold, normal = green
+                Color tapColor = GameManager.Instance.TapBoostActive
+                    ? new Color(1f, 0.85f, 0.1f) : NeonGreen;
+                go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(val)}", tapColor, 32f);
 
                 // Coins flying up
                 int coins = Random.Range(3, 6);
@@ -928,6 +931,10 @@ namespace GameIdle
             rt.anchorMax        = new Vector2(0f, rt.anchorMax.y);
             rt.sizeDelta        = new Vector2(panelW, rt.sizeDelta.y);
             rt.anchoredPosition = new Vector2(panelW * 0.5f, rt.anchoredPosition.y);
+
+            // Graphite background for the sidebar
+            var panelImg = panelLeft.GetComponent<Image>();
+            if (panelImg != null) panelImg.color = new Color(0.086f, 0.098f, 0.110f, 1f);
 
             // Fit the card to the visible width (minus the ~17px scrollbar and the
             // grid's 10px side padding) so cost + level are never clipped.
@@ -1088,7 +1095,7 @@ namespace GameIdle
             hrt.offsetMin = new Vector2(0f, -32f); hrt.offsetMax = Vector2.zero;
             var himg = headerGO.GetComponent<Image>();
             himg.sprite = Rounded(); himg.type = Image.Type.Sliced;
-            himg.color = new Color(0.08f, 0.13f, 0.22f, 1f);
+            himg.color = new Color(0.063f, 0.071f, 0.078f, 1f);
             himg.raycastTarget = false;
 
             var labelGO = new GameObject("EquipeLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -1517,9 +1524,9 @@ namespace GameIdle
             float halfW = panelMain.rect.width  * 0.35f;
             float halfH = panelMain.rect.height * 0.35f;
             rt.anchoredPosition = new Vector2(Random.Range(-halfW, halfW), -halfH);
-            rt.sizeDelta = new Vector2(160f, 30f);
+            rt.sizeDelta = new Vector2(220f, 50f);
             double amount = GameManager.Instance.MoneyPerSecond * FloatBurstInterval;
-            go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(amount)}", NeonGreen);
+            go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(amount)}", NeonGreen, 26f);
         }
 
         // ── Core UI Update ────────────────────────────────────────────────────

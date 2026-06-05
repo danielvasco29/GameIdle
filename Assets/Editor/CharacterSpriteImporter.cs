@@ -18,7 +18,7 @@ namespace GameIdle
             importer.textureType         = TextureImporterType.Sprite;
             importer.spriteImportMode    = SpriteImportMode.Single;
             importer.npotScale           = TextureImporterNPOTScale.None; // keep original size
-            importer.isReadable          = false;
+            importer.isReadable          = true; // needed for background flood-fill removal
             importer.mipmapEnabled       = false;
             importer.filterMode          = FilterMode.Bilinear;
             importer.textureCompression  = TextureImporterCompression.Uncompressed;

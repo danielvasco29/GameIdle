@@ -11,6 +11,21 @@ namespace GameIdle
         private static Sprite box;
         private static Sprite roundedBox;
         private static Sprite star;
+        private static Material whiteDiscardMat;
+
+        // Material that discards near-white/background pixels from GPT-generated sprites.
+        public static Material WhiteDiscardMaterial()
+        {
+            if (whiteDiscardMat != null) return whiteDiscardMat;
+            var shader = Resources.Load<Shader>("Shaders/UIWhiteDiscard");
+            if (shader == null)
+            {
+                Debug.LogWarning("[UiSpriteFactory] UIWhiteDiscard shader not found — falling back to default UI shader");
+                shader = Shader.Find("UI/Default");
+            }
+            whiteDiscardMat = new Material(shader) { name = "WhiteDiscard" };
+            return whiteDiscardMat;
+        }
 
         // Filled 5-pointed star (anti-aliased via 2x2 supersampling).
         public static Sprite Star()
