@@ -599,50 +599,34 @@ namespace GameIdle
             // Fallback: solid navy if no floor texture
             if (floorImg.sprite == null) floorImg.color = NavyDark;
 
-            // Collect all available sprites in priority order
-            var allSprites = new[] { floorImg.sprite, furnitureImg.sprite, plantsImg.sprite, windowsImg.sprite };
-            bool hasAny = System.Array.Exists(allSprites, s => s != null);
-            bool hasMultiple = System.Array.FindAll(allSprites, s => s != null).Length > 1;
-
-            if (!hasMultiple)
+            // Always try original office background first as base
+            var officeTex = Resources.Load<Texture2D>("UI/office_bg");
+            Image baseImg;
+            if (officeTex != null)
             {
-                // Single image mode — use whichever layer was found as full background
-                Sprite found = floorImg.sprite ?? furnitureImg.sprite ?? plantsImg.sprite ?? windowsImg.sprite;
+                // Use original bg, destroy the floor layer placeholder
+                floorImg.sprite = Sprite.Create(officeTex, new Rect(0,0,officeTex.width,officeTex.height), new Vector2(0.5f,0.5f));
+                floorImg.color  = Color.white;
+                floorImg.type   = Image.Type.Simple;
+                floorImg.preserveAspect = false;
+                baseImg = floorImg;
+                // Destroy other layers — only overlay if we have real separate layers
                 Destroy(furnitureImg.gameObject);
                 Destroy(plantsImg.gameObject);
                 Destroy(windowsImg.gameObject);
-
-                if (found != null)
-                {
-                    floorImg.sprite = found;
-                    floorImg.color  = Color.white;
-                }
-                else
-                {
-                    // Try legacy path
-                    var lt = Resources.Load<Texture2D>("UI/office_bg");
-                    if (lt != null)
-                    {
-                        floorImg.sprite = Sprite.Create(lt, new Rect(0,0,lt.width,lt.height), new Vector2(0.5f,0.5f));
-                        floorImg.color  = Color.white;
-                    }
-                }
-                floorImg.type = Image.Type.Simple;
-                floorImg.preserveAspect = false;
                 floorImg.transform.SetAsFirstSibling();
             }
             else
             {
-                // Full layered background with animations
-                if (plantsImg.sprite != null)
-                    StartCoroutine(AnimatePlants(plantsImg.GetComponent<RectTransform>()));
-                if (windowsImg.sprite != null)
-                    StartCoroutine(AnimateWindows(windowsImg));
-
+                // No original — use whatever Backgrounds/ file exists
+                Sprite found = floorImg.sprite ?? furnitureImg.sprite ?? plantsImg.sprite ?? windowsImg.sprite;
+                Destroy(furnitureImg.gameObject);
+                Destroy(plantsImg.gameObject);
+                Destroy(windowsImg.gameObject);
+                if (found != null) { floorImg.sprite = found; floorImg.color = Color.white; }
+                floorImg.type = Image.Type.Simple;
+                floorImg.preserveAspect = false;
                 floorImg.transform.SetAsFirstSibling();
-                furnitureImg.transform.SetSiblingIndex(1);
-                plantsImg.transform.SetSiblingIndex(2);
-                windowsImg.transform.SetSiblingIndex(3);
             }
 
             // Botão principal circular — camadas empilhadas: ring → glow → borda → face → sheen → label
