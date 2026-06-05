@@ -621,9 +621,7 @@ namespace GameIdle
             }
             floorImg.transform.SetAsFirstSibling();
 
-            // ── Scene ambient animations ──────────────────────────────────────
-            StartCoroutine(AmbientLightPulse(pmGO.transform));
-            StartCoroutine(SpawnDustParticles(pmGO.transform));
+            // ── Monitor glows (único efeito de ambiente) ──────────────────────
             SpawnMonitorGlows(pmGO.transform);
 
             // Botão principal circular — camadas empilhadas: ring → glow → borda → face → sheen → label
@@ -1412,11 +1410,11 @@ namespace GameIdle
                 var rt = go.GetComponent<RectTransform>();
                 rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
                 rt.anchoredPosition = monitorPositions[i];
-                rt.sizeDelta = new Vector2(38f, 22f);
+                rt.sizeDelta = new Vector2(50f, 32f);
                 var img = go.GetComponent<Image>();
                 img.sprite = UiSpriteFactory.RoundedBox();
                 img.type = Image.Type.Sliced;
-                img.color = new Color(colors[i].r, colors[i].g, colors[i].b, 0.45f);
+                img.color = new Color(colors[i].r, colors[i].g, colors[i].b, 0.7f);
                 img.raycastTarget = false;
                 go.transform.SetSiblingIndex(1);
                 StartCoroutine(AnimateMonitor(img, colors[i]));
@@ -1432,18 +1430,18 @@ namespace GameIdle
                 phase += Time.deltaTime * 0.4f;
                 blinkTimer -= Time.deltaTime;
 
-                float alpha = 0.35f + Mathf.Sin(phase) * 0.15f;
+                float alpha = 0.6f + Mathf.Sin(phase) * 0.2f;
 
                 // Occasional blink (simulates screen refresh)
                 if (blinkTimer <= 0f)
                 {
-                    img.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.85f);
+                    img.color = new Color(baseColor.r, baseColor.g, baseColor.b, 1f);
+                    yield return new WaitForSeconds(0.12f);
+                    img.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.05f);
+                    yield return new WaitForSeconds(0.07f);
+                    img.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.9f);
                     yield return new WaitForSeconds(0.1f);
-                    img.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.1f);
-                    yield return new WaitForSeconds(0.06f);
-                    img.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.75f);
-                    yield return new WaitForSeconds(0.08f);
-                    blinkTimer = Random.Range(3f, 7f);
+                    blinkTimer = Random.Range(2f, 6f);
                 }
 
                 img.color = new Color(baseColor.r, baseColor.g, baseColor.b, alpha);
