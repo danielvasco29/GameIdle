@@ -132,46 +132,36 @@ namespace GameIdle
 
         private void SetupAvatar()
         {
-            foreach (var n in new[] { "AvatarRing", "AvatarBg", "Icon" })
+            foreach (var n in new[] { "AvatarRing", "AvatarBg", "Icon", "AvatarShadow" })
             {
                 var ex = transform.Find(n);
                 if (ex != null) { ex.SetParent(null); Destroy(ex.gameObject); }
             }
 
-            // Gold ring (behind), child of card so the mask below doesn't clip it
-            var ringGO = new GameObject("AvatarRing", typeof(RectTransform), typeof(Image));
-            ringGO.transform.SetParent(transform, false);
-            var ringRT = ringGO.GetComponent<RectTransform>();
-            ringRT.anchorMin = ringRT.anchorMax = ringRT.pivot = new Vector2(0f, 0.5f);
-            ringRT.anchoredPosition = new Vector2(7f, 0f);
-            ringRT.sizeDelta = new Vector2(90f, 90f);
-            var ringImg = ringGO.GetComponent<Image>();
-            ringImg.sprite = GetCircleSprite();
-            ringImg.color  = new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0.5f);
-            ringImg.raycastTarget = false;
+            // Sombra suave no chao, para "aterrar" o personagem solto na cena
+            var shadowGO = new GameObject("AvatarShadow", typeof(RectTransform), typeof(Image));
+            shadowGO.transform.SetParent(transform, false);
+            var shRT = shadowGO.GetComponent<RectTransform>();
+            shRT.anchorMin = shRT.anchorMax = shRT.pivot = new Vector2(0f, 0.5f);
+            shRT.anchoredPosition = new Vector2(54f, -36f);
+            shRT.sizeDelta = new Vector2(62f, 15f);
+            var shImg = shadowGO.GetComponent<Image>();
+            shImg.sprite = GetCircleSprite();
+            shImg.color  = new Color(0f, 0f, 0f, 0.22f);
+            shImg.raycastTarget = false;
 
-            // Circular avatar background that also masks the portrait
-            var bgGO = new GameObject("AvatarBg", typeof(RectTransform), typeof(Image), typeof(Mask));
-            bgGO.transform.SetParent(transform, false);
-            var bgRT = bgGO.GetComponent<RectTransform>();
-            bgRT.anchorMin = bgRT.anchorMax = bgRT.pivot = new Vector2(0f, 0.5f);
-            bgRT.anchoredPosition = new Vector2(10f, 0f);
-            bgRT.sizeDelta = new Vector2(84f, 84f);
-            avatarBg = bgGO.GetComponent<Image>();
-            avatarBg.sprite = GetCircleSprite();
-            avatarBg.type   = Image.Type.Simple;
-            avatarBg.color  = BlendWithNavy(character.data.tintColor, 0.3f);
-            avatarBg.raycastTarget = false;
-            bgGO.GetComponent<Mask>().showMaskGraphic = true;
-
+            // Personagem solto — sem circulo nem mascara, fundo transparente
             var iconGO = new GameObject("Icon", typeof(RectTransform), typeof(Image));
-            iconGO.transform.SetParent(bgGO.transform, false);
+            iconGO.transform.SetParent(transform, false);
             var iconRT = iconGO.GetComponent<RectTransform>();
-            iconRT.anchorMin = Vector2.zero; iconRT.anchorMax = Vector2.one;
-            iconRT.offsetMin = iconRT.offsetMax = Vector2.zero;
+            iconRT.anchorMin = iconRT.anchorMax = iconRT.pivot = new Vector2(0f, 0.5f);
+            iconRT.anchoredPosition = new Vector2(54f, 4f);
+            iconRT.sizeDelta = new Vector2(98f, 98f);
             iconImage = iconGO.GetComponent<Image>();
             iconImage.preserveAspect = true;
             iconImage.raycastTarget = false;
+
+            avatarBg = null; // sem fundo circular; HiredEffect agora pisca o proprio sprite
         }
 
         private void SetupTierDots()
@@ -227,6 +217,9 @@ namespace GameIdle
 
             if (tex != null)
             {
+                // Remove o fundo branco/xadrez para o personagem ficar solto na cena
+                tex = SpriteBackgroundRemover.Process(tex);
+
                 // If sprite sheet (width >> height), use only the first frame
                 int fw = tex.width;
                 int fh = tex.height;
@@ -235,14 +228,14 @@ namespace GameIdle
                 iconImage.sprite = Sprite.Create(tex, new Rect(0, 0, fw, fh), new Vector2(0.5f, 0.5f));
                 iconImage.color  = Color.white;
                 // hide initial letter
-                var init = transform.Find("AvatarBg/Icon/Initial");
+                var init = transform.Find("Icon/Initial");
                 if (init != null) init.gameObject.SetActive(false);
             }
             else
             {
                 iconImage.sprite = null;
                 iconImage.color  = new Color(0f, 0f, 0f, 0f);
-                if (transform.Find("AvatarBg/Icon/Initial") == null)
+                if (transform.Find("Icon/Initial") == null)
                 {
                     var initialGO = new GameObject("Initial", typeof(RectTransform), typeof(TextMeshProUGUI));
                     initialGO.transform.SetParent(iconImage.transform, false);
@@ -501,19 +494,20 @@ namespace GameIdle
             if (UIManager.Instance != null)
                 UIManager.Instance.ShowHiredCelebration(character.data.characterName);
 
-            // Flash dourado pulsante no avatar para destacar a contratação
-            if (avatarBg != null)
+            // Flash dourado pulsante no proprio sprite para destacar a contratação
+            var flashImg = avatarBg != null ? avatarBg : iconImage;
+            if (flashImg != null)
             {
-                Color orig = avatarBg.color;
+                Color orig = flashImg.color;
                 Color gold = new(1f, 0.808f, 0.227f, 1f);
                 for (int i = 0; i < 2; i++)
                 {
                     float t = 0f;
-                    while (t < 0.12f) { t += Time.deltaTime; avatarBg.color = Color.Lerp(orig, gold, t / 0.12f); yield return null; }
+                    while (t < 0.12f) { t += Time.deltaTime; flashImg.color = Color.Lerp(orig, gold, t / 0.12f); yield return null; }
                     t = 0f;
-                    while (t < 0.12f) { t += Time.deltaTime; avatarBg.color = Color.Lerp(gold, orig, t / 0.12f); yield return null; }
+                    while (t < 0.12f) { t += Time.deltaTime; flashImg.color = Color.Lerp(gold, orig, t / 0.12f); yield return null; }
                 }
-                avatarBg.color = orig;
+                flashImg.color = orig;
             }
         }
 
