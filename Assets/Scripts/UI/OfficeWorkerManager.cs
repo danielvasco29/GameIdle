@@ -235,7 +235,17 @@ namespace GameIdle
 
             var wa = go.GetComponent<WorkerAvatar>();
             wa.ClaimSpawn(index % SpreadPositions.Length);
+            wa.SetFacingDefault(FacesLeftByDefault(ci));
             return wa;
+        }
+
+        // Alguns sprites foram desenhados virados para a esquerda; para esses o
+        // espelhamento precisa ser invertido (senão andam "de costas").
+        private static bool FacesLeftByDefault(CharacterInstance ci)
+        {
+            string nm = (ci.data.characterName ?? "").Trim().ToUpper();
+            string id = (ci.data.characterId ?? "").Trim().ToUpper();
+            return nm == "CEO" || id == "CEO";
         }
 
         private static RectTransform MakeLeg(Transform parent, string name, Color color, Vector2 pos)
@@ -302,6 +312,12 @@ namespace GameIdle
         private bool _seatedTarget; // o destino atual é uma cadeira?
         private bool _seated;       // está sentado agora?
         private float _workPhase;
+
+        // Orientação padrão do sprite (alguns foram desenhados virados p/ esquerda).
+        private bool _faceLeftDefault;
+        public void SetFacingDefault(bool faceLeft) => _faceLeftDefault = faceLeft;
+        // Sinal do scale.x para o personagem encarar a direção desejada.
+        private float FaceX(bool right) => (right ^ _faceLeftDefault) ? 1f : -1f;
 
         // ── Init ─────────────────────────────────────────────────────────────
 
@@ -423,7 +439,7 @@ namespace GameIdle
             float duration = dist / _walkSpeed;
             float elapsed = 0f;
             bool facingRight = _target.x >= start.x;
-            _rt.localScale = new Vector3(facingRight ? 1f : -1f, 1f, 1f);
+            _rt.localScale = new Vector3(FaceX(facingRight), 1f, 1f);
 
             _stepPhase = 0f;
             float stepFreq = 2.5f;
@@ -445,7 +461,7 @@ namespace GameIdle
             }
 
             _rt.anchoredPosition = _target;
-            _rt.localScale = Vector3.one;
+            _rt.localScale = new Vector3(FaceX(facingRight), 1f, 1f);
         }
 
         // ── Sprite-sheet animation ────────────────────────────────────────────
