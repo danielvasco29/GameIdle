@@ -54,17 +54,18 @@ namespace GameIdle
             if (tex == null) tex = Resources.Load<Texture2D>($"Characters/Sprites/{ci.data.characterName}");
             if (tex == null) return null;
 
-            int frameCount = 8;
-            int fw = tex.width / frameCount;
             int fh = tex.height;
 
-            // If aspect is roughly square it's a single portrait, not a sheet
-            if (fw < fh * 0.6f || tex.width < tex.height * 2)
-            {
-                // Single image — return as one frame
-                return new[] { Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f)) };
-            }
+            // Sprite sheet: width is at least 2x height
+            if (tex.width <= tex.height * 2)
+                return new[] { Sprite.Create(tex, new Rect(0, 0, tex.width, fh), new Vector2(0.5f, 0.5f)) };
 
+            // Determine frame count: try 8, but support other counts too
+            int frameCount = 8;
+            if (tex.width % 6 == 0 && tex.width / 6 == fh) frameCount = 6;
+            else if (tex.width % 4 == 0 && tex.width / 4 == fh) frameCount = 4;
+
+            int fw = tex.width / frameCount;
             var frames = new Sprite[frameCount];
             for (int i = 0; i < frameCount; i++)
                 frames[i] = Sprite.Create(tex, new Rect(i * fw, 0, fw, fh), new Vector2(0.5f, 0.5f));

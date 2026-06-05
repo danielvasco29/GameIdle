@@ -227,7 +227,12 @@ namespace GameIdle
 
             if (tex != null)
             {
-                iconImage.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
+                // If sprite sheet (width >> height), use only the first frame
+                int fw = tex.width;
+                int fh = tex.height;
+                if (tex.width > tex.height * 2)
+                    fw = tex.width / 8;
+                iconImage.sprite = Sprite.Create(tex, new Rect(0, 0, fw, fh), new Vector2(0.5f, 0.5f));
                 iconImage.color  = Color.white;
                 // hide initial letter
                 var init = transform.Find("AvatarBg/Icon/Initial");

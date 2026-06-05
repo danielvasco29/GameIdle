@@ -599,31 +599,44 @@ namespace GameIdle
             // Fallback: solid navy if no floor texture
             if (floorImg.sprite == null) floorImg.color = NavyDark;
 
-            // If only windows layer exists and others are missing, treat it as full background
-            bool onlyWindows = floorImg.sprite == null && furnitureImg.sprite == null
-                               && plantsImg.sprite == null && windowsImg.sprite != null;
-            if (onlyWindows)
+            bool hasLayers = floorImg.sprite != null || furnitureImg.sprite != null;
+
+            if (!hasLayers)
             {
-                // Move windows to be the floor (full bg), hide other layers
-                floorImg.sprite  = windowsImg.sprite;
-                floorImg.color   = Color.white;
-                floorImg.type    = Image.Type.Simple;
-                floorImg.preserveAspect = false;
-                Destroy(windowsImg.gameObject);
+                // Only one or zero layers — find whichever exists and use as full bg
+                Sprite fullBg = windowsImg.sprite ?? plantsImg.sprite;
                 Destroy(furnitureImg.gameObject);
                 Destroy(plantsImg.gameObject);
+                Destroy(windowsImg.gameObject);
+                if (fullBg != null)
+                {
+                    floorImg.sprite = fullBg;
+                    floorImg.color  = Color.white;
+                    floorImg.type   = Image.Type.Simple;
+                    floorImg.preserveAspect = false;
+                }
+                else
+                {
+                    // Try legacy single bg
+                    var legacyTex = Resources.Load<Texture2D>("UI/office_bg");
+                    if (legacyTex != null)
+                    {
+                        floorImg.sprite = Sprite.Create(legacyTex, new Rect(0,0,legacyTex.width,legacyTex.height), new Vector2(0.5f,0.5f));
+                        floorImg.color  = Color.white;
+                        floorImg.type   = Image.Type.Simple;
+                        floorImg.preserveAspect = false;
+                    }
+                }
+                floorImg.transform.SetAsFirstSibling();
             }
             else
             {
-                // Animate plants (gentle sway)
+                // Full layered background
                 if (plantsImg.sprite != null)
                     StartCoroutine(AnimatePlants(plantsImg.GetComponent<RectTransform>()));
-
-                // Animate windows (light pulse)
                 if (windowsImg.sprite != null)
                     StartCoroutine(AnimateWindows(windowsImg));
 
-                // Sort layers
                 floorImg.transform.SetAsFirstSibling();
                 furnitureImg.transform.SetSiblingIndex(1);
                 plantsImg.transform.SetSiblingIndex(2);
