@@ -596,42 +596,30 @@ namespace GameIdle
             var plantsImg    = SpawnBgLayer("Backgrounds/bg_plants",     "BgPlants");
             var windowsImg   = SpawnBgLayer("Backgrounds/bg_windows",    "BgWindows");
 
-            // Always use office_bg as base, then overlay plants+windows on top
+            // Base: bg_floor from Backgrounds/ if exists, else UI/office_bg
             Destroy(furnitureImg.gameObject);
+            Destroy(plantsImg.gameObject);
+            Destroy(windowsImg.gameObject);
 
-            var officeTex = Resources.Load<Texture2D>("UI/office_bg");
-            if (officeTex != null)
-            {
-                floorImg.sprite = Sprite.Create(officeTex, new Rect(0,0,officeTex.width,officeTex.height), new Vector2(0.5f,0.5f));
-                floorImg.color  = Color.white;
-                floorImg.type   = Image.Type.Simple;
-                floorImg.preserveAspect = false;
-            }
-            else if (floorImg.sprite != null)
+            if (floorImg.sprite != null)
             {
                 floorImg.color = Color.white;
+                floorImg.type  = Image.Type.Simple;
+                floorImg.preserveAspect = false;
             }
             else
             {
-                floorImg.color = NavyDark;
+                var officeTex = Resources.Load<Texture2D>("UI/office_bg");
+                if (officeTex != null)
+                {
+                    floorImg.sprite = Sprite.Create(officeTex, new Rect(0,0,officeTex.width,officeTex.height), new Vector2(0.5f,0.5f));
+                    floorImg.color  = Color.white;
+                    floorImg.type   = Image.Type.Simple;
+                    floorImg.preserveAspect = false;
+                }
+                else floorImg.color = NavyDark;
             }
             floorImg.transform.SetAsFirstSibling();
-
-            // Plants overlay on top (animated sway)
-            if (plantsImg.sprite != null)
-            {
-                plantsImg.transform.SetSiblingIndex(1);
-                StartCoroutine(AnimatePlants(plantsImg.GetComponent<RectTransform>()));
-            }
-            else Destroy(plantsImg.gameObject);
-
-            // Windows overlay on top (animated light pulse)
-            if (windowsImg.sprite != null)
-            {
-                windowsImg.transform.SetSiblingIndex(2);
-                StartCoroutine(AnimateWindows(windowsImg));
-            }
-            else Destroy(windowsImg.gameObject);
 
             // Botão principal circular — camadas empilhadas: ring → glow → borda → face → sheen → label
             var tapGO = new GameObject("TapButton", typeof(RectTransform), typeof(Button));
