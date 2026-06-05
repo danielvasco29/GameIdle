@@ -627,9 +627,9 @@ namespace GameIdle
             var tapGO = new GameObject("TapButton", typeof(RectTransform), typeof(Button));
             tapGO.transform.SetParent(pmGO.transform, false);
             tapButtonRT = tapGO.GetComponent<RectTransform>();
-            tapButtonRT.anchorMin = tapButtonRT.anchorMax = tapButtonRT.pivot = new Vector2(0.5f, 0.5f);
-            tapButtonRT.anchoredPosition = new Vector2(0f, 40f);
-            tapButtonRT.sizeDelta = new Vector2(220f, 220f);
+            tapButtonRT.anchorMin = tapButtonRT.anchorMax = tapButtonRT.pivot = new Vector2(1f, 0f);
+            tapButtonRT.anchoredPosition = new Vector2(-20f, 20f);
+            tapButtonRT.sizeDelta = new Vector2(180f, 180f);
             var tapBtn = tapGO.GetComponent<Button>();
 
             Image AddCircle(string name, Vector2 offMin, Vector2 offMax, Color col, bool ray)
