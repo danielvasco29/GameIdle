@@ -1642,10 +1642,10 @@ namespace GameIdle
             if (next == null)
             {
                 nextUnlockNameText.text = "Equipe completa!";
-                nextUnlockNameText.color = new Color(0.4f, 1f, 0.6f, 1f);
+                nextUnlockNameText.color = new Color(0.55f, 0.88f, 1f, 1f);
                 if (nextUnlockCostText != null) nextUnlockCostText.text = "";
-                if (nextUnlockBar != null) { nextUnlockBar.fillAmount = 1f; nextUnlockBar.color = new Color(0.3f, 0.9f, 0.5f, 1f); }
-                if (_nextUnlockBannerBg != null) _nextUnlockBannerBg.color = new Color(0.05f, 0.16f, 0.10f, 1f);
+                if (nextUnlockBar != null) { nextUnlockBar.fillAmount = 1f; nextUnlockBar.color = new Color(0.35f, 0.75f, 1f, 0.8f); }
+                if (_nextUnlockBannerBg != null) _nextUnlockBannerBg.color = new Color(0.08f, 0.14f, 0.26f, 1f);
                 _nextUnlockWasAffordable = false;
                 return;
             }

@@ -33,7 +33,7 @@ namespace GameIdle
 
         // Navy theme palette
         private static readonly Color CardColor       = new(0.106f, 0.169f, 0.275f, 1f); // #1b2b46
-        private static readonly Color CardColorReady  = new(0.08f, 0.22f, 0.15f, 1f);  // green tint when affordable
+        private static readonly Color CardColorReady  = new(0.10f, 0.20f, 0.36f, 1f);  // brighter navy when affordable
         private static readonly Color GoldColor       = new(1f, 0.808f, 0.227f, 1f);     // #ffce3a
         private static readonly Color GreenColor      = new(0.247f, 0.749f, 0.353f, 1f); // #3fbf5a
         private static readonly Color StarEmpty       = new(0.227f, 0.290f, 0.388f, 1f); // #3a4a63
@@ -435,15 +435,15 @@ namespace GameIdle
 
             if (affordableIndicator != null)
                 affordableIndicator.color = affordable
-                    ? new Color(0.35f, 1f, 0.55f, 1f)
-                    : new Color(GreenColor.r, GreenColor.g, GreenColor.b, 0f);
+                    ? new Color(0.35f, 0.75f, 1f, 1f)   // cyan-blue when affordable
+                    : new Color(0f, 0f, 0f, 0f);         // invisible otherwise
 
             if (costProgressBar != null)
             {
                 float fill = Mathf.Clamp01((float)(GameManager.Instance.Money / buyCost));
                 costProgressBar.fillAmount = fill;
                 costProgressBar.color = affordable
-                    ? new Color(GreenColor.r, GreenColor.g, GreenColor.b, 0.85f)
+                    ? new Color(0.35f, 0.75f, 1f, 0.85f)  // cyan-blue when affordable
                     : new Color(1f, 1f, 1f, 0.15f);
             }
 
@@ -499,7 +499,7 @@ namespace GameIdle
                 while (t < 0.12f)
                 {
                     t += Time.deltaTime;
-                    backgroundImage.color = Color.Lerp(Color.white, CardColor, t / 0.12f);
+                    backgroundImage.color = Color.Lerp(new Color(0.55f, 0.80f, 1f, 1f), CardColorReady, t / 0.12f);
                     yield return null;
                 }
                 backgroundImage.color = CardColor;
