@@ -126,6 +126,7 @@ namespace GameIdle
         private TextMeshProUGUI gemText;
         private GemShopPanel gemShopPanel;
         private SettingsPanel settingsPanel;
+        private CombatUpgradePanel combatUpgradePanel;
 
         // Runtime-generated UI sprites (no dependency on Unity built-in resources)
         private static Sprite Circle()  => UiSpriteFactory.Circle();
@@ -593,6 +594,50 @@ namespace GameIdle
                 UIManager.Instance.ShowToast($"+${NumberFormatter.Format(reward)} recompensa!", new Color(0.25f, 0.9f, 0.35f, 1f));
             };
             cm.OnPlayerDamage += dmg => _monsterView?.PlayHitEffect(dmg);
+
+            // ── UPGRADES button (pill above attack button) ────────────────────
+            var canvas = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
+            if (canvas != null)
+            {
+                // Panel
+                var cupGO = new GameObject("CombatUpgradePanel", typeof(RectTransform));
+                cupGO.transform.SetParent(canvas.transform, false);
+                combatUpgradePanel = cupGO.AddComponent<CombatUpgradePanel>();
+                cupGO.SetActive(false);
+                modalPanels.Add(cupGO);
+
+                // Pill button
+                var upBtnGO = new GameObject("CombatUpgradeButton",
+                    typeof(RectTransform), typeof(Image), typeof(Button));
+                upBtnGO.transform.SetParent(pmGO.transform, false);
+                var upRT = upBtnGO.GetComponent<RectTransform>();
+                upRT.anchorMin = upRT.anchorMax = upRT.pivot = new Vector2(0f, 0f);
+                upRT.anchoredPosition = new Vector2(30f, 200f);
+                upRT.sizeDelta = new Vector2(140f, 36f);
+                var upImg = upBtnGO.GetComponent<Image>();
+                upImg.sprite = Rounded(); upImg.type = Image.Type.Sliced;
+                upImg.color = new Color(0.055f, 0.094f, 0.165f, 0.92f);
+                upBtnGO.GetComponent<Button>().onClick.AddListener(() =>
+                {
+                    if (combatUpgradePanel != null) { CloseAllModals(); combatUpgradePanel.Open(); }
+                });
+                var upLblGO = new GameObject("Label",
+                    typeof(RectTransform), typeof(TextMeshProUGUI));
+                upLblGO.transform.SetParent(upBtnGO.transform, false);
+                var upLRT = upLblGO.GetComponent<RectTransform>();
+                upLRT.anchorMin = Vector2.zero; upLRT.anchorMax = Vector2.one;
+                upLRT.offsetMin = upLRT.offsetMax = Vector2.zero;
+                var upTMP = upLblGO.GetComponent<TextMeshProUGUI>();
+                upTMP.text = "UPGRADES";
+                upTMP.fontSize = 15;
+                upTMP.fontStyle = FontStyles.Bold;
+                upTMP.color = GoldColor;
+                upTMP.alignment = TextAlignmentOptions.Center;
+                upTMP.textWrappingMode = TextWrappingModes.NoWrap;
+                upTMP.overflowMode = TextOverflowModes.Ellipsis;
+                upTMP.raycastTarget = false;
+                var uf = GetCachedFont(); if (uf != null) upTMP.font = uf;
+            }
 
             // Trigger initial wave display (CombatManager.Start may have already fired)
             StartCoroutine(InitCombatDisplay(cm));
