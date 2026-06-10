@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>GameIdle — Combat Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+  body { background: #111; display: flex; justify-content: center; align-items: center; height: 100vh; }
+
+  .phone {
+    width: 390px; height: 780px;
+    background: #0e1628;
+    border-radius: 36px;
+    border: 3px solid #2a3a5c;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 60px #0005;
+  }
+
+  /* Background office */
+  .office-bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, #1a2540 0%, #0d1a2e 60%, #0a1220 100%);
+  }
+  .floor {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 220px;
+    background: linear-gradient(180deg, #1c2f1c 0%, #111f11 100%);
+    border-top: 2px solid #2a4a2a;
+  }
+  .desk {
+    position: absolute; bottom: 140px; left: 40px;
+    width: 90px; height: 45px;
+    background: #3a2a1a; border-radius: 6px;
+    border-top: 3px solid #5a3a1a;
+  }
+  .desk2 {
+    position: absolute; bottom: 140px; left: 155px;
+    width: 90px; height: 45px;
+    background: #3a2a1a; border-radius: 6px;
+    border-top: 3px solid #5a3a1a;
+  }
+
+  /* Top bar */
+  .topbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 72px;
+    background: rgba(14, 24, 42, 0.88);
+    border-bottom: 1px solid rgba(100,140,220,0.15);
+    display: flex; align-items: center; padding: 0 16px; gap: 8px;
+  }
+  .stat-pill {
+    background: rgba(20, 36, 70, 0.95);
+    border: 1px solid rgba(100,140,220,0.2);
+    border-radius: 20px; padding: 5px 12px;
+    color: #fff; font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .stat-pill .icon { font-size: 14px; }
+  .stat-pill .val { color: #3fcc5a; }
+
+  /* Sidebar */
+  .sidebar {
+    position: absolute; top: 72px; left: 0; bottom: 0; width: 120px;
+    background: rgba(14, 24, 42, 0.88);
+    border-right: 1px solid rgba(100,140,220,0.15);
+    padding: 12px 8px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .worker-card {
+    background: rgba(14, 24, 55, 0.85);
+    border: 1px solid rgba(100,140,220,0.2);
+    border-radius: 10px; padding: 8px 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .worker-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+  }
+  .worker-name { color: #a0b4d0; font-size: 9px; font-weight: 700; text-align: center; }
+  .worker-bar { width: 100%; height: 4px; background: #1a2a4a; border-radius: 2px; }
+  .worker-fill { height: 100%; border-radius: 2px; background: #3fcc5a; }
+
+  /* Main area */
+  .main {
+    position: absolute; top: 72px; left: 120px; right: 0; bottom: 80px;
+  }
+
+  /* MONSTER */
+  .monster-container {
+    position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    animation: float 2.5s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%,100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-10px); }
+  }
+
+  .monster-name-tag {
+    background: rgba(180, 40, 40, 0.85);
+    border: 1px solid #ff6060;
+    border-radius: 12px; padding: 3px 14px;
+    color: #fff; font-size: 11px; font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .hp-bar-wrap {
+    width: 160px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #ff4040;
+    border-radius: 8px; height: 14px;
+    overflow: hidden; position: relative;
+  }
+  .hp-bar-fill {
+    width: 62%; height: 100%;
+    background: linear-gradient(90deg, #cc2020, #ff5050);
+    border-radius: 8px;
+    transition: width 0.3s;
+  }
+  .hp-text {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 9px; font-weight: 700;
+  }
+
+  .monster-sprite {
+    width: 110px; height: 110px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; cursor: pointer;
+    filter: drop-shadow(0 0 18px rgba(255,60,60,0.5));
+  }
+  .monster-sprite svg { width: 100%; height: 100%; }
+
+  .monster-sprite:active { transform: scale(0.92); }
+
+  .damage-hint {
+    color: rgba(255,200,60,0.7); font-size: 10px; font-weight: 700;
+    letter-spacing: 1px;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+  /* Floating damage numbers */
+  .dmg-num {
+    position: absolute; top: 20px; left: 50%;
+    color: #ffdd44; font-size: 18px; font-weight: 900;
+    text-shadow: 0 0 8px #ff8800;
+    animation: floatUp 0.8s ease-out forwards;
+    pointer-events: none;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -50px); }
+  }
+
+  /* Bottom bar */
+  .bottombar {
+    position: absolute; bottom: 0; left: 120px; right: 0; height: 80px;
+    background: rgba(14, 24, 42, 0.92);
+    border-top: 1px solid rgba(100,140,220,0.15);
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+  }
+
+  .tap-btn {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: linear-gradient(145deg, #3fcc5a, #2a9940);
+    border: 3px solid #5aee70;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; box-shadow: 0 0 20px rgba(63,204,90,0.4);
+    font-size: 10px; color: #fff; font-weight: 900; text-align: center;
+    line-height: 1.2;
+    transition: transform 0.1s;
+  }
+  .tap-btn:active { transform: scale(0.9); }
+
+  .atk-btn {
+    width: 54px; height: 54px; border-radius: 50%;
+    background: linear-gradient(145deg, #cc3030, #992020);
+    border: 3px solid #ff5050;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; box-shadow: 0 0 20px rgba(200,40,40,0.4);
+    font-size: 9px; color: #fff; font-weight: 900; text-align: center;
+    line-height: 1.2;
+  }
+
+  .skip-btn {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: rgba(40, 50, 80, 0.8);
+    border: 2px solid rgba(100,140,220,0.3);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 8px; color: #a0b0c8; font-weight: 700; text-align: center;
+    line-height: 1.2;
+  }
+
+  /* Reward popup (shown after kill) */
+  .reward-popup {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(14,24,42,0.97);
+    border: 2px solid #ffd04a;
+    border-radius: 16px; padding: 20px 28px;
+    text-align: center; display: none;
+    box-shadow: 0 0 40px rgba(255,200,60,0.3);
+    z-index: 10;
+  }
+  .reward-popup h2 { color: #ffd04a; font-size: 15px; margin-bottom: 8px; }
+  .reward-popup .amount { color: #3fcc5a; font-size: 28px; font-weight: 900; }
+  .reward-popup .sub { color: #a0b4d0; font-size: 11px; margin-top: 4px; }
+  .reward-popup .close-btn {
+    margin-top: 14px; background: #3fcc5a; border: none; border-radius: 20px;
+    color: #fff; font-weight: 900; font-size: 13px; padding: 8px 28px;
+    cursor: pointer;
+  }
+
+  /* Wave indicator */
+  .wave-badge {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(20,36,70,0.9); border: 1px solid rgba(100,140,220,0.3);
+    border-radius: 10px; padding: 3px 10px;
+    color: #7090c0; font-size: 10px; font-weight: 700;
+  }
+
+  /* Legend */
+  .legend {
+    position: absolute; bottom: -110px; left: 0; right: 0;
+    color: #7090c0; font-size: 11px; text-align: center; line-height: 1.8;
+  }
+  .legend b { color: #ffd04a; }
+</style>
+</head>
+<body>
+
+<div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+<div class="phone" id="phone">
+  <div class="office-bg"></div>
+  <div class="floor">
+    <div class="desk"></div>
+    <div class="desk2"></div>
+  </div>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="stat-pill"><span class="icon">$</span><span class="val" id="money">4.2k</span></div>
+    <div class="stat-pill"><span class="icon">⚡</span><span class="val">x3.1</span></div>
+    <div class="stat-pill" style="margin-left:auto; background:rgba(80,20,20,0.8); border-color:rgba(255,80,80,0.3);">
+      <span style="color:#ff6060;">WAVE</span><span class="val" style="color:#ff9090;">7</span>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div style="color:#ffd04a; font-size:8px; font-weight:900; text-align:center; letter-spacing:1px; padding-bottom:4px;">EQUIPE</div>
+    <div class="worker-card">
+      <div class="worker-avatar">👩‍💼</div>
+      <div class="worker-name">CEO</div>
+      <div class="worker-bar"><div class="worker-fill" style="width:100%"></div></div>
+    </div>
+    <div class="worker-card">
+      <div class="worker-avatar">💻</div>
+      <div class="worker-name">DEV</div>
+      <div class="worker-bar"><div class="worker-fill" style="width:70%"></div></div>
+    </div>
+    <div class="worker-card" style="opacity:0.5">
+      <div class="worker-avatar" style="font-size:16px;">🔒</div>
+      <div class="worker-name">DESIGN</div>
+      <div class="worker-bar"><div class="worker-fill" style="width:30%"></div></div>
+    </div>
+  </div>
+
+  <!-- Main area -->
+  <div class="main" id="main">
+    <div class="wave-badge">ONDA 7 / 10</div>
+
+    <!-- Monster -->
+    <div class="monster-container" id="monsterArea">
+      <div class="monster-name-tag">BUG GIGANTE</div>
+      <div class="hp-bar-wrap">
+        <div class="hp-bar-fill" id="hpBar"></div>
+        <div class="hp-text" id="hpText">620 / 1000</div>
+      </div>
+      <div class="monster-sprite" id="monsterSprite" onclick="hitMonster()">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- Body -->
+          <ellipse cx="50" cy="58" rx="28" ry="22" fill="#1a0a2e"/>
+          <ellipse cx="50" cy="56" rx="26" ry="20" fill="#2d1060"/>
+          <!-- Eyes glow -->
+          <circle cx="40" cy="50" r="7" fill="#1a0a2e"/>
+          <circle cx="60" cy="50" r="7" fill="#1a0a2e"/>
+          <circle cx="40" cy="50" r="5" fill="#ff3030"/>
+          <circle cx="60" cy="50" r="5" fill="#ff3030"/>
+          <circle cx="41" cy="49" r="2" fill="#ff8080"/>
+          <circle cx="61" cy="49" r="2" fill="#ff8080"/>
+          <!-- Mouth -->
+          <path d="M42 65 Q50 72 58 65" stroke="#ff5050" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <!-- Fangs -->
+          <polygon points="44,65 42,72 47,65" fill="#fff" opacity="0.8"/>
+          <polygon points="56,65 58,72 53,65" fill="#fff" opacity="0.8"/>
+          <!-- Legs -->
+          <line x1="30" y1="70" x2="18" y2="84" stroke="#2d1060" stroke-width="5" stroke-linecap="round"/>
+          <line x1="36" y1="75" x2="28" y2="90" stroke="#2d1060" stroke-width="5" stroke-linecap="round"/>
+          <line x1="64" y1="75" x2="72" y2="90" stroke="#2d1060" stroke-width="5" stroke-linecap="round"/>
+          <line x1="70" y1="70" x2="82" y2="84" stroke="#2d1060" stroke-width="5" stroke-linecap="round"/>
+          <!-- Antennae -->
+          <line x1="42" y1="36" x2="34" y2="20" stroke="#2d1060" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="34" cy="19" r="4" fill="#ff3030"/>
+          <line x1="58" y1="36" x2="66" y2="20" stroke="#2d1060" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="66" cy="19" r="4" fill="#ff3030"/>
+        </svg>
+      </div>
+      <div class="damage-hint">TOQUE PARA ATACAR!</div>
+    </div>
+
+    <!-- Reward popup -->
+    <div class="reward-popup" id="rewardPopup">
+      <h2>MONSTRO DERROTADO!</h2>
+      <div class="amount">+$2.500</div>
+      <div class="sub">BUG GIGANTE eliminado</div>
+      <div class="sub" style="margin-top:6px; color:#ffd04a;">Proxima onda em 3s...</div>
+      <button class="close-btn" onclick="closeReward()">COLETAR</button>
+    </div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="bottombar">
+    <div class="skip-btn" onclick="skipMonster()" title="Pular monstro">FUGIR</div>
+    <div class="tap-btn" onclick="hitMonster()">TRABA<br>LHAR</div>
+    <div class="atk-btn" onclick="hitMonster()">ATA<br>CAR!</div>
+  </div>
+</div>
+
+<div class="legend">
+  <b>Verde</b> = Trabalhar (renda normal) &nbsp;|&nbsp; <b>Vermelho</b> = Atacar monstro &nbsp;|&nbsp; <b>Fugir</b> = pular onda<br>
+  Workers atacam automaticamente. Matar = bonus de $. Onda 10 = boss.
+</div>
+</div>
+
+<script>
+let hp = 620, maxHp = 1000;
+
+function hitMonster() {
+  const dmg = Math.floor(Math.random() * 80 + 40);
+  hp = Math.max(0, hp - dmg);
+  updateHp();
+
+  // Spawn floating damage number
+  const main = document.getElementById('main');
+  const num = document.createElement('div');
+  num.className = 'dmg-num';
+  num.textContent = '-' + dmg;
+  num.style.left = (Math.random() * 60 + 30) + '%';
+  num.style.top = (Math.random() * 30 + 20) + '%';
+  main.appendChild(num);
+  setTimeout(() => num.remove(), 800);
+
+  // Shake monster
+  const s = document.getElementById('monsterSprite');
+  s.style.transform = 'scale(0.9) rotate(-5deg)';
+  setTimeout(() => s.style.transform = '', 150);
+
+  if (hp <= 0) {
+    setTimeout(() => {
+      document.getElementById('rewardPopup').style.display = 'block';
+      document.getElementById('monsterArea').style.opacity = '0';
+    }, 300);
+  }
+}
+
+function updateHp() {
+  const pct = (hp / maxHp * 100) + '%';
+  document.getElementById('hpBar').style.width = pct;
+  document.getElementById('hpText').textContent = hp + ' / ' + maxHp;
+}
+
+function closeReward() {
+  hp = 1000; maxHp = 1200;
+  updateHp();
+  document.getElementById('rewardPopup').style.display = 'none';
+  document.getElementById('monsterArea').style.opacity = '1';
+  // Update money display
+  document.getElementById('money').textContent = '6.7k';
+}
+
+function skipMonster() {
+  document.getElementById('monsterArea').style.opacity = '0.3';
+  setTimeout(() => {
+    document.getElementById('monsterArea').style.opacity = '1';
+    hp = 1000; maxHp = 1000; updateHp();
+  }, 800);
+}
+
+// Auto-attack from workers
+setInterval(() => {
+  if (hp > 0 && document.getElementById('rewardPopup').style.display !== 'block') {
+    const dmg = Math.floor(Math.random() * 20 + 8);
+    hp = Math.max(0, hp - dmg);
+    updateHp();
+    if (hp <= 0) {
+      setTimeout(() => {
+        document.getElementById('rewardPopup').style.display = 'block';
+        document.getElementById('monsterArea').style.opacity = '0';
+      }, 300);
+    }
+  }
+}, 2000);
+</script>
+</body>
+</html>
