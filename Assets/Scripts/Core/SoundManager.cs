@@ -40,6 +40,7 @@ namespace GameIdle
         private AudioClip clickClip, buyClip, prestigeClip, errorClip, coinClip;
         private AudioClip typingClip;
         private AudioClip[] chatterClips;
+        private AudioClip hitClip, deathClip, bossRoarClip;
 
         private void Awake()
         {
@@ -74,6 +75,9 @@ namespace GameIdle
             ambientSrc.spatialBlend = 0f;
             typingClip   = MakeTyping();
             chatterClips = new[] { MakeChatter(0), MakeChatter(1), MakeChatter(2) };
+            hitClip      = MakeHit();
+            deathClip    = MakeDeath();
+            bossRoarClip = MakeBossRoar();
             StartCoroutine(AmbientLoop());
         }
 
@@ -114,6 +118,9 @@ namespace GameIdle
         public void PlayBuy()      => PlayClip(buyClip,      Random.Range(0.98f, 1.03f), 0.35f);
         public void PlayPrestige() => PlayClip(prestigeClip, 1f, 0.70f);
         public void PlayError()    => PlayClip(errorClip,    1f, 0.50f);
+        public void PlayHit()      => PlayClip(hitClip,      Random.Range(0.88f, 1.12f), 0.55f);
+        public void PlayDeath()    => PlayClip(deathClip,    Random.Range(0.92f, 1.05f), 0.65f);
+        public void PlayBossRoar() => PlayClip(bossRoarClip, 1f, 0.75f);
 
         // ── Synthesis helpers ────────────────────────────────────────────────
 
@@ -448,6 +455,151 @@ namespace GameIdle
             }
 
             return Make("music", buf);
+        }
+
+        // ── Combat sound effects ─────────────────────────────────────────────────
+
+        // Sharp sword/punch impact: brief descending noise burst (swoosh attack)
+        // layered with a low sine thud that decays fast. Total ~60 ms.
+        private AudioClip MakeHit()
+        {
+            int n = Rate * 6 / 100; // 60 ms
+            var data = new float[n];
+            float lp = 0f;
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / Rate;
+
+                // Descending noise swoosh: noise filtered to mid-freq, pitch-swept down
+                float raw = Random.value * 2f - 1f;
+                lp = Mathf.Lerp(lp, raw, 0.35f);                     // bandpass-ish low cutoff
+                float swooshEnv = Mathf.Exp(-t * 55f);
+                float swoosh = lp * swooshEnv;
+
+                // Low thud body: sine at ~80 Hz with fast pitch droop (impact "weight")
+                float droopFreq = 80f * Mathf.Exp(-t * 28f);         // freq glides down quickly
+                float phase = 0f;
+                // accumulate phase inline via a small look-around isn't practical;
+                // approximate the swept sine with a fixed-freq body + modulated decay
+                float thud = Mathf.Sin(2f * Mathf.PI * droopFreq * t) * Mathf.Exp(-t * 38f);
+
+                data[i] = swoosh * 0.55f + thud * 0.65f;
+            }
+
+            // Re-integrate phase properly for the thud so the pitch sweep is smooth
+            float ph = 0f;
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / Rate;
+                float droopFreq = 80f * Mathf.Exp(-t * 28f);
+                ph += droopFreq / Rate;
+                float thud = Mathf.Sin(2f * Mathf.PI * ph) * Mathf.Exp(-t * 38f);
+                // Blend into already-written data: replace the thud portion
+                data[i] = (data[i] - Mathf.Sin(2f * Mathf.PI * droopFreq * t) * Mathf.Exp(-t * 38f) * 0.65f)
+                          + thud * 0.65f;
+            }
+
+            return Make("hit", data);
+        }
+
+        // Monster death: cartoon "explosion dissolve" ~300 ms.
+        // Initial noise burst, then three sine partials with fast descending pitch
+        // glide that fade out — like a cartoon monster popping.
+        private AudioClip MakeDeath()
+        {
+            int n = Rate * 30 / 100; // 300 ms
+            var data = new float[n];
+
+            // Opening noise burst (first ~25 ms): filtered mid-noise "splat"
+            float lp = 0f;
+            int burstLen = Rate * 25 / 1000;
+            for (int i = 0; i < burstLen; i++)
+            {
+                float t = (float)i / Rate;
+                float raw = Random.value * 2f - 1f;
+                lp = Mathf.Lerp(lp, raw, 0.4f);
+                data[i] += lp * Mathf.Exp(-t * 70f) * 0.75f;
+            }
+
+            // Three descending pitch-glide partials with staggered start/volume
+            // partial 0: root ~320 Hz → drops fast, dominant body
+            // partial 1: a fifth above ~480 Hz → slightly slower drop
+            // partial 2: two octaves up ~640 Hz → fastest drop, adds "cartoony" top
+            float[] startFreqs = { 320f, 480f, 640f };
+            float[] glideRates  = { 18f,  14f,  22f  };
+            float[] vols        = { 0.60f, 0.45f, 0.30f };
+            int[]   offsets     = { 0, Rate * 2 / 1000, Rate * 5 / 1000 }; // slight stagger
+
+            for (int p = 0; p < 3; p++)
+            {
+                float ph = 0f;
+                int start = offsets[p];
+                for (int i = start; i < n; i++)
+                {
+                    float t = (float)(i - start) / Rate;
+                    float freq = startFreqs[p] * Mathf.Exp(-t * glideRates[p]);
+                    ph += freq / Rate;
+                    float env = Mathf.Exp(-t * 12f);
+                    if (env < 0.0006f) break;
+                    data[i] += Mathf.Sin(2f * Mathf.PI * ph) * env * vols[p];
+                }
+            }
+
+            // Normalise
+            float peak = 0f;
+            for (int i = 0; i < n; i++) peak = Mathf.Max(peak, Mathf.Abs(data[i]));
+            if (peak > 0.0001f) { float g = 0.9f / peak; for (int i = 0; i < n; i++) data[i] *= g; }
+
+            return Make("death", data);
+        }
+
+        // Boss wave announcement: ~500 ms deep rumble with harmonics.
+        // Starts at ~60 Hz, builds slightly then decays. Layered odd harmonics
+        // (3rd, 5th) give it a powerful, ominous character.
+        private AudioClip MakeBossRoar()
+        {
+            int n = Rate * 50 / 100; // 500 ms
+            var data = new float[n];
+
+            const float baseFreq = 62f;   // just below a low C — heavy and ominous
+
+            // Main sub-bass tone with slow build then decay envelope
+            float ph1 = 0f, ph3 = 0f, ph5 = 0f;
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / Rate;
+                float dur = (float)n / Rate;
+
+                // Envelope: ramp up over first ~80 ms, hold briefly, then decay
+                float attack = Mathf.Min(t / 0.08f, 1f);
+                float release = Mathf.Exp(-Mathf.Max(t - 0.15f, 0f) * 7.5f);
+                float env = attack * release;
+                if (t > 0.1f && env < 0.0006f) break;
+
+                // Slight pitch sag: starts a semitone high, settles to baseFreq
+                float freq = baseFreq * Mathf.Lerp(1.059f, 1f, Mathf.Min(t / 0.12f, 1f));
+
+                ph1 += freq / Rate;
+                ph3 += (freq * 3f) / Rate;
+                ph5 += (freq * 5f) / Rate;
+
+                // Fundamental + 3rd harmonic + muted 5th — odd harmonics = hollow power
+                float tone = Mathf.Sin(2f * Mathf.PI * ph1) * 0.70f
+                           + Mathf.Sin(2f * Mathf.PI * ph3) * 0.35f
+                           + Mathf.Sin(2f * Mathf.PI * ph5) * 0.15f;
+
+                // Low-level noise modulation for "breath/growl" texture
+                float growl = (Random.value * 2f - 1f) * 0.08f;
+
+                data[i] = (tone + growl) * env;
+            }
+
+            // Normalise
+            float peak = 0f;
+            for (int i = 0; i < n; i++) peak = Mathf.Max(peak, Mathf.Abs(data[i]));
+            if (peak > 0.0001f) { float g = 0.92f / peak; for (int i = 0; i < n; i++) data[i] *= g; }
+
+            return Make("bossRoar", data);
         }
 
         private static AudioClip Make(string name, float[] data)

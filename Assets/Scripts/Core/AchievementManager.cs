@@ -24,6 +24,11 @@ namespace GameIdle
             new() { id = "hire_10",       name = "Equipe Formada",        description = "Contratou 10 funcionários no total.",  gemReward = 10 },
             new() { id = "hire_50",       name = "Empresa Crescendo",     description = "Contratou 50 funcionários no total.",  gemReward = 30 },
             new() { id = "turbo_10",      name = "Velocidade Máxima",     description = "Usou o Turbo 10 vezes.",               gemReward = 15 },
+            new() { id = "kill_10",    name = "Exterminador",    description = "Derrotou 10 monstros.",      gemReward = 8  },
+            new() { id = "kill_100",   name = "Caçador",         description = "Derrotou 100 monstros.",     gemReward = 20 },
+            new() { id = "kill_1000",  name = "Limpador de Bug", description = "Derrotou 1000 monstros.",    gemReward = 50 },
+            new() { id = "boss_1",     name = "Mata-Dragão",     description = "Derrotou o Deadline Dragon pela primeira vez.", gemReward = 15 },
+            new() { id = "boss_10",    name = "Lenda do Combate",description = "Derrotou 10 bosses.",        gemReward = 40 },
         };
 
         private static readonly HashSet<string> _unlocked = new();
@@ -70,6 +75,11 @@ namespace GameIdle
             if (gm.LifetimePrestigeCount >= 1)  TryUnlock("prestige_1");
             if (gm.LifetimePrestigeCount >= 5)  TryUnlock("prestige_5");
             if (gm.LifetimePrestigeCount >= 10) TryUnlock("prestige_10");
+            if (gm.LifetimeKillCount     >= 10)   TryUnlock("kill_10");
+            if (gm.LifetimeKillCount     >= 100)  TryUnlock("kill_100");
+            if (gm.LifetimeKillCount     >= 1000) TryUnlock("kill_1000");
+            if (gm.LifetimeBossKillCount >= 1)    TryUnlock("boss_1");
+            if (gm.LifetimeBossKillCount >= 10)   TryUnlock("boss_10");
         }
 
         public static void Load(List<string> saved)

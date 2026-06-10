@@ -35,6 +35,10 @@ namespace GameIdle
         public int lifetimeTapCount;
         public int lifetimePrestigeCount;
         public int lifetimeHireCount;
+        public int lifetimeKillCount;
+        public int lifetimeBossKillCount;
+        public int combatWave;
+        public int combatCycle;
     }
 
     [Serializable]

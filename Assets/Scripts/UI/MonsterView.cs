@@ -159,7 +159,20 @@ namespace GameIdle
 
         public void SetMonster(CombatManager.MonsterDef def, int wave)
         {
-            if (_nameText != null) _nameText.text = def.displayName;
+            bool isBoss = def.type == CombatManager.MonsterType.Boss;
+
+            if (_nameText != null)
+            {
+                _nameText.text = def.displayName;
+                // Boss gets gold name
+                _nameText.color = isBoss ? GoldColor : Color.white;
+                // Boss name tag background goes dark-gold
+                var nameBg = transform.Find("NameBg")?.GetComponent<Image>();
+                if (nameBg != null)
+                    nameBg.color = isBoss
+                        ? new Color(0.35f, 0.18f, 0.02f, 0.88f)
+                        : new Color(0.5f, 0.05f, 0.05f, 0.82f);
+            }
             UpdateWave(wave);
 
             // Load sprite
@@ -170,6 +183,8 @@ namespace GameIdle
                 _spriteImg.sprite = Sprite.Create(tex,
                     new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
                 _spriteImg.color = Color.white;
+                // Boss sprite slightly larger
+                _spriteImg.rectTransform.sizeDelta = isBoss ? new Vector2(240f, 240f) : new Vector2(200f, 200f);
             }
 
             // Reset death overlay
@@ -181,6 +196,54 @@ namespace GameIdle
             }
 
             _floatPhase = 0f;
+
+            // Boss entrance flash
+            if (isBoss) StartCoroutine(BossEntrance());
+        }
+
+        private IEnumerator BossEntrance()
+        {
+            // Screen flash + scale punch
+            if (_spriteImg != null)
+            {
+                _spriteImg.transform.localScale = new Vector3(1.4f, 1.4f, 1f);
+                _spriteImg.color = GoldColor;
+            }
+            yield return new WaitForSeconds(0.12f);
+            float t = 0f;
+            while (t < 0.3f)
+            {
+                t += Time.deltaTime;
+                float p = t / 0.3f;
+                if (_spriteImg != null)
+                {
+                    float s = Mathf.Lerp(1.4f, 1f, p);
+                    _spriteImg.transform.localScale = new Vector3(s, s, 1f);
+                    _spriteImg.color = Color.Lerp(GoldColor, Color.white, p);
+                }
+                yield return null;
+            }
+            if (_spriteImg != null)
+            {
+                _spriteImg.transform.localScale = Vector3.one;
+                _spriteImg.color = Color.white;
+            }
+
+            // "BOSS!" warning text
+            var go = new GameObject("BossWarn", typeof(RectTransform), typeof(TextMeshProUGUI));
+            go.transform.SetParent(transform, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(300f, 70f);
+            rt.anchoredPosition = new Vector2(0f, 220f);
+            var tmp = go.GetComponent<TextMeshProUGUI>();
+            tmp.text = "!! BOSS !!";
+            tmp.fontSize = 36f; tmp.fontStyle = FontStyles.Bold;
+            tmp.color = GoldColor; tmp.alignment = TextAlignmentOptions.Center;
+            tmp.raycastTarget = false;
+            var f = TMP_Settings.defaultFontAsset; if (f != null) tmp.font = f;
+            StartCoroutine(FloatUpAndFade(go, tmp, 1.8f));
         }
 
         public void UpdateHp(double current, double max)
@@ -198,8 +261,10 @@ namespace GameIdle
 
         public void UpdateWave(int wave)
         {
-            if (_waveText != null)
-                _waveText.text = $"ONDA {wave} / 10";
+            if (_waveText == null) return;
+            bool isBoss = wave == 10;
+            _waveText.text  = isBoss ? "!! ONDA 10 - BOSS !!" : $"ONDA {wave} / 10";
+            _waveText.color = isBoss ? GoldColor : new Color(0.7f, 0.8f, 1f, 0.9f);
         }
 
         public void PlayHitEffect(double dmg)

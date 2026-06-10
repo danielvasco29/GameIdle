@@ -19,10 +19,11 @@ namespace GameIdle
             new() { id = "taps",    name = "Trabalhar 50 vezes",      target = 50,  gemReward = 5  },
             new() { id = "hires",   name = "Contratar 5 funcionários", target = 5,   gemReward = 8  },
             new() { id = "prestige",name = "Realizar 1 prestígio",     target = 1,   gemReward = 20 },
+            new() { id = "kills", name = "Derrotar 5 monstros", target = 5, gemReward = 6 },
         };
 
-        private static readonly int[] _progress = new int[3];
-        private static readonly bool[] _claimed  = new bool[3];
+        private static readonly int[] _progress = new int[4];
+        private static readonly bool[] _claimed  = new bool[4];
         private static string _lastDate = "";
 
         public static string LastMissionDate => _lastDate;
@@ -65,6 +66,12 @@ namespace GameIdle
         {
             if (_claimed[2]) return;
             _progress[2] = Mathf.Min(_progress[2] + 1, All[2].target);
+        }
+
+        public static void RegisterKill()
+        {
+            if (_claimed[3]) return;
+            _progress[3] = Mathf.Min(_progress[3] + 1, All[3].target);
         }
 
         public static bool TryClaim(int i)

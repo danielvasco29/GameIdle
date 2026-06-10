@@ -32,6 +32,7 @@ namespace GameIdle
         public event Action OnPrestige;
         public event Action OnTap;
         public event Action OnHire;
+        public event System.Action<bool> OnKill;
 
         private void Awake()
         {
@@ -240,12 +241,21 @@ namespace GameIdle
         }
 
         // Lifetime counters (persisted)
-        public int LifetimeTapCount     { get; private set; }
+        public int LifetimeTapCount      { get; private set; }
         public int LifetimePrestigeCount { get; private set; }
-        public int LifetimeHireCount    { get; private set; }
+        public int LifetimeHireCount     { get; private set; }
+        public int LifetimeKillCount     { get; private set; }
+        public int LifetimeBossKillCount { get; private set; }
 
         public void IncrementTapCount()  { LifetimeTapCount++;     OnTap?.Invoke(); }
         public void IncrementHireCount() { LifetimeHireCount++;    OnHire?.Invoke(); }
+
+        public void RegisterKill(bool isBoss)
+        {
+            LifetimeKillCount++;
+            if (isBoss) LifetimeBossKillCount++;
+            OnKill?.Invoke(isBoss);
+        }
 
         public void ApplySaveData(SaveData data)
         {
@@ -259,6 +269,8 @@ namespace GameIdle
             LifetimeTapCount      = data.lifetimeTapCount;
             LifetimePrestigeCount = data.lifetimePrestigeCount;
             LifetimeHireCount     = data.lifetimeHireCount;
+            LifetimeKillCount     = data.lifetimeKillCount;
+            LifetimeBossKillCount = data.lifetimeBossKillCount;
             AchievementManager.Load(data.unlockedAchievements);
             DailyMissionSystem.Load(data.lastMissionDate, data.missionProgress, data.missionClaimed);
         }
@@ -283,6 +295,8 @@ namespace GameIdle
                 lifetimeTapCount      = LifetimeTapCount,
                 lifetimePrestigeCount = LifetimePrestigeCount,
                 lifetimeHireCount     = LifetimeHireCount,
+                lifetimeKillCount     = LifetimeKillCount,
+                lifetimeBossKillCount = LifetimeBossKillCount,
             };
         }
 
