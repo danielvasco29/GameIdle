@@ -175,11 +175,14 @@ namespace GameIdle
             }
             UpdateWave(wave);
 
-            // Load sprite
-            var tex = Resources.Load<Texture2D>(def.spritePath);
-            if (tex != null && _spriteImg != null)
+            // Load sprite — monster PNGs already have real alpha, no need for
+            // background remover. Load into a readable texture to preserve transparency.
+            var srcTex = Resources.Load<Texture2D>(def.spritePath);
+            if (srcTex != null && _spriteImg != null)
             {
-                tex = SpriteBackgroundRemover.Process(tex);
+                // Re-bake into a readable RGBA32 texture so alpha is preserved
+                var tex = new Texture2D(srcTex.width, srcTex.height, TextureFormat.RGBA32, false);
+                Graphics.CopyTexture(srcTex, tex);
                 _spriteImg.sprite = Sprite.Create(tex,
                     new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
                 _spriteImg.color = Color.white;

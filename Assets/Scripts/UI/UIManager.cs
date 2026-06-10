@@ -97,8 +97,7 @@ namespace GameIdle
         private OfficeWorkerManager _workerManager;
 
         // Combat
-        private MonsterView _monsterView;
-        private Image       _attackBtnImg;
+        private Image           _attackBtnImg;
         private TextMeshProUGUI _attackBtnText;
 
         // Próximo desbloqueio
@@ -513,31 +512,46 @@ namespace GameIdle
 
         // ── Combat ────────────────────────────────────────────────────────────
 
+        private BattlePanel _battlePanel;
+
         private void SetupCombat(GameObject pmGO)
         {
-            // Monster view — occupies upper-left area of Panel_Main
-            var mvGO = new GameObject("MonsterView", typeof(RectTransform));
-            mvGO.transform.SetParent(pmGO.transform, false);
-            var mvRT = mvGO.GetComponent<RectTransform>();
-            mvRT.anchorMin = new Vector2(0f, 0.3f);
-            mvRT.anchorMax = new Vector2(0.6f, 1f);
-            mvRT.offsetMin = mvRT.offsetMax = Vector2.zero;
-            _monsterView = mvGO.AddComponent<MonsterView>();
+            var canvas = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
+            if (canvas == null) return;
 
-            // ATACAR button — bottom-left, mirrors the TRABALHAR button
-            var atkGO = new GameObject("AttackButton", typeof(RectTransform), typeof(Button));
-            atkGO.transform.SetParent(pmGO.transform, false);
-            var atkRT = atkGO.GetComponent<RectTransform>();
-            atkRT.anchorMin = atkRT.anchorMax = atkRT.pivot = new Vector2(0f, 0f);
-            atkRT.anchoredPosition = new Vector2(30f, 30f);
-            atkRT.sizeDelta = new Vector2(160f, 160f);
-            var atkBtn = atkGO.GetComponent<Button>();
+            // ── CombatManager ─────────────────────────────────────────────
+            var cm = FindFirstObjectByType<CombatManager>();
+            if (cm == null)
+            {
+                var cmGO = new GameObject("CombatManager");
+                cm = cmGO.AddComponent<CombatManager>();
+            }
 
-            // Red ring
-            Image AddAtkCircle(string name, Vector2 offMin, Vector2 offMax, Color col, bool ray)
+            // ── BattlePanel (full-screen, above everything) ───────────────
+            var bpGO = new GameObject("BattlePanel", typeof(RectTransform));
+            bpGO.transform.SetParent(canvas.transform, false);
+            _battlePanel = bpGO.AddComponent<BattlePanel>();
+            modalPanels.Add(bpGO);
+            _battlePanel.SubscribeToCombat(cm);
+
+            // ── CombatUpgradePanel ────────────────────────────────────────
+            var cupGO = new GameObject("CombatUpgradePanel", typeof(RectTransform));
+            cupGO.transform.SetParent(canvas.transform, false);
+            combatUpgradePanel = cupGO.AddComponent<CombatUpgradePanel>();
+            modalPanels.Add(cupGO);
+
+            // ── BATALHAR button — red circle, bottom-left of Panel_Main ──
+            var batGO = new GameObject("BattleButton", typeof(RectTransform), typeof(Button));
+            batGO.transform.SetParent(pmGO.transform, false);
+            var batRT = batGO.GetComponent<RectTransform>();
+            batRT.anchorMin = batRT.anchorMax = batRT.pivot = new Vector2(0f, 0f);
+            batRT.anchoredPosition = new Vector2(30f, 30f);
+            batRT.sizeDelta = new Vector2(160f, 160f);
+
+            Image AddBatCircle(string name, Vector2 offMin, Vector2 offMax, Color col, bool ray)
             {
                 var go = new GameObject(name, typeof(RectTransform), typeof(Image));
-                go.transform.SetParent(atkGO.transform, false);
+                go.transform.SetParent(batGO.transform, false);
                 var rt = go.GetComponent<RectTransform>();
                 rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
                 rt.offsetMin = offMin; rt.offsetMax = offMax;
@@ -547,21 +561,19 @@ namespace GameIdle
                 return im;
             }
 
-            var redGlow = new Color(0.85f, 0.15f, 0.15f, 0.22f);
-            var redMain = new Color(0.80f, 0.12f, 0.12f, 1f);
-            AddAtkCircle("Ring",   new Vector2(-24f, -24f), new Vector2(24f, 24f),  redGlow, false);
-            AddAtkCircle("Glow",   new Vector2(-14f, -14f), new Vector2(14f, 14f),  new Color(0.85f, 0.15f, 0.15f, 0.28f), false);
-            AddAtkCircle("Border", new Vector2(-2f,  -2f),  new Vector2(2f,  2f),   new Color(0.40f, 0.05f, 0.05f, 1f), false);
-            _attackBtnImg = AddAtkCircle("Face", Vector2.zero, Vector2.zero, redMain, true);
-            atkBtn.targetGraphic = _attackBtnImg;
+            AddBatCircle("Ring",   new Vector2(-24f,-24f), new Vector2(24f,24f),  new Color(0.85f,0.15f,0.15f,0.22f), false);
+            AddBatCircle("Glow",   new Vector2(-14f,-14f), new Vector2(14f,14f),  new Color(0.85f,0.15f,0.15f,0.28f), false);
+            AddBatCircle("Border", new Vector2( -2f, -2f), new Vector2( 2f, 2f),  new Color(0.40f,0.05f,0.05f,1f),   false);
+            _attackBtnImg = AddBatCircle("Face", Vector2.zero, Vector2.zero, new Color(0.80f,0.12f,0.12f,1f), true);
+            batGO.GetComponent<Button>().targetGraphic = _attackBtnImg;
 
             var lblGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            lblGO.transform.SetParent(atkGO.transform, false);
+            lblGO.transform.SetParent(batGO.transform, false);
             var lRT = lblGO.GetComponent<RectTransform>();
             lRT.anchorMin = Vector2.zero; lRT.anchorMax = Vector2.one;
-            lRT.offsetMin = new Vector2(6f, 6f); lRT.offsetMax = new Vector2(-6f, -6f);
+            lRT.offsetMin = new Vector2(6f,6f); lRT.offsetMax = new Vector2(-6f,-6f);
             _attackBtnText = lblGO.GetComponent<TextMeshProUGUI>();
-            _attackBtnText.text = "<size=22><b>ATACAR!</b></size>\n<size=11><color=#ffaaaa>toque p/ dano</color></size>";
+            _attackBtnText.text = "<size=18><b>BATALHAR</b></size>\n<size=11><color=#ffaaaa>entrar na arena</color></size>";
             _attackBtnText.fontStyle = FontStyles.Bold;
             _attackBtnText.color = Color.white;
             _attackBtnText.alignment = TextAlignmentOptions.Center;
@@ -569,88 +581,15 @@ namespace GameIdle
             _attackBtnText.raycastTarget = false;
             var lf = GetCachedFont(); if (lf != null) _attackBtnText.font = lf;
 
-            atkBtn.onClick.AddListener(() => {
-                CombatManager.Instance?.PlayerAttack();
-                if (tapButtonRT != null && !_tapPunching) StartCoroutine(PunchScale(atkRT, 0.10f));
+            batGO.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                CloseAllModals();
+                _battlePanel?.Open();
             });
 
-            // HoldButton so holding ATACAR spams attacks
-            var hold = atkGO.AddComponent<HoldButton>();
-            hold.Init(() => CombatManager.Instance?.PlayerAttack());
-
-            // Wire CombatManager events (CombatManager.Start may have already fired — find it)
-            var cm = FindFirstObjectByType<CombatManager>();
-            if (cm == null)
-            {
-                var cmGO = new GameObject("CombatManager");
-                cm = cmGO.AddComponent<CombatManager>();
-            }
-            cm.OnWaveStarted  += def => { _monsterView?.SetMonster(def, cm.Wave); };
-            cm.OnHpChanged    += (hp, max) => { _monsterView?.UpdateHp(hp, max); };
-            cm.OnMonsterDied  += reward =>
-            {
-                _monsterView?.PlayDeathEffect();
-                _monsterView?.ShowBetweenWaves(reward);
-                UIManager.Instance.ShowToast($"+${NumberFormatter.Format(reward)} recompensa!", new Color(0.25f, 0.9f, 0.35f, 1f));
-            };
-            cm.OnPlayerDamage += dmg => _monsterView?.PlayHitEffect(dmg);
-
-            // ── UPGRADES button (pill above attack button) ────────────────────
-            var canvas = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
-            if (canvas != null)
-            {
-                // Panel
-                var cupGO = new GameObject("CombatUpgradePanel", typeof(RectTransform));
-                cupGO.transform.SetParent(canvas.transform, false);
-                combatUpgradePanel = cupGO.AddComponent<CombatUpgradePanel>();
-                cupGO.SetActive(false);
-                modalPanels.Add(cupGO);
-
-                // Pill button
-                var upBtnGO = new GameObject("CombatUpgradeButton",
-                    typeof(RectTransform), typeof(Image), typeof(Button));
-                upBtnGO.transform.SetParent(pmGO.transform, false);
-                var upRT = upBtnGO.GetComponent<RectTransform>();
-                upRT.anchorMin = upRT.anchorMax = upRT.pivot = new Vector2(0f, 0f);
-                upRT.anchoredPosition = new Vector2(30f, 200f);
-                upRT.sizeDelta = new Vector2(140f, 36f);
-                var upImg = upBtnGO.GetComponent<Image>();
-                upImg.sprite = Rounded(); upImg.type = Image.Type.Sliced;
-                upImg.color = new Color(0.055f, 0.094f, 0.165f, 0.92f);
-                upBtnGO.GetComponent<Button>().onClick.AddListener(() =>
-                {
-                    if (combatUpgradePanel != null) { CloseAllModals(); combatUpgradePanel.Open(); }
-                });
-                var upLblGO = new GameObject("Label",
-                    typeof(RectTransform), typeof(TextMeshProUGUI));
-                upLblGO.transform.SetParent(upBtnGO.transform, false);
-                var upLRT = upLblGO.GetComponent<RectTransform>();
-                upLRT.anchorMin = Vector2.zero; upLRT.anchorMax = Vector2.one;
-                upLRT.offsetMin = upLRT.offsetMax = Vector2.zero;
-                var upTMP = upLblGO.GetComponent<TextMeshProUGUI>();
-                upTMP.text = "UPGRADES";
-                upTMP.fontSize = 15;
-                upTMP.fontStyle = FontStyles.Bold;
-                upTMP.color = GoldColor;
-                upTMP.alignment = TextAlignmentOptions.Center;
-                upTMP.textWrappingMode = TextWrappingModes.NoWrap;
-                upTMP.overflowMode = TextOverflowModes.Ellipsis;
-                upTMP.raycastTarget = false;
-                var uf = GetCachedFont(); if (uf != null) upTMP.font = uf;
-            }
-
-            // Trigger initial wave display (CombatManager.Start may have already fired)
-            StartCoroutine(InitCombatDisplay(cm));
-        }
-
-        private System.Collections.IEnumerator InitCombatDisplay(CombatManager cm)
-        {
-            yield return null; // wait one frame for CombatManager.Start
-            if (_monsterView != null && cm != null)
-            {
-                _monsterView.SetMonster(cm.CurrentDef, cm.Wave);
-                _monsterView.UpdateHp(cm.CurrentHp, cm.MaxHp);
-            }
+            // CombatManager reward toast (fires regardless of panel open state)
+            cm.OnMonsterDied += reward =>
+                ShowToast($"+${NumberFormatter.Format(reward)} recompensa!", new Color(0.25f, 0.9f, 0.35f, 1f));
         }
 
         private void SetupRankingPanel()

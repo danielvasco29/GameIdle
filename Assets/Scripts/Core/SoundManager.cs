@@ -106,6 +106,9 @@ namespace GameIdle
             }
         }
 
+        // Exposes the music source so BattlePanel can fade it in/out
+        public static AudioSource GetMusicSource() => Instance?.musicSrc;
+
         private void PlayClip(AudioClip clip, float pitch = 1f, float vol = 1f)
         {
             if (Muted || clip == null || src == null) return;
