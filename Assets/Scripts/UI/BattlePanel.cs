@@ -26,6 +26,25 @@ namespace GameIdle
         private AudioSource _battleMusic;
         private bool        _musicStarted;
 
+        // Arena backgrounds — normal and boss variants
+        private Sprite _arenaSprite;
+        private Sprite _arenaBossSprite;
+
+        private static Sprite LoadBgSprite(string path)
+        {
+            var tex = Resources.Load<Texture2D>(path);
+            if (tex == null) return null;
+            return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height),
+                new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+        }
+
+        // Swap arena art when entering/leaving boss wave
+        private void RefreshArena(bool isBoss)
+        {
+            if (_bgImage == null) return;
+            _bgImage.sprite = (isBoss && _arenaBossSprite != null) ? _arenaBossSprite : _arenaSprite;
+        }
+
         public static BattlePanel Instance { get; private set; }
 
         private void Awake()
@@ -50,6 +69,7 @@ namespace GameIdle
             {
                 _monsterView.SetMonster(cm.CurrentDef, cm.Wave);
                 _monsterView.UpdateHp(cm.CurrentHp, cm.MaxHp);
+                RefreshArena(cm.CurrentDef.type == CombatManager.MonsterType.Boss);
             }
         }
 
@@ -70,13 +90,20 @@ namespace GameIdle
             // ── Dungeon background ─────────────────────────────────────────
             _bgImage = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
             _bgImage.raycastTarget = true; // block clicks to office behind
-
-            var bgTex = MakeDungeonBg();
-            _bgImage.sprite = Sprite.Create(bgTex,
-                new Rect(0, 0, bgTex.width, bgTex.height), new Vector2(0.5f, 0.5f));
             _bgImage.type = Image.Type.Simple;
             _bgImage.preserveAspect = false;
             _bgImage.color = Color.white;
+
+            // Arena art from Resources (battle_bg / battle_bg_boss); procedural fallback
+            _arenaSprite     = LoadBgSprite("Backgrounds/battle_bg");
+            _arenaBossSprite = LoadBgSprite("Backgrounds/battle_bg_boss");
+            if (_arenaSprite == null)
+            {
+                var bgTex = MakeDungeonBg();
+                _arenaSprite = Sprite.Create(bgTex,
+                    new Rect(0, 0, bgTex.width, bgTex.height), new Vector2(0.5f, 0.5f));
+            }
+            _bgImage.sprite = _arenaSprite;
 
             // Vignette overlay (dark edges)
             {
@@ -190,9 +217,10 @@ namespace GameIdle
             cm.OnWaveStarted  += def =>
             {
                 _monsterView?.SetMonster(def, cm.Wave);
+                bool boss = def.type == CombatManager.MonsterType.Boss;
+                RefreshArena(boss);
                 if (_waveLabel != null)
                 {
-                    bool boss = def.type == CombatManager.MonsterType.Boss;
                     _waveLabel.text  = boss ? "!! ONDA 10 - BOSS !!" : $"ONDA {cm.Wave} / 10";
                     _waveLabel.color = boss ? GoldColor : new Color(0.7f, 0.85f, 1f, 1f);
                 }

@@ -201,7 +201,7 @@ namespace GameIdle
             _floatPhase = 0f;
 
             // Boss entrance flash
-            if (isBoss) StartCoroutine(BossEntrance());
+            if (isBoss && isActiveAndEnabled) StartCoroutine(BossEntrance());
         }
 
         private IEnumerator BossEntrance()
@@ -272,6 +272,7 @@ namespace GameIdle
 
         public void PlayHitEffect(double dmg)
         {
+            if (!isActiveAndEnabled) return; // panel closed — skip visuals
             if (_flashCo != null) StopCoroutine(_flashCo);
             _flashCo = StartCoroutine(FlashRed());
             SpawnDamageNumber(dmg);
@@ -280,11 +281,13 @@ namespace GameIdle
 
         public void PlayDeathEffect()
         {
+            if (!isActiveAndEnabled) return;
             StartCoroutine(DeathAnim());
         }
 
         public void ShowBetweenWaves(double reward)
         {
+            if (!isActiveAndEnabled) return;
             SpawnRewardFloat(reward);
         }
 
