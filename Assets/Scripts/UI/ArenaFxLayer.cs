@@ -103,25 +103,25 @@ namespace GameIdle
                 }
             }
 
-            // Torch flames cycling the 12 atlas frames. Each one is anchored
-            // over a torch painted into battle_bg (which is stretched
-            // full-screen, so bg-normalized coords ARE screen anchors); the
-            // animated torch covers the static painted one. Boxes were
-            // measured on the 1376x768 background art.
-            _torchFrames = ArenaAtlas.TorchFrames();
+            // Animated flames over the torches painted into battle_bg. The bg
+            // is stretched full-screen, so bg-normalized coords ARE screen
+            // anchors. Only the FIRE is drawn — the painted sconce/bracket
+            // stays visible underneath, so nothing can stick out misaligned.
+            // Boxes = measured painted-flame bounds + margin to cover glow.
+            _torchFrames = ArenaAtlas.FlameFrames();
             if (_torchFrames != null && _torchFrames[0] != null)
             {
-                // (xMin, yMin, xMax, yMax) of each painted torch, bottom-left origin
+                // (xMin, yMin, xMax, yMax) of each painted flame, bottom-left origin
                 Vector4[] spots =
                 {
-                    new(0.016f, 0.46f, 0.094f, 0.81f), // left edge
-                    new(0.168f, 0.49f, 0.258f, 0.67f), // left inner pillar
-                    new(0.762f, 0.48f, 0.846f, 0.66f), // right inner pillar
-                    new(0.906f, 0.46f, 0.984f, 0.81f), // right edge
+                    new(0.000f, 0.590f, 0.085f, 0.800f), // left edge
+                    new(0.172f, 0.520f, 0.244f, 0.680f), // left inner pillar
+                    new(0.758f, 0.490f, 0.830f, 0.680f), // right inner pillar
+                    new(0.920f, 0.590f, 1.000f, 0.800f), // right edge
                 };
                 foreach (var s in spots)
                 {
-                    var go = new GameObject("Torch", typeof(RectTransform), typeof(Image));
+                    var go = new GameObject("TorchFlame", typeof(RectTransform), typeof(Image));
                     go.transform.SetParent(transform, false);
                     var rt = go.GetComponent<RectTransform>();
                     rt.anchorMin = new Vector2(s.x, s.y);
@@ -129,7 +129,7 @@ namespace GameIdle
                     rt.offsetMin = rt.offsetMax = Vector2.zero;
                     var img = go.GetComponent<Image>();
                     img.sprite = _torchFrames[0];
-                    // stretch to the painted torch's box — same distortion as the bg
+                    // stretch to the painted flame's box — same distortion as the bg
                     img.preserveAspect = false;
                     img.raycastTarget = false;
                     _torchImgs.Add(img);
