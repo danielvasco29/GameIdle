@@ -275,7 +275,7 @@ namespace GameIdle
             int workers = 0;
             if (CharacterManager.Instance != null)
                 foreach (var c in CharacterManager.Instance.GetAllCharacters())
-                    if (c.purchaseCount > 0) workers++;
+                    if (c.level > 0) workers++;
             if (workers == 0) return 0;
             double frostMult = (CurrentDef.type == MonsterType.Boss) ? (1.0 + GetBossExtraDamage()) : 1.0;
             return Math.Max(1, MaxHp * 0.01 * workers) * GetPotionMultiplier() * frostMult;

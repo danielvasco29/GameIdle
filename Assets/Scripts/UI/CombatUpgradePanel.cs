@@ -47,7 +47,7 @@ namespace GameIdle
             _font = TMP_Settings.defaultFontAsset;
             if (_font == null)
             {
-                var any = Object.FindAnyObjectByType<TextMeshProUGUI>();
+                var any = UnityEngine.Object.FindAnyObjectByType<TextMeshProUGUI>();
                 if (any != null) _font = any.font;
             }
 
