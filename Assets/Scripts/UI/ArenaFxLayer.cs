@@ -43,10 +43,82 @@ namespace GameIdle
             }
         }
 
+        // Atlas-based extras (only when Resources/FX/arena_atlas.png exists)
+        private Image _runicOverlay;
+        private readonly List<Image> _torchImgs = new();
+        private Sprite[] _torchFrames;
+        private float _torchAnimT;
+        private int _torchFrame;
+
         private void Awake()
         {
             BuildFx();
+            BuildAtlasFx();
             _flickerSeed = Random.value * 100f;
+        }
+
+        // Real art overlays sliced from the atlas: animated torch flames at the
+        // arena edges, runic circle detail pulsing over the center.
+        private void BuildAtlasFx()
+        {
+            if (!ArenaAtlas.Available) return;
+
+            // Runic circle overlay — additively brightens the bg's own circle
+            var runic = ArenaAtlas.RunicCircle();
+            if (runic != null)
+            {
+                var go = new GameObject("RunicOverlay", typeof(RectTransform), typeof(Image));
+                go.transform.SetParent(transform, false);
+                var rt = go.GetComponent<RectTransform>();
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.30f);
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.sizeDelta = new Vector2(540f, 250f); // squashed for perspective
+                _runicOverlay = go.GetComponent<Image>();
+                _runicOverlay.sprite = runic;
+                _runicOverlay.preserveAspect = false;
+                _runicOverlay.color = new Color(1f, 1f, 1f, 0.0f);
+                _runicOverlay.raycastTarget = false;
+                // render under the procedural glow
+                go.transform.SetSiblingIndex(0);
+            }
+
+            // Swap procedural fog circles for the real mist art
+            var fogSprites = ArenaAtlas.FogPuffs();
+            if (fogSprites != null && fogSprites[0] != null)
+            {
+                for (int i = 0; i < _fogPuffs.Count; i++)
+                {
+                    var img = _fogPuffs[i].GetComponent<Image>();
+                    if (img != null)
+                    {
+                        img.sprite = fogSprites[i % fogSprites.Length];
+                        img.preserveAspect = true;
+                        var c = _fogColor; c.a = 0.35f; // art has its own softness
+                        img.color = c;
+                    }
+                }
+            }
+
+            // Torch flames — two at the side walls, cycling the 12 atlas frames
+            _torchFrames = ArenaAtlas.TorchFrames();
+            if (_torchFrames != null && _torchFrames[0] != null)
+            {
+                Vector2[] spots = { new(0.075f, 0.62f), new(0.925f, 0.62f) };
+                foreach (var s in spots)
+                {
+                    var go = new GameObject("Torch", typeof(RectTransform), typeof(Image));
+                    go.transform.SetParent(transform, false);
+                    var rt = go.GetComponent<RectTransform>();
+                    rt.anchorMin = rt.anchorMax = s;
+                    rt.pivot = new Vector2(0.5f, 0.5f);
+                    rt.sizeDelta = new Vector2(72f, 200f);
+                    var img = go.GetComponent<Image>();
+                    img.sprite = _torchFrames[0];
+                    img.preserveAspect = true;
+                    img.raycastTarget = false;
+                    _torchImgs.Add(img);
+                }
+            }
         }
 
         private void BuildFx()
@@ -120,6 +192,28 @@ namespace GameIdle
         private void Update()
         {
             float dt = Time.deltaTime;
+
+            // Torch flame animation — ~10 fps frame cycle
+            if (_torchFrames != null && _torchImgs.Count > 0)
+            {
+                _torchAnimT += dt;
+                if (_torchAnimT >= 0.1f)
+                {
+                    _torchAnimT = 0f;
+                    _torchFrame = (_torchFrame + 1) % _torchFrames.Length;
+                    var f = _torchFrames[_torchFrame];
+                    if (f != null)
+                        foreach (var img in _torchImgs)
+                            if (img != null) img.sprite = f;
+                }
+            }
+
+            // Runic overlay pulse — synced with the center glow breathing
+            if (_runicOverlay != null)
+            {
+                float p = (Mathf.Sin(_pulsePhase) + 1f) * 0.5f;
+                _runicOverlay.color = new Color(1f, 1f, 1f, Mathf.Lerp(0.05f, 0.35f, p));
+            }
 
             // Runic circle breathing — slow sinusoidal scale + alpha pulse
             _pulsePhase += dt * 1.4f;

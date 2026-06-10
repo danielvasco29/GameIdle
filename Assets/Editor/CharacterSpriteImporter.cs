@@ -12,7 +12,8 @@ namespace GameIdle
             bool isCharSprite  = assetPath.Contains("Characters/Sprites/");
             bool isBackground  = assetPath.Contains("Resources/Backgrounds/");
             bool isMonster     = assetPath.Contains("Resources/Monsters/");
-            if (!isCharSprite && !isBackground && !isMonster) return;
+            bool isFx          = assetPath.Contains("Resources/FX/");
+            if (!isCharSprite && !isBackground && !isMonster && !isFx) return;
 
             var importer = (TextureImporter)assetImporter;
 
