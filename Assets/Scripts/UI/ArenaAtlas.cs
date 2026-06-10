@@ -85,6 +85,20 @@ namespace GameIdle
             return frames;
         }
 
+        // Flame-only variant (no sconce/bracket): used to animate just the fire
+        // on top of torches already painted into the battle background.
+        public static Sprite[] FlameFrames()
+        {
+            if (!Available) return null;
+            float[] cx = { 745f, 810f, 864f, 917f, 969f, 1021f };
+            var frames = new Sprite[12];
+            for (int i = 0; i < 6; i++)
+                frames[i] = Slice(cx[i] - 32f, 86f, 64f, 84f);
+            for (int i = 0; i < 6; i++)
+                frames[6 + i] = Slice(cx[i] - 32f, 200f, 64f, 84f);
+            return frames;
+        }
+
         // No dedicated fog art in this atlas — callers fall back to the
         // procedural soft-circle fog.
         public static Sprite[] FogPuffs() => null;
