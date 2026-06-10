@@ -3,18 +3,17 @@ using UnityEngine;
 namespace GameIdle
 {
     // Slices the arena FX atlas (Assets/Resources/FX/arena_atlas.png) into
-    // individual sprites using normalized rects, so the art works at any
-    // export resolution with the same layout.
+    // individual sprites. Coordinates were measured on the 1376x768 source and
+    // are scaled to the actual texture size, so a re-export at another
+    // resolution with the same layout still works.
     //
-    // Atlas layout (left-to-right, top-to-bottom):
-    //   - server racks / cables / floor panels (left half)
-    //   - torch flame frames: 2 rows x 6 columns (top-right) — animation frames
-    //   - glowing mushroom clusters x3
-    //   - runic circle detail (large square)
-    //   - fog/mist puffs x6 (bottom-center-left)
-    //   - CRT screens / broken keyboards (right)
+    // The source PNG has an opaque gray checkerboard baked in instead of real
+    // transparency, so the texture is preprocessed once: neutral-gray pixels
+    // (the checker squares) become fully transparent.
     public static class ArenaAtlas
     {
+        private const float SrcW = 1376f, SrcH = 768f;
+
         private static Texture2D _tex;
         private static bool _loaded;
 
@@ -24,55 +23,75 @@ namespace GameIdle
         {
             if (_loaded) return _tex;
             _loaded = true;
-            _tex = Resources.Load<Texture2D>("FX/arena_atlas");
+            var raw = Resources.Load<Texture2D>("FX/arena_atlas");
+            if (raw == null) return null;
+            _tex = raw.isReadable ? RemoveChecker(raw) : raw;
             return _tex;
         }
 
-        // Creates a sprite from a normalized rect (0-1 in atlas space, origin bottom-left).
-        private static Sprite Slice(float x, float y, float w, float h)
+        // Checker squares are neutral gray (~64 and ~100) while the art is
+        // colorful neon, so within the checker brightness range the pixel's
+        // saturation works as its alpha: pure gray vanishes, glow halos over
+        // the checker fade out smoothly, saturated art stays opaque. Pixels
+        // darker or brighter than the checker range are solid art.
+        private static Texture2D RemoveChecker(Texture2D src)
+        {
+            var px = src.GetPixels32();
+            for (int i = 0; i < px.Length; i++)
+            {
+                var p = px[i];
+                int mn = Mathf.Min(p.r, Mathf.Min(p.g, p.b));
+                int mx = Mathf.Max(p.r, Mathf.Max(p.g, p.b));
+                if (mn >= 50 && mn <= 118)
+                {
+                    int a = Mathf.Min(255, (mx - mn) * 255 / 70);
+                    px[i] = new Color32(p.r, p.g, p.b, (byte)a);
+                }
+            }
+            var tex = new Texture2D(src.width, src.height, TextureFormat.RGBA32, false);
+            tex.filterMode = FilterMode.Bilinear;
+            tex.SetPixels32(px);
+            tex.Apply(false, false);
+            return tex;
+        }
+
+        // Slice by pixel coords on the 1376x768 reference layout; y is from the
+        // top of the image for readability.
+        private static Sprite Slice(float x, float yTop, float w, float h)
         {
             var tex = Load();
             if (tex == null) return null;
+            float sx = tex.width / SrcW, sy = tex.height / SrcH;
             var r = new Rect(
-                Mathf.Round(x * tex.width),
-                Mathf.Round((1f - y - h) * tex.height), // y given from top for readability
-                Mathf.Round(w * tex.width),
-                Mathf.Round(h * tex.height));
+                Mathf.Round(x * sx),
+                Mathf.Round((SrcH - yTop - h) * sy),
+                Mathf.Round(w * sx),
+                Mathf.Round(h * sy));
             return Sprite.Create(tex, r, new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
         }
 
         // ── Torch flames: 12 animation frames (2 rows x 6) ───────────────────
-        // Top-right block, each torch ~0.045 wide, rows at y 0.11 / 0.26.
+        // Flame cores measured at these column centers; each cell is 64 wide.
+        // Row 1: y 86..200, row 2: y 200..316 (flame + sconce + wall bracket).
         public static Sprite[] TorchFrames()
         {
             if (!Available) return null;
+            float[] cx = { 745f, 810f, 864f, 917f, 969f, 1021f };
             var frames = new Sprite[12];
-            float[] colX = { 0.523f, 0.566f, 0.605f, 0.643f, 0.682f, 0.722f };
             for (int i = 0; i < 6; i++)
-                frames[i] = Slice(colX[i], 0.110f, 0.042f, 0.180f);
+                frames[i] = Slice(cx[i] - 32f, 86f, 64f, 114f);
             for (int i = 0; i < 6; i++)
-                frames[6 + i] = Slice(colX[i], 0.265f, 0.042f, 0.180f);
+                frames[6 + i] = Slice(cx[i] - 32f, 200f, 64f, 116f);
             return frames;
         }
 
-        // ── Fog puffs x6 (two rows of three, bottom-center-left) ─────────────
-        public static Sprite[] FogPuffs()
-        {
-            if (!Available) return null;
-            return new[]
-            {
-                Slice(0.318f, 0.715f, 0.055f, 0.090f),
-                Slice(0.378f, 0.715f, 0.055f, 0.090f),
-                Slice(0.432f, 0.715f, 0.055f, 0.090f),
-                Slice(0.318f, 0.835f, 0.055f, 0.090f),
-                Slice(0.378f, 0.835f, 0.055f, 0.090f),
-                Slice(0.432f, 0.835f, 0.055f, 0.090f),
-            };
-        }
+        // No dedicated fog art in this atlas — callers fall back to the
+        // procedural soft-circle fog.
+        public static Sprite[] FogPuffs() => null;
 
-        // ── Runic circle detail (large square, center-right) ─────────────────
+        // ── Runic circle detail (large stone square, below the mushrooms) ────
         public static Sprite RunicCircle() =>
-            Available ? Slice(0.517f, 0.568f, 0.208f, 0.360f) : null;
+            Available ? Slice(675f, 465f, 327f, 295f) : null;
 
         // ── Glowing mushroom clusters x3 ──────────────────────────────────────
         public static Sprite[] Mushrooms()
@@ -80,9 +99,9 @@ namespace GameIdle
             if (!Available) return null;
             return new[]
             {
-                Slice(0.515f, 0.420f, 0.085f, 0.090f),
-                Slice(0.605f, 0.420f, 0.075f, 0.090f),
-                Slice(0.678f, 0.420f, 0.060f, 0.090f),
+                Slice(700f, 320f, 118f, 80f),
+                Slice(823f, 328f, 105f, 72f),
+                Slice(930f, 320f, 78f,  80f),
             };
         }
     }
