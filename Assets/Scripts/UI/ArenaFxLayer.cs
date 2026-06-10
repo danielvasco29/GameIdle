@@ -29,6 +29,10 @@ namespace GameIdle
 
         public void SetBossMode(bool boss)
         {
+            // The boss background has no painted torch sconces to sit over.
+            foreach (var t in _torchImgs)
+                if (t != null) t.gameObject.SetActive(!boss);
+
             if (boss)
             {
                 _glowColor  = new Color(1f, 0.35f, 0.30f, 0.14f);
@@ -99,22 +103,34 @@ namespace GameIdle
                 }
             }
 
-            // Torch flames — two at the side walls, cycling the 12 atlas frames
+            // Torch flames cycling the 12 atlas frames. Each one is anchored
+            // over a torch painted into battle_bg (which is stretched
+            // full-screen, so bg-normalized coords ARE screen anchors); the
+            // animated torch covers the static painted one. Boxes were
+            // measured on the 1376x768 background art.
             _torchFrames = ArenaAtlas.TorchFrames();
             if (_torchFrames != null && _torchFrames[0] != null)
             {
-                Vector2[] spots = { new(0.075f, 0.62f), new(0.925f, 0.62f) };
+                // (xMin, yMin, xMax, yMax) of each painted torch, bottom-left origin
+                Vector4[] spots =
+                {
+                    new(0.016f, 0.46f, 0.094f, 0.81f), // left edge
+                    new(0.168f, 0.49f, 0.258f, 0.67f), // left inner pillar
+                    new(0.762f, 0.48f, 0.846f, 0.66f), // right inner pillar
+                    new(0.906f, 0.46f, 0.984f, 0.81f), // right edge
+                };
                 foreach (var s in spots)
                 {
                     var go = new GameObject("Torch", typeof(RectTransform), typeof(Image));
                     go.transform.SetParent(transform, false);
                     var rt = go.GetComponent<RectTransform>();
-                    rt.anchorMin = rt.anchorMax = s;
-                    rt.pivot = new Vector2(0.5f, 0.5f);
-                    rt.sizeDelta = new Vector2(72f, 200f);
+                    rt.anchorMin = new Vector2(s.x, s.y);
+                    rt.anchorMax = new Vector2(s.z, s.w);
+                    rt.offsetMin = rt.offsetMax = Vector2.zero;
                     var img = go.GetComponent<Image>();
                     img.sprite = _torchFrames[0];
-                    img.preserveAspect = true;
+                    // stretch to the painted torch's box — same distortion as the bg
+                    img.preserveAspect = false;
                     img.raycastTarget = false;
                     _torchImgs.Add(img);
                 }
