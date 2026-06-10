@@ -29,6 +29,7 @@ namespace GameIdle
         // Arena backgrounds — normal and boss variants
         private Sprite _arenaSprite;
         private Sprite _arenaBossSprite;
+        private ArenaFxLayer _fxLayer;
 
         private static Sprite LoadBgSprite(string path)
         {
@@ -43,6 +44,7 @@ namespace GameIdle
         {
             if (_bgImage == null) return;
             _bgImage.sprite = (isBoss && _arenaBossSprite != null) ? _arenaBossSprite : _arenaSprite;
+            _fxLayer?.SetBossMode(isBoss);
         }
 
         public static BattlePanel Instance { get; private set; }
@@ -104,6 +106,11 @@ namespace GameIdle
                     new Rect(0, 0, bgTex.width, bgTex.height), new Vector2(0.5f, 0.5f));
             }
             _bgImage.sprite = _arenaSprite;
+
+            // ── Animated FX layer (glow pulse, torch flicker, fog, sparks) ─
+            var fxGO = new GameObject("ArenaFx", typeof(RectTransform));
+            fxGO.transform.SetParent(transform, false);
+            _fxLayer = fxGO.AddComponent<ArenaFxLayer>();
 
             // Vignette overlay (dark edges)
             {
