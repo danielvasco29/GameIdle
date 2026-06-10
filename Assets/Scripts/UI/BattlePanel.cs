@@ -281,9 +281,10 @@ namespace GameIdle
                 _battleMusic.volume = 0.35f;
                 _battleMusic.clip = MakeBattleLoop();
             }
-            // Fade out office music
+            // Fade out office music — run the coroutine on SoundManager, which
+            // is always active (this panel may be inactive when fading).
             if (SoundManager.Instance != null && !SoundManager.MusicMuted)
-                StartCoroutine(FadeMusicSource(SoundManager.GetMusicSource(), 0.32f, 0f, 0.4f));
+                SoundManager.Instance.StartCoroutine(FadeMusicSource(SoundManager.GetMusicSource(), 0.32f, 0f, 0.4f));
 
             if (!SoundManager.MusicMuted)
             {
@@ -296,9 +297,10 @@ namespace GameIdle
         {
             if (_battleMusic != null) _battleMusic.Stop();
             _musicStarted = false;
-            // Restore office music
+            // Restore office music (coroutine hosted by SoundManager — this
+            // panel is already inactive when Close() runs).
             if (SoundManager.Instance != null && !SoundManager.MusicMuted)
-                StartCoroutine(FadeMusicSource(SoundManager.GetMusicSource(), 0f, 0.32f, 0.4f));
+                SoundManager.Instance.StartCoroutine(FadeMusicSource(SoundManager.GetMusicSource(), 0f, 0.32f, 0.4f));
         }
 
         private IEnumerator FadeMusicSource(AudioSource src, float from, float to, float dur)
