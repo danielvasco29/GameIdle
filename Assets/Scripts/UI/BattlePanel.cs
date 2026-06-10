@@ -135,27 +135,31 @@ namespace GameIdle
                 var f = TMP_Settings.defaultFontAsset; if (f != null) _waveLabel.font = f;
             }
 
-            // ── Monster view (upper 70%) ──────────────────────────────────
+            // ── Monster view — fixed-width column centered on screen ─────
+            // Keeps name tag / HP bar / monster proportional on wide screens.
             var mvGO = new GameObject("MonsterView", typeof(RectTransform));
             mvGO.transform.SetParent(transform, false);
             var mvRT = mvGO.GetComponent<RectTransform>();
-            mvRT.anchorMin = new Vector2(0.1f, 0.22f);
-            mvRT.anchorMax = new Vector2(0.9f, 0.92f);
-            mvRT.offsetMin = mvRT.offsetMax = Vector2.zero;
+            mvRT.anchorMin = new Vector2(0.5f, 0.5f);
+            mvRT.anchorMax = new Vector2(0.5f, 0.5f);
+            mvRT.pivot     = new Vector2(0.5f, 0.5f);
+            mvRT.sizeDelta = new Vector2(520f, 560f);
+            mvRT.anchoredPosition = new Vector2(0f, 30f);
             _monsterView = mvGO.AddComponent<MonsterView>();
 
-            // ── Bottom button row ─────────────────────────────────────────
-            // VOLTAR (left)
-            MakeBottomBtn("VOLTAR", new Vector2(0.02f, 0f), new Vector2(0.28f, 0.20f),
-                NavyDark, Close);
+            // ── Bottom button row — fixed sizes, centered as a group ─────
+            // VOLTAR (left of attack)
+            MakeBottomBtn("VOLTAR", new Vector2(-310f, 56f), new Vector2(170f, 56f),
+                NavyDark, 15f, Close);
 
             // ATACAR (center, big)
             var atkGO = new GameObject("AtkBtn", typeof(RectTransform), typeof(Button));
             atkGO.transform.SetParent(transform, false);
             _atkBtnRT = atkGO.GetComponent<RectTransform>();
-            _atkBtnRT.anchorMin = new Vector2(0.32f, 0.01f);
-            _atkBtnRT.anchorMax = new Vector2(0.68f, 0.21f);
-            _atkBtnRT.offsetMin = _atkBtnRT.offsetMax = Vector2.zero;
+            _atkBtnRT.anchorMin = _atkBtnRT.anchorMax = new Vector2(0.5f, 0f);
+            _atkBtnRT.pivot     = new Vector2(0.5f, 0f);
+            _atkBtnRT.anchoredPosition = new Vector2(0f, 24f);
+            _atkBtnRT.sizeDelta = new Vector2(240f, 76f);
             _atkBtnFace = atkGO.AddComponent<Image>();
             _atkBtnFace.sprite = UiSpriteFactory.RoundedBox();
             _atkBtnFace.type = Image.Type.Sliced;
@@ -165,11 +169,11 @@ namespace GameIdle
             atkBtn.onClick.AddListener(() => CombatManager.Instance?.PlayerAttack());
             var atkHold = atkGO.AddComponent<HoldButton>();
             atkHold.Init(() => CombatManager.Instance?.PlayerAttack());
-            MakeLabel(atkGO, "ATACAR!", 20f, Color.white);
+            MakeLabel(atkGO, "ATACAR!", 22f, Color.white);
 
-            // UPGRADES (right)
-            MakeBottomBtn("UPGRADES", new Vector2(0.72f, 0f), new Vector2(0.98f, 0.20f),
-                new Color(0.35f, 0.18f, 0.02f, 0.90f), () => {
+            // UPGRADES (right of attack)
+            MakeBottomBtn("UPGRADES", new Vector2(140f, 56f), new Vector2(170f, 56f),
+                new Color(0.35f, 0.18f, 0.02f, 0.90f), 15f, () => {
                     if (UIManager.Instance != null)
                     {
                         UIManager.Instance.CloseAllModals();
@@ -179,20 +183,23 @@ namespace GameIdle
                 });
         }
 
-        private Button MakeBottomBtn(string label, Vector2 aMin, Vector2 aMax,
-            Color color, UnityEngine.Events.UnityAction onClick)
+        // pos.x = offset from screen center; size = fixed button size
+        private Button MakeBottomBtn(string label, Vector2 pos, Vector2 size,
+            Color color, float fontSize, UnityEngine.Events.UnityAction onClick)
         {
             var go = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(Button));
             go.transform.SetParent(transform, false);
             var brt = go.GetComponent<RectTransform>();
-            brt.anchorMin = aMin; brt.anchorMax = aMax;
-            brt.offsetMin = new Vector2(8f, 8f); brt.offsetMax = new Vector2(-8f, -8f);
+            brt.anchorMin = brt.anchorMax = new Vector2(0.5f, 0f);
+            brt.pivot = new Vector2(0f, 0f);
+            brt.anchoredPosition = new Vector2(pos.x, 34f);
+            brt.sizeDelta = size;
             var img = go.GetComponent<Image>();
             img.sprite = UiSpriteFactory.RoundedBox(); img.type = Image.Type.Sliced; img.color = color;
             var btn = go.GetComponent<Button>();
             btn.targetGraphic = img;
             btn.onClick.AddListener(onClick);
-            MakeLabel(go, label, 16f, Color.white);
+            MakeLabel(go, label, fontSize, Color.white);
             return btn;
         }
 

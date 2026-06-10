@@ -42,17 +42,15 @@ namespace GameIdle
             if (_spriteImg == null) return;
             _floatPhase += Time.deltaTime * FloatSpeed;
             float y = Mathf.Sin(_floatPhase) * FloatAmp;
-            _spriteImg.rectTransform.anchoredPosition = new Vector2(0f, 120f + y);
+            _spriteImg.rectTransform.anchoredPosition = new Vector2(0f, 130f + y);
         }
 
         // ── Build ─────────────────────────────────────────────────────────────
 
         private void BuildUI()
         {
-            _rt.anchorMin = new Vector2(0f, 0.15f);
-            _rt.anchorMax = new Vector2(1f, 1f);
-            _rt.offsetMin = _rt.offsetMax = Vector2.zero;
-
+            // RectTransform layout (anchors/size) is owned by whoever spawns this
+            // view (BattlePanel) — don't override it here.
             var font = TMP_Settings.defaultFontAsset;
 
             // Wave badge (top-right)
@@ -61,6 +59,9 @@ namespace GameIdle
                 new Vector2(0.55f, 0.85f), new Vector2(1f, 1f),
                 new Vector2(0f, -4f), new Vector2(-10f, -4f), font);
             _waveText.alignment = TextAlignmentOptions.TopRight;
+            // BattlePanel shows its own wave label at the top of the arena;
+            // keep this one hidden to avoid duplication.
+            _waveText.gameObject.SetActive(false);
 
             // Monster name tag
             {
@@ -116,8 +117,8 @@ namespace GameIdle
                 var rt = go.GetComponent<RectTransform>();
                 rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
                 rt.pivot = new Vector2(0.5f, 0f);
-                rt.sizeDelta = new Vector2(200f, 200f);
-                rt.anchoredPosition = new Vector2(0f, 120f);
+                rt.sizeDelta = new Vector2(280f, 280f);
+                rt.anchoredPosition = new Vector2(0f, 130f);
                 _spriteImg = go.GetComponent<Image>();
                 _spriteImg.preserveAspect = true;
                 _spriteImg.raycastTarget = true;
@@ -135,8 +136,8 @@ namespace GameIdle
                 var rt = go.GetComponent<RectTransform>();
                 rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
                 rt.pivot = new Vector2(0.5f, 0.5f);
-                rt.sizeDelta = new Vector2(140f, 18f);
-                rt.anchoredPosition = new Vector2(0f, 116f);
+                rt.sizeDelta = new Vector2(190f, 24f);
+                rt.anchoredPosition = new Vector2(0f, 124f);
                 var img = go.GetComponent<Image>();
                 img.sprite = UiSpriteFactory.Circle();
                 img.color = new Color(0f, 0f, 0f, 0.3f);
@@ -187,7 +188,7 @@ namespace GameIdle
                     100f, 0, SpriteMeshType.FullRect);
                 _spriteImg.color = Color.white;
                 // Boss sprite slightly larger
-                _spriteImg.rectTransform.sizeDelta = isBoss ? new Vector2(240f, 240f) : new Vector2(200f, 200f);
+                _spriteImg.rectTransform.sizeDelta = isBoss ? new Vector2(340f, 340f) : new Vector2(280f, 280f);
             }
 
             // Reset death overlay
