@@ -67,16 +67,17 @@ namespace GameIdle
         {
             if (!ArenaAtlas.Available) return;
 
-            // Runic circle overlay — additively brightens the bg's own circle
+            // Runic circle from the atlas, laid on the (empty) arena floor —
+            // squashed vertically for perspective, pulsing in Update().
             var runic = ArenaAtlas.RunicCircle();
             if (runic != null)
             {
                 var go = new GameObject("RunicOverlay", typeof(RectTransform), typeof(Image));
                 go.transform.SetParent(transform, false);
                 var rt = go.GetComponent<RectTransform>();
-                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.30f);
-                rt.pivot = new Vector2(0.5f, 0.5f);
-                rt.sizeDelta = new Vector2(540f, 250f); // squashed for perspective
+                rt.anchorMin = new Vector2(0.315f, 0.10f);
+                rt.anchorMax = new Vector2(0.685f, 0.36f);
+                rt.offsetMin = rt.offsetMax = Vector2.zero;
                 _runicOverlay = go.GetComponent<Image>();
                 _runicOverlay.sprite = runic;
                 _runicOverlay.preserveAspect = false;
@@ -103,21 +104,21 @@ namespace GameIdle
                 }
             }
 
-            // Animated flames over the torches painted into battle_bg. The bg
-            // is stretched full-screen, so bg-normalized coords ARE screen
-            // anchors. Only the FIRE is drawn — the painted sconce/bracket
-            // stays visible underneath, so nothing can stick out misaligned.
-            // Boxes = measured painted-flame bounds + margin to cover glow.
-            _torchFrames = ArenaAtlas.FlameFrames();
+            // Full animated torches (flame + sconce + bracket) from the atlas.
+            // The battle_bg has no torches of its own, so these are placed on
+            // clear stone-wall spots; the bg is stretched full-screen, so
+            // bg-normalized coords ARE screen anchors. Box aspect matches the
+            // 64x114 frame so the torch isn't distorted.
+            _torchFrames = ArenaAtlas.TorchFrames();
             if (_torchFrames != null && _torchFrames[0] != null)
             {
-                // (xMin, yMin, xMax, yMax) of each painted flame, bottom-left origin
+                // (xMin, yMin, xMax, yMax), bottom-left origin
                 Vector4[] spots =
                 {
-                    new(0.000f, 0.590f, 0.085f, 0.800f), // left edge
-                    new(0.172f, 0.520f, 0.244f, 0.680f), // left inner pillar
-                    new(0.758f, 0.490f, 0.830f, 0.680f), // right inner pillar
-                    new(0.920f, 0.590f, 1.000f, 0.800f), // right edge
+                    new(0.176f, 0.501f, 0.238f, 0.699f), // left circuit pillar
+                    new(0.409f, 0.461f, 0.471f, 0.659f), // center wall, left of screen
+                    new(0.529f, 0.461f, 0.591f, 0.659f), // center wall, right of screen
+                    new(0.848f, 0.501f, 0.910f, 0.699f), // right pillar between arches
                 };
                 foreach (var s in spots)
                 {

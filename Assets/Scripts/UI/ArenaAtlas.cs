@@ -104,8 +104,39 @@ namespace GameIdle
         public static Sprite[] FogPuffs() => null;
 
         // ── Runic circle detail (large stone square, below the mushrooms) ────
-        public static Sprite RunicCircle() =>
-            Available ? Slice(675f, 465f, 327f, 295f) : null;
+        // The art is a square stone tile; an elliptical alpha mask is baked in
+        // so only the circle shows when laid on the arena floor.
+        private static Sprite _runic;
+        public static Sprite RunicCircle()
+        {
+            if (_runic != null) return _runic;
+            var tex = Load();
+            if (tex == null || !tex.isReadable) return null;
+            float sx = tex.width / SrcW, sy = tex.height / SrcH;
+            int x0 = Mathf.RoundToInt(675f * sx), w = Mathf.RoundToInt(327f * sx);
+            int y0 = Mathf.RoundToInt((SrcH - 465f - 295f) * sy), h = Mathf.RoundToInt(295f * sy);
+            var px = tex.GetPixels32(0);
+            var outPx = new Color32[w * h];
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                var p = px[(y0 + y) * tex.width + (x0 + x)];
+                float dx = (x - cx) / cx, dy = (y - cy) / cy;
+                float d = Mathf.Sqrt(dx * dx + dy * dy);
+                // solid inside, fades out between 88% and 100% of the radius
+                float m = Mathf.Clamp01((1f - d) / 0.12f);
+                p.a = (byte)(p.a * m);
+                outPx[y * w + x] = p;
+            }
+            var rt = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            rt.filterMode = FilterMode.Bilinear;
+            rt.SetPixels32(outPx);
+            rt.Apply(false, false);
+            _runic = Sprite.Create(rt, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f),
+                                   100f, 0, SpriteMeshType.FullRect);
+            return _runic;
+        }
 
         // ── Glowing mushroom clusters x3 ──────────────────────────────────────
         public static Sprite[] Mushrooms()
