@@ -176,15 +176,14 @@ namespace GameIdle
             UpdateWave(wave);
 
             // Load sprite — monster PNGs already have real alpha, no need for
-            // background remover. Load into a readable texture to preserve transparency.
+            // background remover. Use the texture directly; FullRect mesh works
+            // even with non-readable textures and keeps the PNG alpha intact.
             var srcTex = Resources.Load<Texture2D>(def.spritePath);
             if (srcTex != null && _spriteImg != null)
             {
-                // Re-bake into a readable RGBA32 texture so alpha is preserved
-                var tex = new Texture2D(srcTex.width, srcTex.height, TextureFormat.RGBA32, false);
-                Graphics.CopyTexture(srcTex, tex);
-                _spriteImg.sprite = Sprite.Create(tex,
-                    new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
+                _spriteImg.sprite = Sprite.Create(srcTex,
+                    new Rect(0, 0, srcTex.width, srcTex.height), new Vector2(0.5f, 0.5f),
+                    100f, 0, SpriteMeshType.FullRect);
                 _spriteImg.color = Color.white;
                 // Boss sprite slightly larger
                 _spriteImg.rectTransform.sizeDelta = isBoss ? new Vector2(240f, 240f) : new Vector2(200f, 200f);
