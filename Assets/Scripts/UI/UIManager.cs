@@ -96,6 +96,11 @@ namespace GameIdle
         // Office workers
         private OfficeWorkerManager _workerManager;
 
+        // Combat
+        private MonsterView _monsterView;
+        private Image       _attackBtnImg;
+        private TextMeshProUGUI _attackBtnText;
+
         // Próximo desbloqueio
 
         // Stats do Panel_Main
@@ -505,6 +510,104 @@ namespace GameIdle
                 prestigeInfoText.gameObject.SetActive(false);
         }
 
+        // ── Combat ────────────────────────────────────────────────────────────
+
+        private void SetupCombat(GameObject pmGO)
+        {
+            // Monster view — occupies upper-left area of Panel_Main
+            var mvGO = new GameObject("MonsterView", typeof(RectTransform));
+            mvGO.transform.SetParent(pmGO.transform, false);
+            var mvRT = mvGO.GetComponent<RectTransform>();
+            mvRT.anchorMin = new Vector2(0f, 0.3f);
+            mvRT.anchorMax = new Vector2(0.6f, 1f);
+            mvRT.offsetMin = mvRT.offsetMax = Vector2.zero;
+            _monsterView = mvGO.AddComponent<MonsterView>();
+
+            // ATACAR button — bottom-left, mirrors the TRABALHAR button
+            var atkGO = new GameObject("AttackButton", typeof(RectTransform), typeof(Button));
+            atkGO.transform.SetParent(pmGO.transform, false);
+            var atkRT = atkGO.GetComponent<RectTransform>();
+            atkRT.anchorMin = atkRT.anchorMax = atkRT.pivot = new Vector2(0f, 0f);
+            atkRT.anchoredPosition = new Vector2(30f, 30f);
+            atkRT.sizeDelta = new Vector2(160f, 160f);
+            var atkBtn = atkGO.GetComponent<Button>();
+
+            // Red ring
+            Image AddAtkCircle(string name, Vector2 offMin, Vector2 offMax, Color col, bool ray)
+            {
+                var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+                go.transform.SetParent(atkGO.transform, false);
+                var rt = go.GetComponent<RectTransform>();
+                rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+                rt.offsetMin = offMin; rt.offsetMax = offMax;
+                var im = go.GetComponent<Image>();
+                im.sprite = Circle(); im.type = Image.Type.Simple;
+                im.color = col; im.raycastTarget = ray;
+                return im;
+            }
+
+            var redGlow = new Color(0.85f, 0.15f, 0.15f, 0.22f);
+            var redMain = new Color(0.80f, 0.12f, 0.12f, 1f);
+            AddAtkCircle("Ring",   new Vector2(-24f, -24f), new Vector2(24f, 24f),  redGlow, false);
+            AddAtkCircle("Glow",   new Vector2(-14f, -14f), new Vector2(14f, 14f),  new Color(0.85f, 0.15f, 0.15f, 0.28f), false);
+            AddAtkCircle("Border", new Vector2(-2f,  -2f),  new Vector2(2f,  2f),   new Color(0.40f, 0.05f, 0.05f, 1f), false);
+            _attackBtnImg = AddAtkCircle("Face", Vector2.zero, Vector2.zero, redMain, true);
+            atkBtn.targetGraphic = _attackBtnImg;
+
+            var lblGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            lblGO.transform.SetParent(atkGO.transform, false);
+            var lRT = lblGO.GetComponent<RectTransform>();
+            lRT.anchorMin = Vector2.zero; lRT.anchorMax = Vector2.one;
+            lRT.offsetMin = new Vector2(6f, 6f); lRT.offsetMax = new Vector2(-6f, -6f);
+            _attackBtnText = lblGO.GetComponent<TextMeshProUGUI>();
+            _attackBtnText.text = "<size=22><b>ATACAR!</b></size>\n<size=11><color=#ffaaaa>toque p/ dano</color></size>";
+            _attackBtnText.fontStyle = FontStyles.Bold;
+            _attackBtnText.color = Color.white;
+            _attackBtnText.alignment = TextAlignmentOptions.Center;
+            _attackBtnText.textWrappingMode = TextWrappingModes.Normal;
+            _attackBtnText.raycastTarget = false;
+            var lf = GetCachedFont(); if (lf != null) _attackBtnText.font = lf;
+
+            atkBtn.onClick.AddListener(() => {
+                CombatManager.Instance?.PlayerAttack();
+                if (tapButtonRT != null && !_tapPunching) StartCoroutine(PunchScale(atkRT, 0.10f));
+            });
+
+            // HoldButton so holding ATACAR spams attacks
+            var hold = atkGO.AddComponent<HoldButton>();
+            hold.Init(() => CombatManager.Instance?.PlayerAttack());
+
+            // Wire CombatManager events (CombatManager.Start may have already fired — find it)
+            var cm = FindFirstObjectByType<CombatManager>();
+            if (cm == null)
+            {
+                var cmGO = new GameObject("CombatManager");
+                cm = cmGO.AddComponent<CombatManager>();
+            }
+            cm.OnWaveStarted  += def => { _monsterView?.SetMonster(def, cm.Wave); };
+            cm.OnHpChanged    += (hp, max) => { _monsterView?.UpdateHp(hp, max); };
+            cm.OnMonsterDied  += reward =>
+            {
+                _monsterView?.PlayDeathEffect();
+                _monsterView?.ShowBetweenWaves(reward);
+                UIManager.Instance.ShowToast($"+${NumberFormatter.Format(reward)} recompensa!", new Color(0.25f, 0.9f, 0.35f, 1f));
+            };
+            cm.OnPlayerDamage += dmg => _monsterView?.PlayHitEffect(dmg);
+
+            // Trigger initial wave display (CombatManager.Start may have already fired)
+            StartCoroutine(InitCombatDisplay(cm));
+        }
+
+        private System.Collections.IEnumerator InitCombatDisplay(CombatManager cm)
+        {
+            yield return null; // wait one frame for CombatManager.Start
+            if (_monsterView != null && cm != null)
+            {
+                _monsterView.SetMonster(cm.CurrentDef, cm.Wave);
+                _monsterView.UpdateHp(cm.CurrentHp, cm.MaxHp);
+            }
+        }
+
         private void SetupRankingPanel()
         {
             var canvas = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
@@ -771,6 +874,9 @@ namespace GameIdle
             workerGO.transform.SetParent(pmGO.transform, false);
             _workerManager = workerGO.GetComponent<OfficeWorkerManager>();
             _workerManager.Init(panelMain);
+
+            // ── Combat setup ──────────────────────────────────────────────
+            SetupCombat(pmGO);
         }
 
         private void UpdateTapValueText()
