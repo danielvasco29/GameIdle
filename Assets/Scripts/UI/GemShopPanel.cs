@@ -57,91 +57,188 @@ namespace GameIdle
         private void BuildUI()
         {
             var rt = GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0.06f, 0.06f);
-            rt.anchorMax = new Vector2(0.94f, 0.94f);
+            rt.anchorMin = new Vector2(0.04f, 0.03f);
+            rt.anchorMax = new Vector2(0.96f, 0.97f);
             rt.offsetMin = rt.offsetMax = Vector2.zero;
 
             var bg = gameObject.AddComponent<Image>();
             bg.sprite = Rounded(); bg.type = Image.Type.Sliced;
             bg.color = Navy;
 
-            // Title
+            // ── Header ──────────────────────────────────────────────────────────
+            // Gem icon from Resources
+            var gemTex = Resources.Load<Texture2D>("Icons/icon_gem");
+            if (gemTex != null)
+            {
+                var gemTex2 = SpriteBackgroundRemover.Process(gemTex);
+                var gemSp = Sprite.Create(gemTex2, new Rect(0,0,gemTex2.width,gemTex2.height),
+                    new Vector2(0.5f,0.5f), 100f, 0, SpriteMeshType.FullRect);
+                var iconGO = new GameObject("GemIcon", typeof(RectTransform), typeof(Image));
+                iconGO.transform.SetParent(transform, false);
+                var irt = iconGO.GetComponent<RectTransform>();
+                irt.anchorMin = irt.anchorMax = new Vector2(0.5f, 1f);
+                irt.pivot = new Vector2(0.5f, 1f);
+                irt.anchoredPosition = new Vector2(-90f, -10f);
+                irt.sizeDelta = new Vector2(36f, 36f);
+                var iImg = iconGO.GetComponent<Image>();
+                iImg.sprite = gemSp; iImg.preserveAspect = true; iImg.raycastTarget = false;
+            }
+
             var title = MakeText(transform, "Title", "LOJA DE GEMAS", 22, Gold, FontStyles.Bold,
                 TextAlignmentOptions.Center);
             var trt = title.rectTransform;
             trt.anchorMin = new Vector2(0f, 1f); trt.anchorMax = new Vector2(1f, 1f);
             trt.offsetMin = new Vector2(0f, -52f); trt.offsetMax = new Vector2(0f, -8f);
 
-            // Gem balance
-            gemBalanceText = MakeText(transform, "Balance", "", 16, GemCyan, FontStyles.Bold,
-                TextAlignmentOptions.Center);
-            var grt = gemBalanceText.rectTransform;
-            grt.anchorMin = new Vector2(0f, 1f); grt.anchorMax = new Vector2(1f, 1f);
-            grt.offsetMin = new Vector2(0f, -74f); grt.offsetMax = new Vector2(0f, -52f);
+            // Separator
+            var sep = new GameObject("Sep", typeof(RectTransform), typeof(Image));
+            sep.transform.SetParent(transform, false);
+            var srt = sep.GetComponent<RectTransform>();
+            srt.anchorMin = new Vector2(0f, 1f); srt.anchorMax = new Vector2(1f, 1f);
+            srt.offsetMin = new Vector2(16f, -58f); srt.offsetMax = new Vector2(-16f, -54f);
+            sep.GetComponent<Image>().color = new Color(1f, 0.808f, 0.227f, 0.35f);
 
-            // Rows container
-            float top = 84f;
-            float rowH = 84f, gap = 8f;
-            for (int i = 0; i < GemShop.Upgrades.Length; i++)
+            // Gem balance pill
             {
-                BuildRow(i, top + i * (rowH + gap), rowH);
+                var pillGO = new GameObject("BalancePill", typeof(RectTransform), typeof(Image));
+                pillGO.transform.SetParent(transform, false);
+                var prt = pillGO.GetComponent<RectTransform>();
+                prt.anchorMin = prt.anchorMax = new Vector2(0.5f, 1f);
+                prt.pivot = new Vector2(0.5f, 1f);
+                prt.anchoredPosition = new Vector2(0f, -60f);
+                prt.sizeDelta = new Vector2(220f, 32f);
+                var pImg = pillGO.GetComponent<Image>();
+                pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
+                pImg.color = new Color(0.10f, 0.16f, 0.28f, 1f);
+
+                gemBalanceText = MakeText(pillGO.transform, "Balance", "", 15, GemCyan,
+                    FontStyles.Bold, TextAlignmentOptions.Center);
+                var gbrt = gemBalanceText.rectTransform;
+                gbrt.anchorMin = Vector2.zero; gbrt.anchorMax = Vector2.one;
+                gbrt.offsetMin = gbrt.offsetMax = Vector2.zero;
             }
 
-            // Close button
+            // ── Scrollable rows ──────────────────────────────────────────────────
+            var scrollGO = new GameObject("Scroll", typeof(RectTransform), typeof(ScrollRect));
+            scrollGO.transform.SetParent(transform, false);
+            var scrRT = scrollGO.GetComponent<RectTransform>();
+            scrRT.anchorMin = new Vector2(0f, 0.09f); scrRT.anchorMax = new Vector2(1f, 1f);
+            scrRT.offsetMin = new Vector2(8f, 0f); scrRT.offsetMax = new Vector2(-8f, -100f);
+
+            var vpGO = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(Mask));
+            vpGO.transform.SetParent(scrollGO.transform, false);
+            var vpRT = vpGO.GetComponent<RectTransform>();
+            vpRT.anchorMin = Vector2.zero; vpRT.anchorMax = Vector2.one;
+            vpRT.offsetMin = vpRT.offsetMax = Vector2.zero;
+            vpGO.GetComponent<Mask>().showMaskGraphic = false;
+            vpGO.GetComponent<Image>().color = Color.white;
+
+            var contentGO = new GameObject("Content", typeof(RectTransform),
+                typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+            contentGO.transform.SetParent(vpGO.transform, false);
+            var contentRT = contentGO.GetComponent<RectTransform>();
+            contentRT.anchorMin = new Vector2(0f, 1f); contentRT.anchorMax = new Vector2(1f, 1f);
+            contentRT.pivot = new Vector2(0.5f, 1f);
+            contentRT.offsetMin = contentRT.offsetMax = Vector2.zero;
+            var vlg = contentGO.GetComponent<VerticalLayoutGroup>();
+            vlg.spacing = 8f; vlg.padding = new RectOffset(4, 4, 4, 4);
+            vlg.childForceExpandWidth = true; vlg.childForceExpandHeight = false;
+            contentGO.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var sr = scrollGO.GetComponent<ScrollRect>();
+            sr.viewport = vpRT; sr.content = contentRT;
+            sr.horizontal = false; sr.vertical = true; sr.scrollSensitivity = 30f;
+
+            for (int i = 0; i < GemShop.Upgrades.Length; i++)
+                BuildRow(i, contentGO.transform);
+
+            // ── Close button ────────────────────────────────────────────────────
             var closeGO = new GameObject("Close", typeof(RectTransform), typeof(Image), typeof(Button));
             closeGO.transform.SetParent(transform, false);
             var crt = closeGO.GetComponent<RectTransform>();
-            crt.anchorMin = new Vector2(0.3f, 0f); crt.anchorMax = new Vector2(0.7f, 0f);
-            crt.pivot = new Vector2(0.5f, 0f);
-            crt.sizeDelta = new Vector2(0f, 44f);
-            crt.anchoredPosition = new Vector2(0f, 12f);
+            crt.anchorMin = new Vector2(0.25f, 0f); crt.anchorMax = new Vector2(0.75f, 0.09f);
+            crt.offsetMin = new Vector2(0f, 6f); crt.offsetMax = new Vector2(0f, -4f);
             var cImg = closeGO.GetComponent<Image>();
             cImg.sprite = Rounded(); cImg.type = Image.Type.Sliced;
-            cImg.color = NavyCard;
+            cImg.color = new Color(0.10f, 0.16f, 0.28f, 1f);
             closeGO.GetComponent<Button>().onClick.AddListener(() => gameObject.SetActive(false));
             var cl = MakeText(closeGO.transform, "L", "FECHAR", 15, Color.white, FontStyles.Bold,
                 TextAlignmentOptions.Center);
             var clr = cl.rectTransform; clr.anchorMin = Vector2.zero; clr.anchorMax = Vector2.one;
-            clr.offsetMin = clr.offsetMax = Vector2.zero;
-            cl.raycastTarget = false;
+            clr.offsetMin = clr.offsetMax = Vector2.zero; cl.raycastTarget = false;
         }
 
-        private void BuildRow(int index, float topOffset, float height)
+        private static readonly string[] UpgradeIcons =
         {
-            var card = new GameObject($"Up{index}", typeof(RectTransform), typeof(Image));
-            card.transform.SetParent(transform, false);
+            "Icons/icon_sword",   // prod — production boost (closest match)
+            "Icons/icon_sword",   // tap
+            "Icons/icon_gem",     // prestige
+            "Icons/icon_potion",  // start money
+            "Icons/icon_frost",   // turbo cooldown
+            "Icons/icon_shield",  // offline
+            "Icons/icon_gem",     // gem bonus
+        };
+
+        private void BuildRow(int index, Transform container)
+        {
+            var card = new GameObject($"Up{index}", typeof(RectTransform), typeof(Image),
+                typeof(LayoutElement));
+            card.transform.SetParent(container, false);
+            card.GetComponent<LayoutElement>().preferredHeight = 90f;
             var rt = card.GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0f, 1f); rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.offsetMin = new Vector2(12f, -(topOffset + height));
-            rt.offsetMax = new Vector2(-12f, -topOffset);
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
             var cImg = card.GetComponent<Image>();
             cImg.sprite = Rounded(); cImg.type = Image.Type.Sliced;
             cImg.color = NavyCard;
 
+            // Icon on the left
+            float iconW = 0f;
+            if (index < UpgradeIcons.Length)
+            {
+                var iconTex = Resources.Load<Texture2D>(UpgradeIcons[index]);
+                if (iconTex != null)
+                {
+                    var proc = SpriteBackgroundRemover.Process(iconTex);
+                    var sp = Sprite.Create(proc, new Rect(0, 0, proc.width, proc.height),
+                        new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+                    var iconGO = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+                    iconGO.transform.SetParent(card.transform, false);
+                    var irt = iconGO.GetComponent<RectTransform>();
+                    irt.anchorMin = new Vector2(0f, 0.5f); irt.anchorMax = new Vector2(0f, 0.5f);
+                    irt.pivot = new Vector2(0f, 0.5f);
+                    irt.anchoredPosition = new Vector2(10f, 0f);
+                    irt.sizeDelta = new Vector2(56f, 56f);
+                    var iImg = iconGO.GetComponent<Image>();
+                    iImg.sprite = sp; iImg.preserveAspect = true; iImg.raycastTarget = false;
+                    iconW = 72f;
+                }
+            }
+
             var u = GemShop.Upgrades[index];
+            float nameX = iconW + 14f;
 
             // Name
-            var name = MakeText(card.transform, "Name", u.name, 17, Color.white, FontStyles.Bold,
+            var name = MakeText(card.transform, "Name", u.name, 15, Color.white, FontStyles.Bold,
                 TextAlignmentOptions.TopLeft);
             var nrt = name.rectTransform;
             nrt.anchorMin = new Vector2(0f, 0.55f); nrt.anchorMax = new Vector2(0.62f, 1f);
-            nrt.offsetMin = new Vector2(14f, 0f); nrt.offsetMax = new Vector2(0f, -6f);
+            nrt.offsetMin = new Vector2(nameX, 0f); nrt.offsetMax = new Vector2(0f, -6f);
 
             // Description
-            var desc = MakeText(card.transform, "Desc", u.description, 12, TextSec, FontStyles.Normal,
+            var desc = MakeText(card.transform, "Desc", u.description, 11, TextSec, FontStyles.Normal,
                 TextAlignmentOptions.TopLeft);
             var drt = desc.rectTransform;
             drt.anchorMin = new Vector2(0f, 0.28f); drt.anchorMax = new Vector2(0.62f, 0.55f);
-            drt.offsetMin = new Vector2(14f, 0f); drt.offsetMax = Vector2.zero;
+            drt.offsetMin = new Vector2(nameX, 0f); drt.offsetMax = Vector2.zero;
             desc.textWrappingMode = TextWrappingModes.Normal;
 
             // Current effect + level
-            var effect = MakeText(card.transform, "Effect", "", 12, Green, FontStyles.Bold,
+            var effect = MakeText(card.transform, "Effect", "", 11, Green, FontStyles.Bold,
                 TextAlignmentOptions.BottomLeft);
             var ert = effect.rectTransform;
             ert.anchorMin = new Vector2(0f, 0f); ert.anchorMax = new Vector2(0.62f, 0.28f);
-            ert.offsetMin = new Vector2(14f, 4f); ert.offsetMax = Vector2.zero;
+            ert.offsetMin = new Vector2(nameX, 4f); ert.offsetMax = Vector2.zero;
 
             var level = MakeText(card.transform, "Lvl", "", 12, Gold, FontStyles.Bold,
                 TextAlignmentOptions.TopRight);

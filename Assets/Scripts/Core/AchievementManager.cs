@@ -30,6 +30,9 @@ namespace GameIdle
             new() { id = "kill_1000",  name = "Limpador de Bug", description = "Derrotou 1000 monstros.",    gemReward = 50 },
             new() { id = "boss_1",     name = "Mata-Dragão",     description = "Derrotou o Deadline Dragon pela primeira vez.", gemReward = 15 },
             new() { id = "boss_10",    name = "Lenda do Combate",description = "Derrotou 10 bosses.",        gemReward = 40 },
+            new() { id = "cycle_2",    name = "Sobrevivente",    description = "Completou o 1º ciclo e enfrentou novos inimigos.", gemReward = 20 },
+            new() { id = "cycle_5",    name = "Veterano do Abismo", description = "Completou 5 ciclos de batalha.", gemReward = 50 },
+            new() { id = "cycle_10",   name = "Senhor dos Ciclos",  description = "Completou 10 ciclos de batalha.", gemReward = 100},
         };
 
         private static readonly HashSet<string> _unlocked = new();
@@ -82,6 +85,14 @@ namespace GameIdle
             if (gm.LifetimeKillCount     >= 1000) TryUnlock("kill_1000");
             if (gm.LifetimeBossKillCount >= 1)    TryUnlock("boss_1");
             if (gm.LifetimeBossKillCount >= 10)   TryUnlock("boss_10");
+
+            if (CombatManager.Instance != null)
+            {
+                int cycle = CombatManager.Instance.Cycle;
+                if (cycle >= 2)  TryUnlock("cycle_2");
+                if (cycle >= 5)  TryUnlock("cycle_5");
+                if (cycle >= 10) TryUnlock("cycle_10");
+            }
         }
 
         public static void Load(List<string> saved)
