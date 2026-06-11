@@ -32,6 +32,8 @@ namespace GameIdle
             // The boss background has no painted torch sconces to sit over.
             foreach (var t in _torchImgs)
                 if (t != null) t.gameObject.SetActive(!boss);
+            foreach (var g in _torchGlows)
+                if (g != null) g.gameObject.SetActive(!boss);
 
             if (boss)
             {
@@ -50,8 +52,11 @@ namespace GameIdle
         // Atlas-based extras (only when Resources/FX/arena_atlas.png exists)
         private Image _runicOverlay;
         private readonly List<Image> _torchImgs = new();
+        private readonly List<Image> _torchGlows = new();
+        private readonly List<float> _torchAnimTimers = new();
+        private readonly List<float> _torchAnimSpeeds = new();
+        private readonly List<float> _torchGlowPhases = new();
         private Sprite[] _torchFrames;
-        private float _torchAnimT;
         private int _torchFrame;
 
         private void Awake()
@@ -120,6 +125,7 @@ namespace GameIdle
                     new(0.529f, 0.461f, 0.591f, 0.659f), // center wall, right of screen
                     new(0.848f, 0.501f, 0.910f, 0.699f), // right pillar between arches
                 };
+                Sprite soft = SoftCircle();
                 foreach (var s in spots)
                 {
                     var go = new GameObject("TorchFlame", typeof(RectTransform), typeof(Image));
@@ -130,10 +136,32 @@ namespace GameIdle
                     rt.offsetMin = rt.offsetMax = Vector2.zero;
                     var img = go.GetComponent<Image>();
                     img.sprite = _torchFrames[0];
-                    // stretch to the painted flame's box — same distortion as the bg
                     img.preserveAspect = false;
                     img.raycastTarget = false;
                     _torchImgs.Add(img);
+
+                    // Glow aura around each torch — pulsing independently
+                    var glowGO = new GameObject("TorchGlow", typeof(RectTransform), typeof(Image));
+                    glowGO.transform.SetParent(transform, false);
+                    var glowRT = glowGO.GetComponent<RectTransform>();
+                    float glowSize = (s.z - s.x) * 1.8f;
+                    glowRT.anchorMin = new Vector2(s.x + (s.z - s.x) * 0.5f, s.y + (s.w - s.y) * 0.5f);
+                    glowRT.anchorMax = glowRT.anchorMin;
+                    glowRT.pivot = new Vector2(0.5f, 0.5f);
+                    glowRT.sizeDelta = new Vector2(glowSize, glowSize * 1.4f);
+                    var glowImg = glowGO.GetComponent<Image>();
+                    glowImg.sprite = soft;
+                    glowImg.color = new Color(0.95f, 0.7f, 0.4f, 0.12f); // warm torch glow
+                    glowImg.raycastTarget = false;
+                    glowGO.transform.SetSiblingIndex(go.transform.GetSiblingIndex());
+                    _torchGlows.Add(glowImg);
+
+                    // Per-torch animation: variable speed ±15% from base 10fps
+                    _torchAnimTimers.Add(0f);
+                    float baseInterval = 0.1f;
+                    float speedVar = Random.Range(0.85f, 1.15f);
+                    _torchAnimSpeeds.Add(baseInterval * speedVar);
+                    _torchGlowPhases.Add(Random.Range(0f, Mathf.PI * 2f));
                 }
             }
         }
@@ -210,18 +238,33 @@ namespace GameIdle
         {
             float dt = Time.deltaTime;
 
-            // Torch flame animation — ~10 fps frame cycle
+            // Torch flame animation — per-torch variable speed, independent glow pulsing
             if (_torchFrames != null && _torchImgs.Count > 0)
             {
-                _torchAnimT += dt;
-                if (_torchAnimT >= 0.1f)
+                for (int i = 0; i < _torchImgs.Count; i++)
                 {
-                    _torchAnimT = 0f;
-                    _torchFrame = (_torchFrame + 1) % _torchFrames.Length;
-                    var f = _torchFrames[_torchFrame];
-                    if (f != null)
-                        foreach (var img in _torchImgs)
-                            if (img != null) img.sprite = f;
+                    var img = _torchImgs[i];
+                    if (img == null) continue;
+
+                    _torchAnimTimers[i] += dt;
+                    if (_torchAnimTimers[i] >= _torchAnimSpeeds[i])
+                    {
+                        _torchAnimTimers[i] -= _torchAnimSpeeds[i];
+                        _torchFrame = (_torchFrame + 1) % _torchFrames.Length;
+                        var f = _torchFrames[_torchFrame];
+                        if (f != null) img.sprite = f;
+                    }
+
+                    // Glow pulsing with warm color variation
+                    if (i < _torchGlows.Count && _torchGlows[i] != null)
+                    {
+                        _torchGlowPhases[i] += dt * 1.8f;
+                        float glowPulse = (Mathf.Sin(_torchGlowPhases[i]) + 1f) * 0.5f; // 0..1
+                        float glowAlpha = Mathf.Lerp(0.06f, 0.18f, glowPulse);
+                        var glowColor = _torchGlows[i].color;
+                        glowColor.a = glowAlpha;
+                        _torchGlows[i].color = glowColor;
+                    }
                 }
             }
 
