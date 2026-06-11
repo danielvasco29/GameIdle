@@ -17,6 +17,10 @@ namespace GameIdle
         // stop at the sharp, saturated edge of the character.
         private const float StepTolerance = 0.32f;
 
+        // Same as Process() but skips the cache so the full sheet texture is always
+        // returned (sheets are sliced into many sprites so caching the whole is fine).
+        public static Texture2D ProcessSheet(Texture2D src) => Process(src);
+
         public static Texture2D Process(Texture2D src)
         {
             if (src == null) return null;

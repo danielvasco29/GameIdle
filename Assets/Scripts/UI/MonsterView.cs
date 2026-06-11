@@ -28,6 +28,12 @@ namespace GameIdle
         private const float FloatAmp   = 8f;
         private const float FloatSpeed = 1.8f;
 
+        // Sprite sheet idle animation (8 frames, top row)
+        private Sprite[] _idleFrames;
+        private float    _animTimer;
+        private int      _animFrame;
+        private const float AnimFps = 10f; // frames per second
+
         // Damage flash
         private Coroutine _flashCo;
 
@@ -40,6 +46,20 @@ namespace GameIdle
         private void Update()
         {
             if (_spriteImg == null) return;
+
+            // Idle animation
+            if (_idleFrames != null && _idleFrames.Length > 1)
+            {
+                _animTimer += Time.deltaTime;
+                if (_animTimer >= 1f / AnimFps)
+                {
+                    _animTimer = 0f;
+                    _animFrame = (_animFrame + 1) % _idleFrames.Length;
+                    if (_idleFrames[_animFrame] != null)
+                        _spriteImg.sprite = _idleFrames[_animFrame];
+                }
+            }
+
             _floatPhase += Time.deltaTime * FloatSpeed;
             float y = Mathf.Sin(_floatPhase) * FloatAmp;
             _spriteImg.rectTransform.anchoredPosition = new Vector2(0f, 130f + y);
@@ -176,18 +196,41 @@ namespace GameIdle
             }
             UpdateWave(wave);
 
-            // Load sprite — some monster PNGs have the background baked in as real
-            // white/checkerboard pixels, so run the flood-fill remover (textures in
-            // Resources/Monsters/ are imported readable by CharacterSpriteImporter).
+            // Load sprite or animated sprite sheet.
+            // Sheet naming convention: path ending in "_sheet" → slice idle row (8 frames).
+            // All monster textures are imported readable by CharacterSpriteImporter.
+            _idleFrames = null;
+            _animFrame  = 0;
+            _animTimer  = 0f;
             var srcTex = Resources.Load<Texture2D>(def.spritePath);
             if (srcTex != null && _spriteImg != null)
             {
-                var tex = SpriteBackgroundRemover.Process(srcTex);
-                _spriteImg.sprite = Sprite.Create(tex,
-                    new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f),
-                    100f, 0, SpriteMeshType.FullRect);
+                bool isSheet = def.spritePath.EndsWith("_sheet");
+                if (isSheet)
+                {
+                    // Sprite sheet layout: rows of animation states, 8 columns wide.
+                    // Top row = idle/movement. Remove checker background first.
+                    var tex = SpriteBackgroundRemover.ProcessSheet(srcTex);
+                    int cols = 8;
+                    int frameW = tex.width / cols;
+                    int frameH = tex.height / 5; // ~5 rows: move, attack, hit, death + labels
+                    _idleFrames = new Sprite[cols];
+                    for (int i = 0; i < cols; i++)
+                    {
+                        var r = new Rect(i * frameW, tex.height - frameH, frameW, frameH);
+                        _idleFrames[i] = Sprite.Create(tex, r, new Vector2(0.5f, 0.5f),
+                            100f, 0, SpriteMeshType.FullRect);
+                    }
+                    _spriteImg.sprite = _idleFrames[0];
+                }
+                else
+                {
+                    var tex = SpriteBackgroundRemover.Process(srcTex);
+                    _spriteImg.sprite = Sprite.Create(tex,
+                        new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f),
+                        100f, 0, SpriteMeshType.FullRect);
+                }
                 _spriteImg.color = Color.white;
-                // Boss sprite slightly larger
                 _spriteImg.rectTransform.sizeDelta = isBoss ? new Vector2(340f, 340f) : new Vector2(280f, 280f);
             }
 

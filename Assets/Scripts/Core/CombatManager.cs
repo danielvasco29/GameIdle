@@ -21,10 +21,15 @@ namespace GameIdle
         }
 
         private static readonly MonsterDef[] Defs = {
-            new() { type = MonsterType.Bug,    displayName = "BUG GIGANTE",    spritePath = "Monsters/monster_bug",    baseHp = 80,   baseReward = 60   },
-            new() { type = MonsterType.Virus,  displayName = "VIRUS MALIGNO",  spritePath = "Monsters/monster_virus",  baseHp = 200,  baseReward = 200  },
-            new() { type = MonsterType.Hacker, displayName = "HACKER SOMBRIO", spritePath = "Monsters/monster_hacker", baseHp = 500,  baseReward = 600  },
-            new() { type = MonsterType.Boss,   displayName = "DEADLINE DRAGON",spritePath = "Monsters/monster_boss",   baseHp = 2000, baseReward = 3000 },
+            // Cycle 1 roster
+            new() { type = MonsterType.Bug,    displayName = "BUG GIGANTE",    spritePath = "Monsters/monster_bug",         baseHp = 80,   baseReward = 60   },
+            new() { type = MonsterType.Virus,  displayName = "VIRUS MALIGNO",  spritePath = "Monsters/monster_virus",       baseHp = 200,  baseReward = 200  },
+            new() { type = MonsterType.Hacker, displayName = "HACKER SOMBRIO", spritePath = "Monsters/monster_hacker",      baseHp = 500,  baseReward = 600  },
+            new() { type = MonsterType.Boss,   displayName = "DEADLINE DRAGON",spritePath = "Monsters/monster_boss",        baseHp = 2000, baseReward = 3000 },
+            // Cycle 2+ roster (animated sprite sheets)
+            new() { type = MonsterType.Bug,    displayName = "WORM CORRUPTO",  spritePath = "Monsters/monster_worm_sheet",  baseHp = 120,  baseReward = 90   },
+            new() { type = MonsterType.Virus,  displayName = "GOLEM DE DADOS", spritePath = "Monsters/monster_golem_sheet", baseHp = 350,  baseReward = 380  },
+            new() { type = MonsterType.Hacker, displayName = "ESPECTRO CYBER", spritePath = "Monsters/monster_ghost_sheet", baseHp = 800,  baseReward = 1000 },
         };
 
         // ── Upgrade Levels ────────────────────────────────────────────────────
@@ -281,12 +286,15 @@ namespace GameIdle
             return Math.Max(1, MaxHp * 0.01 * workers) * GetPotionMultiplier() * frostMult;
         }
 
-        private static MonsterDef DefForWave(int wave)
+        private MonsterDef DefForWave(int wave)
         {
-            if (wave == 10) return Defs[3]; // Boss
-            if (wave >= 7)  return Defs[2]; // Hacker
-            if (wave >= 4)  return Defs[1]; // Virus
-            return Defs[0];                  // Bug
+            if (wave == 10) return Defs[3]; // Boss always on wave 10
+            // Odd cycles (1,3,5…) use Bug/Virus/Hacker; even cycles (2,4,6…) use Worm/Golem/Ghost
+            bool altRoster = (Cycle % 2 == 0);
+            int offset = altRoster ? 4 : 0;
+            if (wave >= 7) return Defs[offset + 2];
+            if (wave >= 4) return Defs[offset + 1];
+            return Defs[offset];
         }
     }
 }
