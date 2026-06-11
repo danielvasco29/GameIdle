@@ -21,6 +21,9 @@ namespace GameIdle
         private static Sprite Circle()  => UiSpriteFactory.Circle();
         private static Sprite Rounded() => UiSpriteFactory.RoundedBox();
 
+        // Icon paths inside Resources/Icons/
+        private static readonly string[] IconPaths = { "Icons/icon_sword", "Icons/icon_shield", "Icons/icon_frost", "Icons/icon_potion" };
+
         // ── Row data ──────────────────────────────────────────────────────────
         private struct UpgradeRowUI
         {
@@ -146,6 +149,33 @@ namespace GameIdle
             _rowPotion = BuildRow("Poção de Poder",
                 "2x dano por 30s\n(recarga: 5 min)",
                 3, startY + 3 * (rowH + rowGap), rowH, panelH);
+
+            // Attach icons to each row
+            for (int i = 0; i < IconPaths.Length; i++)
+            {
+                var iconTex = Resources.Load<Texture2D>(IconPaths[i]);
+                if (iconTex == null) continue;
+                var processed = SpriteBackgroundRemover.Process(iconTex);
+                var sp = Sprite.Create(processed,
+                    new Rect(0, 0, processed.width, processed.height),
+                    new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+                // Find the card and add an icon Image on the left side
+                var card = transform.GetChild(i + 2); // 0=bg,1=title, then rows
+                var iconGO = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+                iconGO.transform.SetParent(card, false);
+                var irt = iconGO.GetComponent<RectTransform>();
+                irt.anchorMin = new Vector2(0f, 0.5f); irt.anchorMax = new Vector2(0f, 0.5f);
+                irt.pivot = new Vector2(0f, 0.5f);
+                irt.anchoredPosition = new Vector2(8f, 0f);
+                irt.sizeDelta = new Vector2(52f, 52f);
+                var iImg = iconGO.GetComponent<Image>();
+                iImg.sprite = sp; iImg.preserveAspect = true; iImg.raycastTarget = false;
+                // Shift name/desc text right to make room
+                var nameRT = card.Find("Name")?.GetComponent<RectTransform>();
+                var descRT = card.Find("Desc")?.GetComponent<RectTransform>();
+                if (nameRT != null) nameRT.offsetMin = new Vector2(70f, 0f);
+                if (descRT != null) descRT.offsetMin = new Vector2(70f, 0f);
+            }
 
             // Wire buttons
             _rowSword.buyButton.onClick.AddListener(OnBuySword);
