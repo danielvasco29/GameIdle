@@ -33,10 +33,10 @@ namespace GameIdle
         public static int FrostLevel { get; private set; }   // 0-3
 
         // Upgrade costs (base)
-        private const double SwordBaseCost  = 500.0;
-        private const double ArmorBaseCost  = 1000.0;
-        private const double FrostBaseCost  = 5000.0;
-        private const double PotionBaseCost = 2000.0;
+        private const double SwordBaseCost  = 300.0;
+        private const double ArmorBaseCost  = 600.0;
+        private const double FrostBaseCost  = 3000.0;
+        private const double PotionBaseCost = 1200.0;
 
         // Upgrade max levels
         public const int SwordMax  = 10;
@@ -57,8 +57,8 @@ namespace GameIdle
         public static double GetBossExtraDamage()          => FrostLevel * 0.20;
         public static double GetPotionMultiplier()         => PotionActive ? 2.0 : 1.0;
 
-        public static double GetSwordCost()  => Math.Floor(SwordBaseCost  * Math.Pow(2.5, SwordLevel));
-        public static double GetArmorCost()  => Math.Floor(ArmorBaseCost  * Math.Pow(2.5, ArmorLevel));
+        public static double GetSwordCost()  => Math.Floor(SwordBaseCost  * Math.Pow(2.2, SwordLevel));
+        public static double GetArmorCost()  => Math.Floor(ArmorBaseCost  * Math.Pow(2.2, ArmorLevel));
         public static double GetFrostCost()  => Math.Floor(FrostBaseCost  * Math.Pow(3.0, FrostLevel));
         public static double GetPotionCost() => PotionBaseCost;
 
@@ -208,7 +208,7 @@ namespace GameIdle
             var def = DefForWave(wave);
             CurrentDef = def;
 
-            double mult = 1.0 + (Cycle - 1) * 0.8 + (wave - 1) * 0.15;
+            double mult = 1.0 + (Cycle - 1) * 1.2 + (wave - 1) * 0.20;
             MaxHp     = Math.Floor(def.baseHp  * mult);
             CurrentHp = MaxHp;
 
@@ -232,8 +232,8 @@ namespace GameIdle
         private IEnumerator KillMonster()
         {
             bool isBoss = CurrentDef.type == MonsterType.Boss;
-            double mult   = 1.0 + (Cycle - 1) * 0.8 + (Wave - 1) * 0.15;
-            double reward = Math.Floor(CurrentDef.baseReward * mult);
+            double rewardMult = 1.0 + (Cycle - 1) * 1.2 + (Wave - 1) * 0.20;
+            double reward = Math.Floor(CurrentDef.baseReward * rewardMult);
 
             // Kill tracking
             GameManager.Instance.AddMoney(reward);
@@ -264,7 +264,7 @@ namespace GameIdle
             double tapPower = GameManager.Instance != null
                 ? Math.Max(1, Math.Log10(GameManager.Instance.Money + 10) * 2)
                 : 1;
-            double baseDmg = Math.Max(1, MaxHp * 0.05 * tapPower);
+            double baseDmg = Math.Max(1, MaxHp * 0.08 * tapPower);
             double frostMult = (CurrentDef.type == MonsterType.Boss) ? (1.0 + GetBossExtraDamage()) : 1.0;
             return baseDmg * GetPlayerDamageMultiplier() * GetPotionMultiplier() * frostMult;
         }

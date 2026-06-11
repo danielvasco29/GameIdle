@@ -46,6 +46,8 @@ namespace GameIdle
     {
         public string playerName;
         public int prestigeCount;
+        public int killCount;
+        public int bossKillCount;
         public string date;
     }
 

@@ -128,8 +128,7 @@ namespace GameIdle
             var data = Load();
             data.records.Sort((a, b) => b.prestigeCount.CompareTo(a.prestigeCount));
 
-            // Fix 2: "PRESTÍGIOS" → "PREST.", column width 80 → 60
-            AddRow(rank: 0, pos: "#", name: "JOGADOR", count: "PREST.", date: "DATA", header: true);
+            AddRow(rank: 0, pos: "#", name: "JOGADOR", count: "PREST.", kills: "KILLS", boss: "BOSS", date: "DATA", header: true);
             if (data.records.Count == 0)
             {
                 AddEmptyMessage();
@@ -139,15 +138,14 @@ namespace GameIdle
             {
                 var r = data.records[i];
                 AddRow(rank: i + 1, pos: $"{i + 1}.", name: r.playerName,
-                       count: $"#{r.prestigeCount}", date: r.date);
+                       count: $"#{r.prestigeCount}", kills: $"{r.killCount}", boss: $"{r.bossKillCount}", date: r.date);
             }
         }
 
-        private void AddRow(int rank, string pos, string name, string count, string date, bool header = false)
+        private void AddRow(int rank, string pos, string name, string count, string kills, string boss, string date, bool header = false)
         {
             var rowGO = new GameObject($"Row{rank}", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup));
             rowGO.transform.SetParent(rowsContainer, false);
-            // Fix 4: row height 30 → 34
             rowGO.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, 34f);
 
             rowGO.GetComponent<Image>().color = header
@@ -163,13 +161,13 @@ namespace GameIdle
 
             Color textColor = header ? new Color(1f, 0.84f, 0f) : Color.white;
             FontStyles style = header ? FontStyles.Bold : FontStyles.Normal;
-            // Fix 5: header 12 → 13, rows 11 → 12
             int fontSize = header ? 13 : 12;
 
             AddCell(rowGO.transform, pos,   32f, textColor, style, fontSize);
             AddCell(rowGO.transform, name,   0f, textColor, style, fontSize, flexible: true);
-            // Fix 2: column width 80 → 60
             AddCell(rowGO.transform, count, 60f, textColor, style, fontSize);
+            AddCell(rowGO.transform, kills, 52f, textColor, style, fontSize);
+            AddCell(rowGO.transform, boss,  46f, textColor, style, fontSize);
             AddCell(rowGO.transform, date,  76f, textColor, style, fontSize);
         }
 
@@ -208,12 +206,16 @@ namespace GameIdle
         {
             var data = Load();
             const string playerName = "Jogador";
+            int kills     = GameManager.Instance != null ? GameManager.Instance.LifetimeKillCount     : 0;
+            int bossKills = GameManager.Instance != null ? GameManager.Instance.LifetimeBossKillCount : 0;
             int existingIndex = data.records.FindIndex(r => r.playerName == playerName);
             if (existingIndex >= 0)
             {
                 if (prestigeCount > data.records[existingIndex].prestigeCount)
                 {
                     data.records[existingIndex].prestigeCount = prestigeCount;
+                    data.records[existingIndex].killCount     = kills;
+                    data.records[existingIndex].bossKillCount = bossKills;
                     data.records[existingIndex].date = DateTime.Now.ToString("dd/MM/yy");
                 }
             }
@@ -223,6 +225,8 @@ namespace GameIdle
                 {
                     playerName    = playerName,
                     prestigeCount = prestigeCount,
+                    killCount     = kills,
+                    bossKillCount = bossKills,
                     date          = DateTime.Now.ToString("dd/MM/yy")
                 });
             }

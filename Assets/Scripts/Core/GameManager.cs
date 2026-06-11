@@ -77,6 +77,7 @@ namespace GameIdle
             TotalEarned += amount;
             if (!double.IsFinite(Money)) Money = double.MaxValue;
             if (!double.IsFinite(TotalEarned)) TotalEarned = double.MaxValue;
+            if (amount > 0) DailyMissionSystem.RegisterEarn(amount);
             OnMoneyChanged?.Invoke();
         }
 
