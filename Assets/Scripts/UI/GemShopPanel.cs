@@ -177,6 +177,8 @@ namespace GameIdle
             "Icons/icon_frost",   // turbo cooldown
             "Icons/icon_shield",  // offline
             "Icons/icon_gem",     // gem bonus
+            "Icons/icon_shield",  // combat_shield
+            "Icons/icon_gem",     // kill_bonus
         };
 
         private void BuildRow(int index, Transform container)

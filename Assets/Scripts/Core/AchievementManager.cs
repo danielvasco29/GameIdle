@@ -33,6 +33,16 @@ namespace GameIdle
             new() { id = "cycle_2",    name = "Sobrevivente",    description = "Completou o 1º ciclo e enfrentou novos inimigos.", gemReward = 20 },
             new() { id = "cycle_5",    name = "Veterano do Abismo", description = "Completou 5 ciclos de batalha.", gemReward = 50 },
             new() { id = "cycle_10",   name = "Senhor dos Ciclos",  description = "Completou 10 ciclos de batalha.", gemReward = 100},
+            // Gems lifetime
+            new() { id = "gems_50",    name = "Colecionador",       description = "Coletou 50 gemas no total.",      gemReward = 5  },
+            new() { id = "gems_200",   name = "Investidor",         description = "Coletou 200 gemas no total.",     gemReward = 10 },
+            new() { id = "gems_1000",  name = "Magnata das Gemas",  description = "Coletou 1.000 gemas no total.",   gemReward = 30 },
+            // Daily missions streak
+            new() { id = "missions_1", name = "Comprometido",       description = "Completou todas as missões diárias.", gemReward = 10 },
+            new() { id = "missions_7", name = "Dedicado",           description = "Completou todas as missões 7 dias seguidos.", gemReward = 50 },
+            // Combo achievements
+            new() { id = "combo_5",    name = "Combo Feroz",        description = "Atingiu combo de 5 no combate.", gemReward = 8  },
+            new() { id = "combo_10",   name = "COMBO MÁXIMO!",      description = "Atingiu combo máximo de 10!",    gemReward = 20 },
         };
 
         private static readonly HashSet<string> _unlocked = new();
@@ -93,6 +103,21 @@ namespace GameIdle
                 if (cycle >= 5)  TryUnlock("cycle_5");
                 if (cycle >= 10) TryUnlock("cycle_10");
             }
+
+            // Gems lifetime
+            if (gm.LifetimeGemsEarned >= 50)   TryUnlock("gems_50");
+            if (gm.LifetimeGemsEarned >= 200)  TryUnlock("gems_200");
+            if (gm.LifetimeGemsEarned >= 1000) TryUnlock("gems_1000");
+
+            // Mission streak
+            if (gm.MissionStreakDays >= 1) TryUnlock("missions_1");
+            if (gm.MissionStreakDays >= 7) TryUnlock("missions_7");
+        }
+
+        public static void CheckCombo(int combo)
+        {
+            if (combo >= 5)  TryUnlock("combo_5");
+            if (combo >= 10) TryUnlock("combo_10");
         }
 
         public static void Load(List<string> saved)

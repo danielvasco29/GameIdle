@@ -37,8 +37,11 @@ namespace GameIdle
         public int lifetimeHireCount;
         public int lifetimeKillCount;
         public int lifetimeBossKillCount;
+        public int lifetimeGemsEarned;
         public int combatWave;
         public int combatCycle;
+        public int missionStreakDays;
+        public string lastMissionCompleteDate;
     }
 
     [Serializable]

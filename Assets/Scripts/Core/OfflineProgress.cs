@@ -21,6 +21,33 @@ namespace GameIdle
             if (mps <= 0) return;
 
             double earned = elapsed * mps * GemShop.GetOfflineMult();
+
+            // Offline combat rewards
+            if (CombatManager.Instance != null && CharacterManager.Instance != null)
+            {
+                int workers = 0;
+                foreach (var c in CharacterManager.Instance.GetAllCharacters())
+                    if (c.level > 0) workers++;
+
+                if (workers > 0)
+                {
+                    const double baseKillInterval = 30.0;
+                    const int maxOfflineKills = 500;
+
+                    int armorLevel = CombatManager.ArmorLevel;
+                    double killInterval = baseKillInterval * Math.Pow(0.9, armorLevel);
+                    long kills = Math.Min((long)(elapsed / killInterval), maxOfflineKills);
+
+                    if (kills > 0)
+                    {
+                        int cycle = CombatManager.Instance.Cycle;
+                        double baseReward = CombatManager.Instance.CurrentDef.baseReward;
+                        double combatEarned = kills * baseReward * (1 + (cycle - 1) * 1.2) * GemShop.GetOfflineMult();
+                        earned += combatEarned;
+                    }
+                }
+            }
+
             UIManager.Instance.ShowOfflineProgress(earned, elapsed);
         }
     }

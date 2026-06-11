@@ -89,6 +89,13 @@ namespace GameIdle
             _claimed[i] = true;
             GameManager.Instance.AddGems(All[i].gemReward);
             UIManager.Instance.ShowToast($"Missão concluída! +{All[i].gemReward} gemas", new UnityEngine.Color(0.4f, 0.9f, 1f));
+
+            // Check if all missions are now claimed → streak day
+            bool allDone = true;
+            for (int j = 0; j < All.Length; j++)
+                if (!_claimed[j]) { allDone = false; break; }
+            if (allDone) GameManager.Instance.RegisterMissionStreakDay();
+
             SaveSystem.Save();
             return true;
         }

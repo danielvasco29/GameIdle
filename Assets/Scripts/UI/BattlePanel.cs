@@ -21,6 +21,7 @@ namespace GameIdle
         private RectTransform  _atkBtnRT;
         private TextMeshProUGUI _waveLabel;
         private Image          _bgImage;
+        private TextMeshProUGUI _comboLabel;
 
         // Battle music source (separate from office music)
         private AudioSource _battleMusic;
@@ -159,6 +160,23 @@ namespace GameIdle
             MakeBottomBtn("VOLTAR", new Vector2(-310f, 56f), new Vector2(170f, 56f),
                 NavyDark, 15f, Close);
 
+            // Combo label (above attack button)
+            var comboGO = new GameObject("ComboLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
+            comboGO.transform.SetParent(transform, false);
+            var crt2 = comboGO.GetComponent<RectTransform>();
+            crt2.anchorMin = new Vector2(0.25f, 0f);
+            crt2.anchorMax = new Vector2(0.75f, 0f);
+            crt2.pivot = new Vector2(0.5f, 0f);
+            crt2.anchoredPosition = new Vector2(0f, 116f);
+            crt2.sizeDelta = new Vector2(0f, 40f);
+            _comboLabel = comboGO.GetComponent<TextMeshProUGUI>();
+            _comboLabel.text = "";
+            _comboLabel.fontSize = 24f;
+            _comboLabel.fontStyle = FontStyles.Bold;
+            _comboLabel.alignment = TextAlignmentOptions.Center;
+            _comboLabel.raycastTarget = false;
+            var cf = TMP_Settings.defaultFontAsset; if (cf != null) _comboLabel.font = cf;
+
             // ATACAR (center, big)
             var atkGO = new GameObject("AtkBtn", typeof(RectTransform), typeof(Button));
             atkGO.transform.SetParent(transform, false);
@@ -246,6 +264,15 @@ namespace GameIdle
                 _monsterView?.ShowBetweenWaves(reward);
             };
             cm.OnPlayerDamage += dmg => _monsterView?.PlayHitEffect(dmg);
+            cm.OnComboChanged += count =>
+            {
+                if (_comboLabel == null) return;
+                if (count <= 1) { _comboLabel.text = ""; return; }
+                float hue = Mathf.Lerp(0.33f, 0.08f, (count - 1) / 9f); // green→orange
+                Color.RGBToHSV(Color.white, out _, out _, out float v);
+                _comboLabel.color = Color.HSVToRGB(hue, 0.9f, 1f);
+                _comboLabel.text = $"{count}x COMBO! (+{count * 10}%)";
+            };
         }
 
         // ── Dungeon background (procedural) ───────────────────────────────────

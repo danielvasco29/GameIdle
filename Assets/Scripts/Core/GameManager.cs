@@ -166,10 +166,26 @@ namespace GameIdle
             return true;
         }
 
+        public int LifetimeGemsEarned   { get; private set; }
+        public int MissionStreakDays     { get; private set; }
+        private string _lastMissionCompleteDate = "";
+
+        public void RegisterMissionStreakDay()
+        {
+            string today = System.DateTimeOffset.UtcNow.ToString("yyyy-MM-dd");
+            if (_lastMissionCompleteDate == today) return;
+            string yesterday = System.DateTimeOffset.UtcNow.AddDays(-1).ToString("yyyy-MM-dd");
+            MissionStreakDays = (_lastMissionCompleteDate == yesterday) ? MissionStreakDays + 1 : 1;
+            _lastMissionCompleteDate = today;
+            AchievementManager.CheckAll();
+            SaveSystem.Save();
+        }
+
         public void AddGems(int amount)
         {
             if (amount <= 0) return;
             Gems += amount;
+            LifetimeGemsEarned += amount;
             OnStatsUpdated?.Invoke();
         }
 
@@ -281,6 +297,9 @@ namespace GameIdle
             LifetimeHireCount     = data.lifetimeHireCount;
             LifetimeKillCount     = data.lifetimeKillCount;
             LifetimeBossKillCount = data.lifetimeBossKillCount;
+            LifetimeGemsEarned    = data.lifetimeGemsEarned;
+            MissionStreakDays     = data.missionStreakDays;
+            _lastMissionCompleteDate = data.lastMissionCompleteDate ?? "";
             _savedCombatCycle = data.combatCycle > 0 ? data.combatCycle : 1;
             _savedCombatWave  = data.combatWave  > 0 ? data.combatWave  : 1;
             AchievementManager.Load(data.unlockedAchievements);
@@ -309,6 +328,9 @@ namespace GameIdle
                 lifetimeHireCount     = LifetimeHireCount,
                 lifetimeKillCount     = LifetimeKillCount,
                 lifetimeBossKillCount = LifetimeBossKillCount,
+                lifetimeGemsEarned    = LifetimeGemsEarned,
+                missionStreakDays     = MissionStreakDays,
+                lastMissionCompleteDate = _lastMissionCompleteDate,
                 combatCycle = CombatManager.Instance != null ? CombatManager.Instance.Cycle : _savedCombatCycle,
                 combatWave  = CombatManager.Instance != null ? CombatManager.Instance.Wave  : _savedCombatWave,
             };

@@ -119,6 +119,7 @@ namespace GameIdle
 
         // Ranking panel
         private RankingPanel rankingPanel;
+        private StatsPanel statsPanel;
 
 
         // Gem currency display (created at runtime — gems are a new system)
@@ -307,6 +308,7 @@ namespace GameIdle
             SetupNextUnlockBanner();
             StylePrestigeNotice();
             SetupRankingPanel();
+            SetupStatsPanel();
             SetupShopAndSettings();
 
             // Agora que offlinePanel existe, mostra o progresso offline pendente
@@ -634,6 +636,40 @@ namespace GameIdle
         private void OpenRanking()
         {
             if (rankingPanel != null) { CloseAllModals(); rankingPanel.Open(); }
+        }
+
+        private void SetupStatsPanel()
+        {
+            var canvas = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
+            if (canvas == null) return;
+
+            var panelGO = new GameObject("StatsPanel", typeof(RectTransform));
+            panelGO.transform.SetParent(canvas.transform, false);
+            statsPanel = panelGO.AddComponent<StatsPanel>();
+            modalPanels.Add(panelGO);
+
+            // STATS button — top-right, beside RANK button
+            var btnGO = new GameObject("StatsButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            btnGO.transform.SetParent(canvas.transform, false);
+            var brt = btnGO.GetComponent<RectTransform>();
+            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
+            brt.anchoredPosition = new Vector2(-62f, -7f);
+            brt.sizeDelta = new Vector2(52f, 40f);
+            var bImg = btnGO.GetComponent<Image>();
+            bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
+            bImg.color = new Color(0.08f, 0.13f, 0.22f, 0.9f);
+            btnGO.GetComponent<Button>().onClick.AddListener(() =>
+            { if (statsPanel != null) { CloseAllModals(); statsPanel.Open(); } });
+            var lblGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            lblGO.transform.SetParent(btnGO.transform, false);
+            var lrt = lblGO.GetComponent<RectTransform>();
+            lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
+            lrt.offsetMin = lrt.offsetMax = Vector2.zero;
+            var ltmp = lblGO.GetComponent<TextMeshProUGUI>();
+            ltmp.text = "STATS"; ltmp.fontSize = 11; ltmp.fontStyle = FontStyles.Bold;
+            ltmp.color = new Color(0.6f, 0.7f, 0.85f, 0.85f);
+            ltmp.alignment = TextAlignmentOptions.Center; ltmp.raycastTarget = false;
+            var ff2 = GetCachedFont(); if (ff2 != null) ltmp.font = ff2;
         }
 
         // ── Tap Button ────────────────────────────────────────────────────────

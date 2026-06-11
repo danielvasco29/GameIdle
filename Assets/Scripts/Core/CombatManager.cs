@@ -145,6 +145,14 @@ namespace GameIdle
         public int    Cycle     { get; set; } = 1;  // increases after wave 10; set on load
         public MonsterDef CurrentDef { get; private set; }
 
+        // Combo tracking
+        public int   ComboCount  { get; private set; }
+        public float ComboTimer  { get; private set; }  // seconds since last tap
+        private const float ComboWindow = 2.0f;         // reset if no tap within 2s
+        private const int   ComboMax    = 10;
+
+        public event Action<int> OnComboChanged;  // fires with new combo count
+
         // Auto-attack from workers (damage per second)
         private float _autoAttackTimer;
         private float _autoAttackInterval = 2.5f;
@@ -208,6 +216,17 @@ namespace GameIdle
                 if (PotionCooldown < 0f) PotionCooldown = 0f;
             }
 
+            if (ComboCount > 0)
+            {
+                ComboTimer += Time.deltaTime;
+                if (ComboTimer >= ComboWindow)
+                {
+                    ComboCount = 0;
+                    ComboTimer = 0f;
+                    OnComboChanged?.Invoke(0);
+                }
+            }
+
             if (!IsActive || _betweenWaves) return;
 
             _autoAttackTimer += Time.deltaTime;
@@ -224,6 +243,10 @@ namespace GameIdle
         public void PlayerAttack()
         {
             if (!IsActive || _betweenWaves) return;
+            ComboCount = Math.Min(ComboCount + 1, ComboMax);
+            ComboTimer = 0f;
+            OnComboChanged?.Invoke(ComboCount);
+            AchievementManager.CheckCombo(ComboCount);
             double dmg = CalcPlayerDamage();
             DealDamage(dmg, fromPlayer: true);
             SoundManager.Get().PlayHit();
@@ -266,13 +289,18 @@ namespace GameIdle
         {
             bool isBoss = CurrentDef.type == MonsterType.Boss;
             double rewardMult = 1.0 + (Cycle - 1) * 1.2 + (Wave - 1) * 0.20;
-            double reward = Math.Floor(CurrentDef.baseReward * rewardMult);
+            double reward = Math.Floor(CurrentDef.baseReward * rewardMult * GemShop.GetKillBonusMult());
 
             // Kill tracking
             GameManager.Instance.AddMoney(reward);
             GameManager.Instance.RegisterKill(isBoss);
             DailyMissionSystem.RegisterKill();
             AchievementManager.CheckAll();
+
+            // Reset combo on kill
+            ComboCount = 0;
+            ComboTimer = 0f;
+            OnComboChanged?.Invoke(0);
 
             // SFX
             SoundManager.Get().PlayDeath();
@@ -302,6 +330,8 @@ namespace GameIdle
             // Critical hit
             if (CriticoLevel > 0 && UnityEngine.Random.value < GetCriticoChance())
                 dmg *= 2.0;
+            double comboMult = 1.0 + ComboCount * 0.10; // +10% per combo hit
+            dmg *= comboMult;
             return dmg;
         }
 
@@ -314,7 +344,7 @@ namespace GameIdle
                     if (c.level > 0) workers++;
             if (workers == 0) return 0;
             double frostMult = (CurrentDef.type == MonsterType.Boss) ? (1.0 + GetBossExtraDamage()) : 1.0;
-            return Math.Max(1, MaxHp * 0.01 * workers) * GetPotionMultiplier() * frostMult;
+            return Math.Max(1, MaxHp * 0.01 * workers) * GetPotionMultiplier() * frostMult * GemShop.GetCombatShieldMult();
         }
 
         private MonsterDef DefForWave(int wave)
