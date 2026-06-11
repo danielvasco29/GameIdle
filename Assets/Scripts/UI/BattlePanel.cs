@@ -196,16 +196,10 @@ namespace GameIdle
             atkHold.Init(() => CombatManager.Instance?.PlayerAttack());
             MakeLabel(atkGO, "ATACAR!", 22f, Color.white);
 
-            // UPGRADES (right of attack)
+            // UPGRADES (right of attack) — opens upgrade panel without closing the arena
             MakeBottomBtn("UPGRADES", new Vector2(140f, 56f), new Vector2(170f, 56f),
-                new Color(0.35f, 0.18f, 0.02f, 0.90f), 15f, () => {
-                    if (UIManager.Instance != null)
-                    {
-                        UIManager.Instance.CloseAllModals();
-                        var cup = FindFirstObjectByType<CombatUpgradePanel>();
-                        cup?.Open();
-                    }
-                });
+                new Color(0.35f, 0.18f, 0.02f, 0.90f), 15f,
+                () => UIManager.Instance?.OpenCombatUpgrades());
         }
 
         // pos.x = offset from screen center; size = fixed button size

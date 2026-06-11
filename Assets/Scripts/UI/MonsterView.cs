@@ -211,13 +211,15 @@ namespace GameIdle
                     // Sprite sheet layout: rows of animation states, 8 columns wide.
                     // Top row = idle/movement. Remove checker background first.
                     var tex = SpriteBackgroundRemover.ProcessSheet(srcTex);
-                    int cols = 8;
-                    int frameW = tex.width / cols;
-                    int frameH = tex.height / 5; // ~5 rows: move, attack, hit, death + labels
+                    int cols   = 8;
+                    int frameW = tex.width / cols;  // 128 for 1024-wide sheet
+                    int frameH = frameW;             // assume square frames
                     _idleFrames = new Sprite[cols];
+                    // Top row in texture coords = highest y value (Unity y=0 is bottom)
+                    int topRowY = tex.height - frameH;
                     for (int i = 0; i < cols; i++)
                     {
-                        var r = new Rect(i * frameW, tex.height - frameH, frameW, frameH);
+                        var r = new Rect(i * frameW, topRowY, frameW, frameH);
                         _idleFrames[i] = Sprite.Create(tex, r, new Vector2(0.5f, 0.5f),
                             100f, 0, SpriteMeshType.FullRect);
                     }

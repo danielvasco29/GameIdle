@@ -128,6 +128,11 @@ namespace GameIdle
         private SettingsPanel settingsPanel;
         private CombatUpgradePanel combatUpgradePanel;
 
+        public void OpenCombatUpgrades()
+        {
+            if (combatUpgradePanel != null) combatUpgradePanel.Open();
+        }
+
         // Runtime-generated UI sprites (no dependency on Unity built-in resources)
         private static Sprite Circle()  => UiSpriteFactory.Circle();
         private static Sprite Rounded() => UiSpriteFactory.RoundedBox();

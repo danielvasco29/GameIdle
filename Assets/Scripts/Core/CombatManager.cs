@@ -22,14 +22,14 @@ namespace GameIdle
 
         private static readonly MonsterDef[] Defs = {
             // Cycle 1 roster
-            new() { type = MonsterType.Bug,    displayName = "BUG GIGANTE",    spritePath = "Monsters/monster_bug",         baseHp = 80,   baseReward = 60   },
-            new() { type = MonsterType.Virus,  displayName = "VIRUS MALIGNO",  spritePath = "Monsters/monster_virus",       baseHp = 200,  baseReward = 200  },
-            new() { type = MonsterType.Hacker, displayName = "HACKER SOMBRIO", spritePath = "Monsters/monster_hacker",      baseHp = 500,  baseReward = 600  },
-            new() { type = MonsterType.Boss,   displayName = "DEADLINE DRAGON",spritePath = "Monsters/monster_boss",        baseHp = 2000, baseReward = 3000 },
+            new() { type = MonsterType.Bug,    displayName = "BUG GIGANTE",    spritePath = "Monsters/monster_bug",         baseHp = 800,    baseReward = 600   },
+            new() { type = MonsterType.Virus,  displayName = "VIRUS MALIGNO",  spritePath = "Monsters/monster_virus",       baseHp = 2_000,  baseReward = 2_000 },
+            new() { type = MonsterType.Hacker, displayName = "HACKER SOMBRIO", spritePath = "Monsters/monster_hacker",      baseHp = 5_000,  baseReward = 6_000 },
+            new() { type = MonsterType.Boss,   displayName = "DEADLINE DRAGON",spritePath = "Monsters/monster_boss",        baseHp = 20_000, baseReward = 30_000},
             // Cycle 2+ roster (animated sprite sheets)
-            new() { type = MonsterType.Bug,    displayName = "WORM CORRUPTO",  spritePath = "Monsters/monster_worm_sheet",  baseHp = 120,  baseReward = 90   },
-            new() { type = MonsterType.Virus,  displayName = "GOLEM DE DADOS", spritePath = "Monsters/monster_golem_sheet", baseHp = 350,  baseReward = 380  },
-            new() { type = MonsterType.Hacker, displayName = "ESPECTRO CYBER", spritePath = "Monsters/monster_ghost_sheet", baseHp = 800,  baseReward = 1000 },
+            new() { type = MonsterType.Bug,    displayName = "WORM CORRUPTO",  spritePath = "Monsters/monster_worm_sheet",  baseHp = 1_200,  baseReward = 900   },
+            new() { type = MonsterType.Virus,  displayName = "GOLEM DE DADOS", spritePath = "Monsters/monster_golem_sheet", baseHp = 3_500,  baseReward = 3_800 },
+            new() { type = MonsterType.Hacker, displayName = "ESPECTRO CYBER", spritePath = "Monsters/monster_ghost_sheet", baseHp = 8_000,  baseReward = 10_000},
         };
 
         // ── Upgrade Levels ────────────────────────────────────────────────────
@@ -321,8 +321,9 @@ namespace GameIdle
 
         private double CalcPlayerDamage()
         {
+            // tapPower capped at 6 so late-game money doesn't trivially one-shot monsters
             double tapPower = GameManager.Instance != null
-                ? Math.Max(1, Math.Log10(GameManager.Instance.Money + 10) * 2)
+                ? Math.Min(6.0, Math.Max(1.0, Math.Log10(GameManager.Instance.Money + 10)))
                 : 1;
             double baseDmg = Math.Max(1, MaxHp * 0.08 * tapPower);
             double frostMult = (CurrentDef.type == MonsterType.Boss) ? (1.0 + GetBossExtraDamage()) : 1.0;

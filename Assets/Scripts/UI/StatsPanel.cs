@@ -258,8 +258,8 @@ namespace GameIdle
                                          string label, string placeholder,
                                          Color bgColor, int index)
         {
-            const float rowH    = 44f;
-            const float padH    = 12f;
+            const float rowH    = 52f;
+            const float padH    = 16f;
 
             var rowGO = new GameObject($"Row_{index}", typeof(RectTransform), typeof(Image),
                                                         typeof(LayoutElement));
@@ -303,7 +303,7 @@ namespace GameIdle
             var lblTxt = lblGO.GetComponent<TextMeshProUGUI>();
             lblTxt.font      = font;
             lblTxt.text      = label;
-            lblTxt.fontSize  = 13f;
+            lblTxt.fontSize  = 15f;
             lblTxt.color     = TextSec;
             lblTxt.alignment = TextAlignmentOptions.MidlineLeft;
             lblTxt.overflowMode = TextOverflowModes.Ellipsis;
@@ -313,13 +313,13 @@ namespace GameIdle
                                                typeof(LayoutElement));
             valGO.transform.SetParent(hlgGO.transform, false);
             var valLE = valGO.GetComponent<LayoutElement>();
-            valLE.preferredWidth = 160f;
-            valLE.minWidth       = 80f;
+            valLE.preferredWidth = 170f;
+            valLE.minWidth       = 100f;
 
             var valTxt = valGO.GetComponent<TextMeshProUGUI>();
             valTxt.font      = font;
             valTxt.text      = placeholder;
-            valTxt.fontSize  = 13f;
+            valTxt.fontSize  = 15f;
             valTxt.fontStyle = FontStyles.Bold;
             valTxt.color     = TextPrimary;
             valTxt.alignment = TextAlignmentOptions.MidlineRight;
