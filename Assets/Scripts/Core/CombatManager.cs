@@ -33,20 +33,23 @@ namespace GameIdle
         };
 
         // ── Upgrade Levels ────────────────────────────────────────────────────
-        public static int SwordLevel { get; private set; }   // 0-10
-        public static int ArmorLevel { get; private set; }   // 0-5
-        public static int FrostLevel { get; private set; }   // 0-3
+        public static int SwordLevel   { get; private set; }  // 0-10
+        public static int ArmorLevel   { get; private set; }  // 0-5
+        public static int FrostLevel   { get; private set; }  // 0-3
+        public static int CriticoLevel { get; private set; }  // 0-5
 
         // Upgrade costs (base)
-        private const double SwordBaseCost  = 300.0;
-        private const double ArmorBaseCost  = 600.0;
-        private const double FrostBaseCost  = 3000.0;
-        private const double PotionBaseCost = 1200.0;
+        private const double SwordBaseCost   = 300.0;
+        private const double ArmorBaseCost   = 600.0;
+        private const double FrostBaseCost   = 3000.0;
+        private const double PotionBaseCost  = 1200.0;
+        private const double CriticoBaseCost = 800.0;
 
         // Upgrade max levels
-        public const int SwordMax  = 10;
-        public const int ArmorMax  = 5;
-        public const int FrostMax  = 3;
+        public const int SwordMax   = 10;
+        public const int ArmorMax   = 5;
+        public const int FrostMax   = 3;
+        public const int CriticoMax = 5;
 
         // Potion (active ability)
         public static bool  PotionUnlocked   { get; private set; }
@@ -61,11 +64,13 @@ namespace GameIdle
         public static double GetAutoAttackInterval()       => Math.Max(1.0, 2.5 - ArmorLevel * 0.15 * 2.5);
         public static double GetBossExtraDamage()          => FrostLevel * 0.20;
         public static double GetPotionMultiplier()         => PotionActive ? 2.0 : 1.0;
+        public static float  GetCriticoChance()            => CriticoLevel * 0.10f; // +10% per level
 
-        public static double GetSwordCost()  => Math.Floor(SwordBaseCost  * Math.Pow(2.2, SwordLevel));
-        public static double GetArmorCost()  => Math.Floor(ArmorBaseCost  * Math.Pow(2.2, ArmorLevel));
-        public static double GetFrostCost()  => Math.Floor(FrostBaseCost  * Math.Pow(3.0, FrostLevel));
-        public static double GetPotionCost() => PotionBaseCost;
+        public static double GetSwordCost()   => Math.Floor(SwordBaseCost   * Math.Pow(2.2, SwordLevel));
+        public static double GetArmorCost()   => Math.Floor(ArmorBaseCost   * Math.Pow(2.2, ArmorLevel));
+        public static double GetFrostCost()   => Math.Floor(FrostBaseCost   * Math.Pow(3.0, FrostLevel));
+        public static double GetPotionCost()  => PotionBaseCost;
+        public static double GetCriticoCost() => Math.Floor(CriticoBaseCost * Math.Pow(2.5, CriticoLevel));
 
         // ── Upgrade Methods ───────────────────────────────────────────────────
         public static void UpgradeSword()
@@ -114,6 +119,17 @@ namespace GameIdle
             PlayerPrefs.Save();
         }
 
+        public static void UpgradeCritico()
+        {
+            if (CriticoLevel >= CriticoMax || GameManager.Instance == null) return;
+            double cost = GetCriticoCost();
+            if (GameManager.Instance.Money < cost) return;
+            GameManager.Instance.AddMoney(-cost);
+            CriticoLevel++;
+            PlayerPrefs.SetInt("cbt_critico", CriticoLevel);
+            PlayerPrefs.Save();
+        }
+
         public static void ActivatePotion()
         {
             if (!PotionUnlocked || PotionActive || PotionCooldown > 0f) return;
@@ -126,7 +142,7 @@ namespace GameIdle
         public double CurrentHp { get; private set; }
         public double MaxHp     { get; private set; }
         public int    Wave      { get; private set; } = 1;
-        public int    Cycle     { get; private set; } = 1;  // increases after wave 10
+        public int    Cycle     { get; set; } = 1;  // increases after wave 10; set on load
         public MonsterDef CurrentDef { get; private set; }
 
         // Auto-attack from workers (damage per second)
@@ -151,15 +167,27 @@ namespace GameIdle
         private void Start()
         {
             // Load upgrade levels
-            SwordLevel    = PlayerPrefs.GetInt("cbt_sword",  0);
-            ArmorLevel    = PlayerPrefs.GetInt("cbt_armor",  0);
-            FrostLevel    = PlayerPrefs.GetInt("cbt_frost",  0);
-            PotionUnlocked = PlayerPrefs.GetInt("cbt_potion", 0) == 1;
+            SwordLevel     = PlayerPrefs.GetInt("cbt_sword",   0);
+            ArmorLevel     = PlayerPrefs.GetInt("cbt_armor",   0);
+            FrostLevel     = PlayerPrefs.GetInt("cbt_frost",   0);
+            CriticoLevel   = PlayerPrefs.GetInt("cbt_critico", 0);
+            PotionUnlocked = PlayerPrefs.GetInt("cbt_potion",  0) == 1;
 
             _autoAttackInterval = (float)GetAutoAttackInterval();
 
-            IsActive = true;
-            StartWave(1);
+            // Restore combat progress from save
+            if (GameManager.Instance != null)
+            {
+                Cycle = Math.Max(1, GameManager.Instance.SavedCombatCycle);
+                int wave = Math.Max(1, Math.Min(10, GameManager.Instance.SavedCombatWave));
+                IsActive = true;
+                StartWave(wave);
+            }
+            else
+            {
+                IsActive = true;
+                StartWave(1);
+            }
         }
 
         private void Update()
@@ -265,13 +293,16 @@ namespace GameIdle
 
         private double CalcPlayerDamage()
         {
-            // Base 5% of monster max HP, scaled by tap power + sword upgrade + potion
             double tapPower = GameManager.Instance != null
                 ? Math.Max(1, Math.Log10(GameManager.Instance.Money + 10) * 2)
                 : 1;
             double baseDmg = Math.Max(1, MaxHp * 0.08 * tapPower);
             double frostMult = (CurrentDef.type == MonsterType.Boss) ? (1.0 + GetBossExtraDamage()) : 1.0;
-            return baseDmg * GetPlayerDamageMultiplier() * GetPotionMultiplier() * frostMult;
+            double dmg = baseDmg * GetPlayerDamageMultiplier() * GetPotionMultiplier() * frostMult;
+            // Critical hit
+            if (CriticoLevel > 0 && UnityEngine.Random.value < GetCriticoChance())
+                dmg *= 2.0;
+            return dmg;
         }
 
         private double CalcAutoAttackDamage()

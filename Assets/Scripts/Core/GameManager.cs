@@ -74,10 +74,13 @@ namespace GameIdle
         {
             if (!double.IsFinite(amount)) return;
             Money += amount;
-            TotalEarned += amount;
+            if (amount > 0)
+            {
+                TotalEarned += amount;
+                if (!double.IsFinite(TotalEarned)) TotalEarned = double.MaxValue;
+                DailyMissionSystem.RegisterEarn(amount);
+            }
             if (!double.IsFinite(Money)) Money = double.MaxValue;
-            if (!double.IsFinite(TotalEarned)) TotalEarned = double.MaxValue;
-            if (amount > 0) DailyMissionSystem.RegisterEarn(amount);
             OnMoneyChanged?.Invoke();
         }
 
@@ -241,6 +244,12 @@ namespace GameIdle
             SaveSystem.Save();
         }
 
+        // Saved combat state (restored into CombatManager on its Start via public accessors)
+        private int _savedCombatCycle = 1;
+        private int _savedCombatWave  = 1;
+        public int SavedCombatCycle => _savedCombatCycle;
+        public int SavedCombatWave  => _savedCombatWave;
+
         // Lifetime counters (persisted)
         public int LifetimeTapCount      { get; private set; }
         public int LifetimePrestigeCount { get; private set; }
@@ -272,6 +281,8 @@ namespace GameIdle
             LifetimeHireCount     = data.lifetimeHireCount;
             LifetimeKillCount     = data.lifetimeKillCount;
             LifetimeBossKillCount = data.lifetimeBossKillCount;
+            _savedCombatCycle = data.combatCycle > 0 ? data.combatCycle : 1;
+            _savedCombatWave  = data.combatWave  > 0 ? data.combatWave  : 1;
             AchievementManager.Load(data.unlockedAchievements);
             DailyMissionSystem.Load(data.lastMissionDate, data.missionProgress, data.missionClaimed);
         }
@@ -298,6 +309,8 @@ namespace GameIdle
                 lifetimeHireCount     = LifetimeHireCount,
                 lifetimeKillCount     = LifetimeKillCount,
                 lifetimeBossKillCount = LifetimeBossKillCount,
+                combatCycle = CombatManager.Instance != null ? CombatManager.Instance.Cycle : _savedCombatCycle,
+                combatWave  = CombatManager.Instance != null ? CombatManager.Instance.Wave  : _savedCombatWave,
             };
         }
 

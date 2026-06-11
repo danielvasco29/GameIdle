@@ -22,7 +22,10 @@ namespace GameIdle
         private static Sprite Rounded() => UiSpriteFactory.RoundedBox();
 
         // Icon paths inside Resources/Icons/
-        private static readonly string[] IconPaths = { "Icons/icon_sword", "Icons/icon_shield", "Icons/icon_frost", "Icons/icon_potion" };
+        private static readonly string[] IconPaths = {
+            "Icons/icon_sword", "Icons/icon_shield", "Icons/icon_frost",
+            "Icons/icon_potion", "Icons/icon_gem"
+        };
 
         // ── Row data ──────────────────────────────────────────────────────────
         private struct UpgradeRowUI
@@ -37,6 +40,7 @@ namespace GameIdle
         private UpgradeRowUI _rowArmor;
         private UpgradeRowUI _rowFrost;
         private UpgradeRowUI _rowPotion;
+        private UpgradeRowUI _rowCritico;
 
         // Potion button has extra state text
         private TextMeshProUGUI _potionStateText;
@@ -93,7 +97,7 @@ namespace GameIdle
             var rt = GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = Vector2.zero;
-            rt.sizeDelta = new Vector2(480f, 520f);
+            rt.sizeDelta = new Vector2(480f, 636f);
 
             // Background
             var bg = gameObject.AddComponent<Image>();
@@ -128,11 +132,11 @@ namespace GameIdle
             cLabel.raycastTarget = false;
 
             // Upgrade rows  (top → bottom inside the panel)
-            // We layout 4 rows starting 62px from top, each 96px tall, 10px gap
-            float startY   = 64f;   // pixels from top of panel
+            // We layout 5 rows starting 62px from top, each 96px tall, 10px gap
+            float startY   = 64f;
             float rowH     = 96f;
             float rowGap   = 10f;
-            float panelH   = 520f;
+            float panelH   = 636f;
 
             _rowSword  = BuildRow("Espada Afiada",
                 "+25% dano por tap",
@@ -149,6 +153,10 @@ namespace GameIdle
             _rowPotion = BuildRow("Poção de Poder",
                 "2x dano por 30s\n(recarga: 5 min)",
                 3, startY + 3 * (rowH + rowGap), rowH, panelH);
+
+            _rowCritico = BuildRow("Golpe Crítico",
+                "+10% chance de acerto crítico\n(2x dano) por nível",
+                4, startY + 4 * (rowH + rowGap), rowH, panelH);
 
             // Attach icons to each row
             for (int i = 0; i < IconPaths.Length; i++)
@@ -182,6 +190,7 @@ namespace GameIdle
             _rowArmor.buyButton.onClick.AddListener(OnBuyArmor);
             _rowFrost.buyButton.onClick.AddListener(OnBuyFrost);
             _rowPotion.buyButton.onClick.AddListener(OnBuyPotion);
+            _rowCritico.buyButton.onClick.AddListener(OnBuyCritico);
 
             // Extra potion state label (cooldown / active timer)
             _potionStateText = MakeText(transform, "PotionState", "",
@@ -297,6 +306,17 @@ namespace GameIdle
             ShowToast("Feitiço de Gelo melhorado!");
         }
 
+        private void OnBuyCritico()
+        {
+            if (CombatManager.CriticoLevel >= CombatManager.CriticoMax) return;
+            if (GameManager.Instance == null) return;
+            if (GameManager.Instance.Money < CombatManager.GetCriticoCost()) { PlayError(); return; }
+            CombatManager.UpgradeCritico();
+            PlayBuy();
+            RefreshState();
+            ShowToast("Golpe Crítico melhorado!");
+        }
+
         private void OnBuyPotion()
         {
             // If not yet unlocked → buy it
@@ -387,6 +407,24 @@ namespace GameIdle
 
             // Potion
             RefreshPotionRow();
+
+            // Crítico
+            bool criticoMaxed = CombatManager.CriticoLevel >= CombatManager.CriticoMax;
+            _rowCritico.levelText.text = criticoMaxed
+                ? $"MÁX ({CombatManager.CriticoMax}/{CombatManager.CriticoMax})"
+                : $"{CombatManager.CriticoLevel}/{CombatManager.CriticoMax} ({(int)(CombatManager.GetCriticoChance()*100)}% crit)";
+            if (criticoMaxed)
+            {
+                SetRowMaxed(ref _rowCritico);
+            }
+            else
+            {
+                double cc = CombatManager.GetCriticoCost();
+                bool canC = money >= cc;
+                _rowCritico.costText.text = $"${NumberFormatter.Format(cc)}";
+                _rowCritico.buyButton.interactable = canC;
+                _rowCritico.buyBg.color = canC ? GreenBtn : GrayBtn;
+            }
         }
 
         private void RefreshPotionRow()

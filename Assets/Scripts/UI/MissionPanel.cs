@@ -32,7 +32,7 @@ namespace GameIdle
             var rt = GetComponent<RectTransform>() ?? gameObject.AddComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot     = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(460f, 340f);
+            rt.sizeDelta = new Vector2(460f, 440f);
             rt.anchoredPosition = Vector2.zero;
 
             var bg = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
@@ -174,7 +174,9 @@ namespace GameIdle
                 bool complete = DailyMissionSystem.IsComplete(i);
                 bool claimed  = DailyMissionSystem.IsClaimed(i);
 
-                r.progressText.text = $"{prog}/{m.target}";
+                r.progressText.text = m.target >= 10000
+                    ? $"${NumberFormatter.Format(prog)} / ${NumberFormatter.Format(m.target)}"
+                    : $"{prog} / {m.target}";
                 r.bar.fillAmount = Mathf.Clamp01((float)prog / m.target);
 
                 if (claimed)

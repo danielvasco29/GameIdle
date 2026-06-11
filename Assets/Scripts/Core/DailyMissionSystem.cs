@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace GameIdle
 {
-    // Três missões diárias que resetam à meia-noite. Progresso e claims persistidos no save.
+    // Cinco missões diárias que resetam à meia-noite. Progresso e claims persistidos no save.
     public static class DailyMissionSystem
     {
         public class Mission
@@ -19,8 +19,8 @@ namespace GameIdle
             new() { id = "taps",    name = "Trabalhar 50 vezes",      target = 50,  gemReward = 5  },
             new() { id = "hires",   name = "Contratar 5 funcionários", target = 5,   gemReward = 8  },
             new() { id = "prestige",name = "Realizar 1 prestígio",     target = 1,   gemReward = 20 },
-            new() { id = "kills", name = "Derrotar 5 monstros", target = 5, gemReward = 6 },
-            new() { id = "earn",  name = "Ganhar $1.000.000",   target = 1, gemReward = 7 },
+            new() { id = "kills", name = "Derrotar 10 monstros",  target = 10,        gemReward = 12 },
+            new() { id = "earn",  name = "Ganhar $1.000.000",    target = 1_000_000, gemReward = 7  },
         };
 
         private static readonly int[] _progress = new int[5];
@@ -49,7 +49,6 @@ namespace GameIdle
             _lastDate = today;
             Array.Clear(_progress, 0, _progress.Length);
             Array.Clear(_claimed,  0, _claimed.Length);
-            _earnAccumulator = 0.0;
         }
 
         public static void RegisterTap()
@@ -76,16 +75,12 @@ namespace GameIdle
             _progress[3] = Mathf.Min(_progress[3] + 1, All[3].target);
         }
 
-        // _earnAccumulator tracks lifetime daily earnings in millions toward $1M target
-        private static double _earnAccumulator;
-
         public static void RegisterEarn(double amount)
         {
             if (_claimed[4]) return;
-            _earnAccumulator += amount;
-            // target=1 represents $1M; store progress as 1 when threshold reached
-            if (_earnAccumulator >= 1_000_000.0)
-                _progress[4] = Mathf.Min(1, All[4].target);
+            int prev = _progress[4];
+            _progress[4] = (int)Math.Min(All[4].target, _progress[4] + amount);
+            // no-op if nothing changed
         }
 
         public static bool TryClaim(int i)
