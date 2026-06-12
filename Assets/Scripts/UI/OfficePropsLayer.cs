@@ -16,13 +16,13 @@ namespace GameIdle
         // 3 Kit1 (Executivo, esquerda) + 3 Kit2 (Desenvolvedor, direita)
         private static readonly Vector2[] DeskPositions =
         {
-            new(-390f,  170f),
-            new(-390f,   10f),
-            new(-390f, -150f),
+            new(-420f,  150f),
+            new(-420f,  -40f),
+            new(-420f, -230f),
 
-            new( 230f,  170f),
-            new( 230f,   10f),
-            new( 230f, -150f),
+            new( 300f,  150f),
+            new( 300f,  -40f),
+            new( 300f, -230f),
         };
 
         // 0 = Kit1 Executivo, 1 = Kit2 Desenvolvedor
@@ -70,7 +70,7 @@ namespace GameIdle
                 var deskRt = deskGO.GetComponent<RectTransform>();
                 deskRt.anchorMin = deskRt.anchorMax = new Vector2(0.5f, 0.5f);
                 deskRt.pivot = new Vector2(0.5f, 0f);
-                deskRt.sizeDelta = new Vector2(230f, 130f);
+                deskRt.sizeDelta = new Vector2(330f, 185f);
                 deskRt.anchoredPosition = DeskPositions[i];
                 var deskImg = deskGO.GetComponent<Image>();
                 deskImg.sprite = sprite;

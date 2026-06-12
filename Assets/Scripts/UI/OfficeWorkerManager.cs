@@ -21,20 +21,21 @@ namespace GameIdle
         // Com a reserva 1-por-spot, os personagens não se sobrepõem.
         // Coordenadas calibradas pelos landmarks reais do escritório (mapeadas a
         // partir do screenshot). y é "para cima"; o centro do chão fica perto de (20,55).
-        // Spots de roaming no chão aberto — mesas são gerenciadas pelo OfficePropsLayer.
+        // Spots de roaming no chão aberto — bem espalhados entre as duas colunas
+        // de mesas (x≈-420 e x≈300) para os personagens não se aglomerarem.
         public static readonly Vector2[] SpreadPositions =
         {
-            new(  20f,   55f), // centro
-            new(-160f,  130f), // centro-fundo esquerda
-            new( 180f,   30f), // centro-direita
-            new(-200f, -110f), // frente-esquerda
-            new(  -4f,  220f), // fundo-centro
-            new( 100f,  180f), // fundo-direita
-            new(-100f,  -60f), // frente-centro
-            new( 280f,  120f), // direita
-            new(-280f,   60f), // esquerda
-            new(  60f, -100f), // frente
-            new(-60f,   280f), // fundo
+            new(-240f,  220f), // fundo-esquerda
+            new( -60f,  240f), // fundo-centro (porta)
+            new( 130f,  220f), // fundo-direita
+            new(-250f,   40f), // meio-esquerda
+            new( -50f,   80f), // centro
+            new( 150f,   40f), // meio-direita
+            new(-240f, -150f), // frente-esquerda
+            new( -40f, -110f), // frente-centro
+            new( 140f, -160f), // frente-direita
+            new(  60f, -260f), // frente-baixo
+            new(-130f, -260f), // frente-baixo esquerda
         };
 
         // Nenhum spot é cadeira — os workers só roam pelo chão aberto.
