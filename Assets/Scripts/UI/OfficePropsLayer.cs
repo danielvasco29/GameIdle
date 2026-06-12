@@ -98,6 +98,7 @@ namespace GameIdle
                 deskImg.sprite = baseSprite;
                 deskImg.preserveAspect = true;
                 deskImg.raycastTarget = false;
+                deskImg.color = new Color(1f, 1f, 1f, 0f); // oculto até ter sprite limpo de mesa
 
                 // ── Animação do monitor (strips 2 e 3) ─────────────────────
                 int monStripIdx = kit == 0 ? 2 : 3;
