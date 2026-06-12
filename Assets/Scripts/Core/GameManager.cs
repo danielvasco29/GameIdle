@@ -250,10 +250,13 @@ namespace GameIdle
             MoneyPerSecond = 0;
             PrestigeCount = 0;
             PrestigeMultiplier = 1.0;
+            _savedCombatCycle = 1;
+            _savedCombatWave  = 1;
             Gems = 0;
             GemShop.LoadLevels(null);
             activeEffects.Clear();
             CharacterManager.Instance.ResetAll();
+            CombatManager.Instance?.ForceReset();
             RecalculateStats();
             UIManager.Instance.RefreshAll();
             UIManager.Instance.ShowToast("Novo jogo iniciado!", new UnityEngine.Color(0.4f, 0.9f, 1f));

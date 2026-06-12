@@ -27,9 +27,9 @@ namespace GameIdle
             new() { type = MonsterType.Hacker, displayName = "HACKER SOMBRIO", spritePath = "Monsters/monster_hacker",      baseHp = 5_000,  baseReward = 6_000 },
             new() { type = MonsterType.Boss,   displayName = "DEADLINE DRAGON",spritePath = "Monsters/monster_boss",        baseHp = 20_000, baseReward = 30_000},
             // Cycle 2+ roster (animated sprite sheets)
-            new() { type = MonsterType.Bug,    displayName = "WORM CORRUPTO",  spritePath = "Monsters/monster_worm_sheet",  baseHp = 1_200,  baseReward = 900   },
-            new() { type = MonsterType.Virus,  displayName = "GOLEM DE DADOS", spritePath = "Monsters/monster_golem_sheet", baseHp = 3_500,  baseReward = 3_800 },
-            new() { type = MonsterType.Hacker, displayName = "ESPECTRO CYBER", spritePath = "Monsters/monster_ghost_sheet", baseHp = 8_000,  baseReward = 10_000},
+            new() { type = MonsterType.Bug,    displayName = "WORM CORRUPTO",  spritePath = "Monsters/monster_worm",        baseHp = 1_200,  baseReward = 900   },
+            new() { type = MonsterType.Virus,  displayName = "GOLEM DE DADOS", spritePath = "Monsters/monster_golem",       baseHp = 3_500,  baseReward = 3_800 },
+            new() { type = MonsterType.Hacker, displayName = "ESPECTRO CYBER", spritePath = "Monsters/monster_ghost",       baseHp = 8_000,  baseReward = 10_000},
         };
 
         // ── Upgrade Levels ────────────────────────────────────────────────────
@@ -251,6 +251,13 @@ namespace GameIdle
             DealDamage(dmg, fromPlayer: true);
             SoundManager.Get().PlayHit();
             OnPlayerDamage?.Invoke(dmg);
+        }
+
+        // Reinicia o combate do zero — chamado pelo HardReset.
+        public void ForceReset()
+        {
+            Cycle = 1;
+            StartWave(1);
         }
 
         // ── Internal ──────────────────────────────────────────────────────────
