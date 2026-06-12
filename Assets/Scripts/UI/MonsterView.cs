@@ -208,15 +208,14 @@ namespace GameIdle
                 bool isSheet = def.spritePath.EndsWith("_sheet");
                 if (isSheet)
                 {
-                    // Sprite sheet layout: rows of animation states, 8 columns wide.
-                    // Top row = idle/movement. Remove checker background first.
+                    // Sheet: 8 cols × 4 rows (1024x1024 → 128×256 per frame).
+                    // Top row = MOVIMENTO/idle animation. Remove checker background first.
                     var tex = SpriteBackgroundRemover.ProcessSheet(srcTex);
                     int cols   = 8;
-                    int frameW = tex.width / cols;  // 128 for 1024-wide sheet
-                    int frameH = frameW;             // assume square frames
+                    int frameW = tex.width / cols;       // 128
+                    int frameH = tex.height / 4;         // 256 (4 rows, clean division)
                     _idleFrames = new Sprite[cols];
-                    // Top row in texture coords = highest y value (Unity y=0 is bottom)
-                    int topRowY = tex.height - frameH;
+                    int topRowY = tex.height - frameH;   // y=768 → top row in Unity coords
                     for (int i = 0; i < cols; i++)
                     {
                         var r = new Rect(i * frameW, topRowY, frameW, frameH);
