@@ -151,8 +151,8 @@ namespace GameIdle
             mvRT.anchorMin = new Vector2(0.5f, 0.5f);
             mvRT.anchorMax = new Vector2(0.5f, 0.5f);
             mvRT.pivot     = new Vector2(0.5f, 0.5f);
-            mvRT.sizeDelta = new Vector2(520f, 560f);
-            mvRT.anchoredPosition = new Vector2(0f, 30f);
+            mvRT.sizeDelta = new Vector2(520f, 600f);
+            mvRT.anchoredPosition = new Vector2(0f, 60f);
             _monsterView = mvGO.AddComponent<MonsterView>();
 
             // ── Bottom button row — fixed sizes, centered as a group ─────

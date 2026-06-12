@@ -137,8 +137,8 @@ namespace GameIdle
                 var rt = go.GetComponent<RectTransform>();
                 rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
                 rt.pivot = new Vector2(0.5f, 0f);
-                rt.sizeDelta = new Vector2(280f, 280f);
-                rt.anchoredPosition = new Vector2(0f, 130f);
+                rt.sizeDelta = new Vector2(300f, 300f);
+                rt.anchoredPosition = new Vector2(0f, 90f);
                 _spriteImg = go.GetComponent<Image>();
                 _spriteImg.preserveAspect = true;
                 _spriteImg.raycastTarget = true;
@@ -157,7 +157,7 @@ namespace GameIdle
                 rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
                 rt.pivot = new Vector2(0.5f, 0.5f);
                 rt.sizeDelta = new Vector2(190f, 24f);
-                rt.anchoredPosition = new Vector2(0f, 124f);
+                rt.anchoredPosition = new Vector2(0f, 84f);
                 var img = go.GetComponent<Image>();
                 img.sprite = UiSpriteFactory.Circle();
                 img.color = new Color(0f, 0f, 0f, 0.3f);
@@ -233,7 +233,7 @@ namespace GameIdle
                         100f, 0, SpriteMeshType.FullRect);
                 }
                 _spriteImg.color = Color.white;
-                _spriteImg.rectTransform.sizeDelta = isBoss ? new Vector2(340f, 340f) : new Vector2(280f, 280f);
+                _spriteImg.rectTransform.sizeDelta = isBoss ? new Vector2(360f, 360f) : new Vector2(300f, 300f);
             }
 
             // Reset death overlay
