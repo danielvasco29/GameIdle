@@ -84,8 +84,18 @@ namespace GameIdle
                 _workers.Add(SpawnWorker(active[i], i));
         }
 
-        // Try to load sprite sheet frames (8 frames, each 1/8 of texture width)
-        private static Sprite[] LoadFrames(CharacterInstance ci)
+        // Loaded sheet: walk frames (always) + optional idle/working frames.
+        public struct WorkerFrames
+        {
+            public Sprite[] walk;
+            public Sprite[] idle; // null when the sheet only has one row
+        }
+
+        // Sheet convention: 8 square frames per row.
+        //   1 row  (e.g. 1024x128) → walk only (idle reuses walk frame 0)
+        //   2 rows (e.g. 1024x256) → top row = walk, bottom row = idle/working
+        // A non-sheet portrait (width < 2x height) yields a single static frame.
+        private static WorkerFrames? LoadFrames(CharacterInstance ci)
         {
             var tex = Resources.Load<Texture2D>($"Characters/Sprites/{ci.data.characterId}");
             if (tex == null) tex = Resources.Load<Texture2D>($"Characters/Sprites/{ci.data.characterName}");
@@ -94,25 +104,42 @@ namespace GameIdle
             // Strip baked-in white/gray/checkerboard backgrounds via flood-fill.
             tex = SpriteBackgroundRemover.Process(tex);
 
-            int fh = tex.height;
-
-            // Sprite sheet: width is at least 2x height
+            // Portrait (not a sheet)
             if (tex.width < tex.height * 2)
-                return new[] { Sprite.Create(tex, new Rect(0, 0, tex.width, fh), new Vector2(0.5f, 0.5f)) };
+                return new WorkerFrames
+                {
+                    walk = new[] { Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height),
+                                                 new Vector2(0.5f, 0.5f)) },
+                    idle = null
+                };
 
-            // Auto-detect frame count from aspect ratio (width / height rounded)
-            int frameCount = Mathf.Max(2, Mathf.RoundToInt((float)tex.width / tex.height));
+            const int cols = 8;
+            int frameW = tex.width / cols;
+            int rows   = Mathf.Max(1, Mathf.RoundToInt((float)tex.height / frameW));
+            int frameH = tex.height / rows;
 
-            int fw = tex.width / frameCount;
-            var frames = new Sprite[frameCount];
-            for (int i = 0; i < frameCount; i++)
-                frames[i] = Sprite.Create(tex, new Rect(i * fw, 0, fw, fh), new Vector2(0.5f, 0.5f));
-            return frames;
+            Sprite[] SliceRow(int rowFromTop)
+            {
+                int y = tex.height - (rowFromTop + 1) * frameH; // texture y=0 is bottom
+                var arr = new Sprite[cols];
+                for (int i = 0; i < cols; i++)
+                    arr[i] = Sprite.Create(tex, new Rect(i * frameW, y, frameW, frameH),
+                                           new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+                return arr;
+            }
+
+            return new WorkerFrames
+            {
+                walk = SliceRow(0),
+                idle = rows >= 2 ? SliceRow(1) : null
+            };
         }
 
         private WorkerAvatar SpawnWorker(CharacterInstance ci, int index)
         {
-            var frames = LoadFrames(ci);
+            var loaded = LoadFrames(ci);
+            Sprite[] frames     = loaded?.walk;
+            Sprite[] idleFrames = loaded?.idle;
 
             var go = new GameObject("Worker_" + ci.data.characterName,
                 typeof(RectTransform), typeof(WorkerAvatar));
@@ -156,7 +183,7 @@ namespace GameIdle
                 bodyImg.preserveAspect = true;
 
                 var avatar = go.GetComponent<WorkerAvatar>();
-                avatar.InitSheet(rt, bodyRt2, bodyImg, frames, null, RoamBounds);
+                avatar.InitSheet(rt, bodyRt2, bodyImg, frames, idleFrames, null, RoamBounds);
             }
             else
             {
@@ -296,12 +323,13 @@ namespace GameIdle
         // Sprite-sheet mode
         private bool _sheetMode;
         private Image _bodyImg;
-        private Sprite[] _frames;
+        private Sprite[] _frames;      // walk cycle
+        private Sprite[] _idleFrames;  // idle/working cycle (optional 2nd sheet row)
         private RectTransform _bodyRt;
         private float _frameTimer;
         private int _frameIndex;
         private const float WalkFps = 10f;
-        private const float IdleFps = 3f;
+        private const float IdleFps = 5f;
 
         // Procedural mode
         private RectTransform _legL, _legR, _footL, _footR;
@@ -322,10 +350,11 @@ namespace GameIdle
         // ── Init ─────────────────────────────────────────────────────────────
 
         public void InitSheet(RectTransform rt, RectTransform bodyRt, Image bodyImg,
-            Sprite[] frames, RectTransform shadow, Rect bounds)
+            Sprite[] frames, Sprite[] idleFrames, RectTransform shadow, Rect bounds)
         {
             _rt = rt; _bodyRt = bodyRt; _bodyImg = bodyImg;
-            _frames = frames; _shadow = shadow; _bounds = bounds;
+            _frames = frames; _idleFrames = idleFrames;
+            _shadow = shadow; _bounds = bounds;
             _sheetMode = true;
             StartCoroutine(Lifecycle());
         }
@@ -366,7 +395,8 @@ namespace GameIdle
                 {
                     _idleTimer += Time.deltaTime;
                     if (_seated) TickWorking();
-                    else if (!_sheetMode) TickIdleBreath();
+                    else if (_sheetMode) TickSheetIdle(Time.deltaTime);
+                    else TickIdleBreath();
                     if (_idleTimer >= _idleDuration) PickNewTarget();
                 }
                 yield return null;
@@ -482,6 +512,19 @@ namespace GameIdle
             _bodyRt.anchoredPosition = new Vector2(0f, bob);
         }
 
+        // Idle/working animation from the sheet's second row (slower than walk).
+        private void TickSheetIdle(float dt)
+        {
+            if (_idleFrames == null || _idleFrames.Length <= 1) return;
+            _frameTimer += dt;
+            if (_frameTimer >= 1f / IdleFps)
+            {
+                _frameTimer = 0f;
+                _frameIndex = (_frameIndex + 1) % _idleFrames.Length;
+                _bodyImg.sprite = _idleFrames[_frameIndex];
+            }
+        }
+
         // ── Procedural animation ──────────────────────────────────────────────
 
         private void AnimateWalk(float phase)
@@ -535,6 +578,7 @@ namespace GameIdle
             float b = Mathf.Sin(_workPhase) * 1.3f;
             if (_sheetMode)
             {
+                TickSheetIdle(Time.deltaTime); // typing/working frames at the desk
                 if (_bodyRt) _bodyRt.anchoredPosition = new Vector2(0f, b);
             }
             else if (_bodyProcRt)
@@ -548,9 +592,12 @@ namespace GameIdle
         {
             if (_sheetMode)
             {
-                if (_frames != null && _frames.Length > 0)
-                    _bodyImg.sprite = _frames[0];
+                // Prefer the idle row's first frame when available
+                var poseFrames = _idleFrames ?? _frames;
+                if (poseFrames != null && poseFrames.Length > 0)
+                    _bodyImg.sprite = poseFrames[0];
                 _frameIndex = 0;
+                _frameTimer = 0f;
                 if (_bodyRt) _bodyRt.anchoredPosition = Vector2.zero;
             }
             else
