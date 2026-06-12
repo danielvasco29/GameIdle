@@ -238,34 +238,16 @@ namespace GameIdle
         {
             float dt = Time.deltaTime;
 
-            // Torch flame animation — per-torch variable speed, independent glow pulsing
-            if (_torchFrames != null && _torchImgs.Count > 0)
+            // Torch glow pulsing — torches are static (no animation), only glows breathe
+            for (int i = 0; i < _torchGlows.Count; i++)
             {
-                for (int i = 0; i < _torchImgs.Count; i++)
-                {
-                    var img = _torchImgs[i];
-                    if (img == null) continue;
-
-                    _torchAnimTimers[i] += dt;
-                    if (_torchAnimTimers[i] >= _torchAnimSpeeds[i])
-                    {
-                        _torchAnimTimers[i] -= _torchAnimSpeeds[i];
-                        _torchFrame = (_torchFrame + 1) % _torchFrames.Length;
-                        var f = _torchFrames[_torchFrame];
-                        if (f != null) img.sprite = f;
-                    }
-
-                    // Glow pulsing with warm color variation
-                    if (i < _torchGlows.Count && _torchGlows[i] != null)
-                    {
-                        _torchGlowPhases[i] += dt * 1.8f;
-                        float glowPulse = (Mathf.Sin(_torchGlowPhases[i]) + 1f) * 0.5f; // 0..1
-                        float glowAlpha = Mathf.Lerp(0.06f, 0.18f, glowPulse);
-                        var glowColor = _torchGlows[i].color;
-                        glowColor.a = glowAlpha;
-                        _torchGlows[i].color = glowColor;
-                    }
-                }
+                if (_torchGlows[i] == null) continue;
+                _torchGlowPhases[i] += dt * 1.8f;
+                float glowPulse = (Mathf.Sin(_torchGlowPhases[i]) + 1f) * 0.5f;
+                float glowAlpha = Mathf.Lerp(0.06f, 0.18f, glowPulse);
+                var glowColor = _torchGlows[i].color;
+                glowColor.a = glowAlpha;
+                _torchGlows[i].color = glowColor;
             }
 
             // Runic overlay pulse — synced with the center glow breathing

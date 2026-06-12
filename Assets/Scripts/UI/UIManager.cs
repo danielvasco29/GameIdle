@@ -351,8 +351,8 @@ namespace GameIdle
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
             brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 1f);
-            brt.anchoredPosition = new Vector2(8f, -6f);
-            brt.sizeDelta = new Vector2(80f, 40f);
+            brt.anchoredPosition = new Vector2(8f, -10f);
+            brt.sizeDelta = new Vector2(96f, 50f);
             var bImg = btnGO.GetComponent<Image>();
             bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
             bImg.color = new Color(0.10f, 0.16f, 0.26f, 1f);
@@ -363,7 +363,7 @@ namespace GameIdle
             mlr.anchorMin = Vector2.zero; mlr.anchorMax = Vector2.one;
             mlr.offsetMin = mlr.offsetMax = Vector2.zero;
             var mlt = ml.GetComponent<TextMeshProUGUI>();
-            mlt.text = "MENU"; mlt.fontSize = 17; mlt.fontStyle = FontStyles.Bold;
+            mlt.text = "MENU"; mlt.fontSize = 18; mlt.fontStyle = FontStyles.Bold;
             mlt.color = TextSec; mlt.alignment = TextAlignmentOptions.Center;
             mlt.textWrappingMode = TextWrappingModes.NoWrap; mlt.overflowMode = TextOverflowModes.Ellipsis;
             mlt.raycastTarget = false;
@@ -386,8 +386,8 @@ namespace GameIdle
             mBtnGO.transform.SetParent(canvas.transform, false);
             var mbrt = mBtnGO.GetComponent<RectTransform>();
             mbrt.anchorMin = mbrt.anchorMax = mbrt.pivot = new Vector2(0f, 1f);
-            mbrt.anchoredPosition = new Vector2(96f, -6f);
-            mbrt.sizeDelta = new Vector2(94f, 40f);
+            mbrt.anchoredPosition = new Vector2(112f, -10f);
+            mbrt.sizeDelta = new Vector2(100f, 50f);
             var mbImg = mBtnGO.GetComponent<Image>();
             mbImg.sprite = Rounded(); mbImg.type = Image.Type.Sliced;
             mbImg.color = new Color(0.10f, 0.20f, 0.32f, 1f);
@@ -397,7 +397,7 @@ namespace GameIdle
             var mblr = mbl.GetComponent<RectTransform>();
             mblr.anchorMin = Vector2.zero; mblr.anchorMax = Vector2.one; mblr.offsetMin = mblr.offsetMax = Vector2.zero;
             var mblt = mbl.GetComponent<TextMeshProUGUI>();
-            mblt.text = "MISSOES"; mblt.fontSize = 16; mblt.fontStyle = FontStyles.Bold;
+            mblt.text = "MISSOES"; mblt.fontSize = 17; mblt.fontStyle = FontStyles.Bold;
             mblt.color = NeonCyan; mblt.alignment = TextAlignmentOptions.Center; mblt.raycastTarget = false;
             mblt.textWrappingMode = TextWrappingModes.NoWrap; mblt.overflowMode = TextOverflowModes.Ellipsis;
             var mf = GetCachedFont(); if (mf != null) mblt.font = mf;
@@ -422,8 +422,8 @@ namespace GameIdle
             aBtnGO.transform.SetParent(canvas.transform, false);
             var abrt = aBtnGO.GetComponent<RectTransform>();
             abrt.anchorMin = abrt.anchorMax = abrt.pivot = new Vector2(0f, 1f);
-            abrt.anchoredPosition = new Vector2(198f, -6f);
-            abrt.sizeDelta = new Vector2(132f, 40f);
+            abrt.anchoredPosition = new Vector2(220f, -10f);
+            abrt.sizeDelta = new Vector2(138f, 50f);
             var abImg = aBtnGO.GetComponent<Image>();
             abImg.sprite = Rounded(); abImg.type = Image.Type.Sliced;
             abImg.color = new Color(0.16f, 0.14f, 0.08f, 1f);
@@ -433,7 +433,7 @@ namespace GameIdle
             var ablr = abl.GetComponent<RectTransform>();
             ablr.anchorMin = Vector2.zero; ablr.anchorMax = Vector2.one; ablr.offsetMin = ablr.offsetMax = Vector2.zero;
             var ablt = abl.GetComponent<TextMeshProUGUI>();
-            ablt.text = "CONQUISTAS"; ablt.fontSize = 16; ablt.fontStyle = FontStyles.Bold;
+            ablt.text = "CONQUISTAS"; ablt.fontSize = 17; ablt.fontStyle = FontStyles.Bold;
             ablt.color = GoldColor; ablt.alignment = TextAlignmentOptions.Center; ablt.raycastTarget = false;
             ablt.textWrappingMode = TextWrappingModes.NoWrap; ablt.overflowMode = TextOverflowModes.Ellipsis;
             var af = GetCachedFont(); if (af != null) ablt.font = af;
@@ -451,8 +451,8 @@ namespace GameIdle
             bBtnGO.transform.SetParent(canvas.transform, false);
             var bbrt = bBtnGO.GetComponent<RectTransform>();
             bbrt.anchorMin = bbrt.anchorMax = bbrt.pivot = new Vector2(0f, 1f);
-            bbrt.anchoredPosition = new Vector2(338f, -6f);
-            bbrt.sizeDelta = new Vector2(84f, 40f);
+            bbrt.anchoredPosition = new Vector2(366f, -10f);
+            bbrt.sizeDelta = new Vector2(90f, 50f);
             var bbImg = bBtnGO.GetComponent<Image>();
             bbImg.sprite = Rounded(); bbImg.type = Image.Type.Sliced;
             bbImg.color = new Color(0.18f, 0.14f, 0.06f, 1f);
@@ -465,7 +465,7 @@ namespace GameIdle
             var bblr = bbl.GetComponent<RectTransform>();
             bblr.anchorMin = Vector2.zero; bblr.anchorMax = Vector2.one; bblr.offsetMin = bblr.offsetMax = Vector2.zero;
             var bblt = bbl.GetComponent<TextMeshProUGUI>();
-            bblt.text = "BONUS"; bblt.fontSize = 16; bblt.fontStyle = FontStyles.Bold;
+            bblt.text = "BONUS"; bblt.fontSize = 17; bblt.fontStyle = FontStyles.Bold;
             bblt.color = GoldColor; bblt.alignment = TextAlignmentOptions.Center; bblt.raycastTarget = false;
             bblt.textWrappingMode = TextWrappingModes.NoWrap; bblt.overflowMode = TextOverflowModes.Ellipsis;
             var bf = GetCachedFont(); if (bf != null) bblt.font = bf;
@@ -538,7 +538,7 @@ namespace GameIdle
             var bpGO = new GameObject("BattlePanel", typeof(RectTransform));
             bpGO.transform.SetParent(canvas.transform, false);
             _battlePanel = bpGO.AddComponent<BattlePanel>();
-            modalPanels.Add(bpGO);
+            // BattlePanel must NOT be in modalPanels — CloseAllModals would close the arena.
             _battlePanel.SubscribeToCombat(cm);
 
             // ── CombatUpgradePanel ────────────────────────────────────────
@@ -615,8 +615,8 @@ namespace GameIdle
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
             brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
-            brt.anchoredPosition = new Vector2(-6f, -7f);
-            brt.sizeDelta = new Vector2(52f, 40f);
+            brt.anchoredPosition = new Vector2(-8f, -10f);
+            brt.sizeDelta = new Vector2(80f, 50f);
             var bImg2 = btnGO.GetComponent<Image>();
             bImg2.sprite = Rounded(); bImg2.type = Image.Type.Sliced;
             bImg2.color = new Color(0.08f, 0.13f, 0.22f, 0.9f);
@@ -629,7 +629,7 @@ namespace GameIdle
             lrt.offsetMin = lrt.offsetMax = Vector2.zero;
             var ltmp = lblGO.GetComponent<TextMeshProUGUI>();
             ltmp.text = "RANK";
-            ltmp.fontSize = 11;
+            ltmp.fontSize = 16;
             ltmp.fontStyle = FontStyles.Bold;
             ltmp.color = new Color(0.6f, 0.7f, 0.85f, 0.85f);
             ltmp.alignment = TextAlignmentOptions.Center;
@@ -658,8 +658,8 @@ namespace GameIdle
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
             brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
-            brt.anchoredPosition = new Vector2(-62f, -7f);
-            brt.sizeDelta = new Vector2(52f, 40f);
+            brt.anchoredPosition = new Vector2(-96f, -10f);
+            brt.sizeDelta = new Vector2(80f, 50f);
             var bImg = btnGO.GetComponent<Image>();
             bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
             bImg.color = new Color(0.08f, 0.13f, 0.22f, 0.9f);
@@ -671,7 +671,7 @@ namespace GameIdle
             lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
             lrt.offsetMin = lrt.offsetMax = Vector2.zero;
             var ltmp = lblGO.GetComponent<TextMeshProUGUI>();
-            ltmp.text = "STATS"; ltmp.fontSize = 11; ltmp.fontStyle = FontStyles.Bold;
+            ltmp.text = "STATS"; ltmp.fontSize = 16; ltmp.fontStyle = FontStyles.Bold;
             ltmp.color = new Color(0.6f, 0.7f, 0.85f, 0.85f);
             ltmp.alignment = TextAlignmentOptions.Center; ltmp.raycastTarget = false;
             var ff2 = GetCachedFont(); if (ff2 != null) ltmp.font = ff2;
@@ -1159,8 +1159,8 @@ namespace GameIdle
             pillGO.transform.SetParent(canvas.transform, false);
             var prt = pillGO.GetComponent<RectTransform>();
             prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(1f, 1f);
-            prt.anchoredPosition = new Vector2(-64f, -7f);
-            prt.sizeDelta = new Vector2(110f, 40f);
+            prt.anchoredPosition = new Vector2(-184f, -10f);
+            prt.sizeDelta = new Vector2(110f, 50f);
             var pImg = pillGO.GetComponent<Image>();
             pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
             pImg.color  = NavyCard;
@@ -1952,6 +1952,8 @@ namespace GameIdle
         public void ShowEventPanel(EventData eventData)
         {
             if (eventPanel == null) return;
+            // Don't interrupt an active combat session with a random event popup.
+            if (_battlePanel != null && _battlePanel.gameObject.activeSelf) return;
             CloseAllModals();
             eventPanel.Show(eventData);
         }

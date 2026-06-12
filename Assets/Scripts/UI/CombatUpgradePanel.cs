@@ -158,31 +158,80 @@ namespace GameIdle
                 "+10% chance de acerto crítico\n(2x dano) por nível",
                 4, startY + 4 * (rowH + rowGap), rowH, panelH);
 
+            // Icon colors for each upgrade slot (used when no texture found)
+            Color[] iconColors = {
+                new(0.9f, 0.85f, 0.2f, 1f),  // sword - gold
+                new(0.4f, 0.7f, 1.0f, 1f),   // armor - blue
+                new(0.4f, 0.9f, 1.0f, 1f),   // frost - cyan
+                new(0.8f, 0.3f, 0.9f, 1f),   // potion - purple
+                new(1.0f, 0.5f, 0.2f, 1f),   // critico - orange
+            };
+            string[] iconSymbols = { "⚔", "🛡", "❄", "⚗", "⚡" };
+
             // Attach icons to each row
             for (int i = 0; i < IconPaths.Length; i++)
             {
+                var card = transform.GetChild(i + 2); // 0=bg (component on self), so children: 0=title, 1=close, then rows
+                // Find the correct card by name
+                Transform cardT = null;
+                for (int ci = 0; ci < transform.childCount; ci++)
+                {
+                    if (transform.GetChild(ci).name == $"UpgradeRow_{i}") { cardT = transform.GetChild(ci); break; }
+                }
+                if (cardT == null) continue;
+
+                // Colored circle background for icon
+                var bgGO = new GameObject("IconBg", typeof(RectTransform), typeof(Image));
+                bgGO.transform.SetParent(cardT, false);
+                var bgRT = bgGO.GetComponent<RectTransform>();
+                bgRT.anchorMin = new Vector2(0f, 0.5f); bgRT.anchorMax = new Vector2(0f, 0.5f);
+                bgRT.pivot = new Vector2(0f, 0.5f);
+                bgRT.anchoredPosition = new Vector2(8f, 0f);
+                bgRT.sizeDelta = new Vector2(56f, 56f);
+                var bgImg = bgGO.GetComponent<Image>();
+                bgImg.sprite = Circle(); bgImg.type = Image.Type.Simple;
+                bgImg.color = new Color(iconColors[i].r * 0.25f, iconColors[i].g * 0.25f, iconColors[i].b * 0.25f, 0.8f);
+                bgImg.raycastTarget = false;
+
                 var iconTex = Resources.Load<Texture2D>(IconPaths[i]);
-                if (iconTex == null) continue;
-                var processed = SpriteBackgroundRemover.Process(iconTex);
-                var sp = Sprite.Create(processed,
-                    new Rect(0, 0, processed.width, processed.height),
-                    new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
-                // Find the card and add an icon Image on the left side
-                var card = transform.GetChild(i + 2); // 0=bg,1=title, then rows
-                var iconGO = new GameObject("Icon", typeof(RectTransform), typeof(Image));
-                iconGO.transform.SetParent(card, false);
-                var irt = iconGO.GetComponent<RectTransform>();
-                irt.anchorMin = new Vector2(0f, 0.5f); irt.anchorMax = new Vector2(0f, 0.5f);
-                irt.pivot = new Vector2(0f, 0.5f);
-                irt.anchoredPosition = new Vector2(8f, 0f);
-                irt.sizeDelta = new Vector2(52f, 52f);
-                var iImg = iconGO.GetComponent<Image>();
-                iImg.sprite = sp; iImg.preserveAspect = true; iImg.raycastTarget = false;
-                // Shift name/desc text right to make room
-                var nameRT = card.Find("Name")?.GetComponent<RectTransform>();
-                var descRT = card.Find("Desc")?.GetComponent<RectTransform>();
-                if (nameRT != null) nameRT.offsetMin = new Vector2(70f, 0f);
-                if (descRT != null) descRT.offsetMin = new Vector2(70f, 0f);
+                if (iconTex != null)
+                {
+                    var processed = SpriteBackgroundRemover.Process(iconTex);
+                    var sp = Sprite.Create(processed,
+                        new Rect(0, 0, processed.width, processed.height),
+                        new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+                    var iconGO = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+                    iconGO.transform.SetParent(cardT, false);
+                    var irt = iconGO.GetComponent<RectTransform>();
+                    irt.anchorMin = new Vector2(0f, 0.5f); irt.anchorMax = new Vector2(0f, 0.5f);
+                    irt.pivot = new Vector2(0f, 0.5f);
+                    irt.anchoredPosition = new Vector2(12f, 0f);
+                    irt.sizeDelta = new Vector2(48f, 48f);
+                    var iImg = iconGO.GetComponent<Image>();
+                    iImg.sprite = sp; iImg.preserveAspect = true; iImg.raycastTarget = false;
+                }
+                else
+                {
+                    // Fallback: colored symbol text
+                    var symGO = new GameObject("IconSym", typeof(RectTransform), typeof(TextMeshProUGUI));
+                    symGO.transform.SetParent(cardT, false);
+                    var srt = symGO.GetComponent<RectTransform>();
+                    srt.anchorMin = new Vector2(0f, 0.5f); srt.anchorMax = new Vector2(0f, 0.5f);
+                    srt.pivot = new Vector2(0f, 0.5f);
+                    srt.anchoredPosition = new Vector2(8f, 0f);
+                    srt.sizeDelta = new Vector2(56f, 56f);
+                    var sTMP = symGO.GetComponent<TextMeshProUGUI>();
+                    sTMP.text = iconSymbols[i]; sTMP.fontSize = 28;
+                    sTMP.color = iconColors[i]; sTMP.alignment = TextAlignmentOptions.Center;
+                    sTMP.raycastTarget = false;
+                    if (_font != null) sTMP.font = _font;
+                }
+
+                // Shift name/desc text right to make room for icon
+                var nameRT = cardT.Find("Name")?.GetComponent<RectTransform>();
+                var descRT = cardT.Find("Desc")?.GetComponent<RectTransform>();
+                if (nameRT != null) nameRT.offsetMin = new Vector2(72f, 0f);
+                if (descRT != null) descRT.offsetMin = new Vector2(72f, 0f);
             }
 
             // Wire buttons
@@ -223,14 +272,14 @@ namespace GameIdle
 
             // ── Name ──────────────────────────────────────────────────────────
             var nameT = MakeText(card.transform, "Name", upgradeName,
-                16, TextPrimary, FontStyles.Bold, TextAlignmentOptions.TopLeft);
+                18, TextPrimary, FontStyles.Bold, TextAlignmentOptions.TopLeft);
             var nrt = nameT.rectTransform;
             nrt.anchorMin = new Vector2(0f, 0.55f); nrt.anchorMax = new Vector2(0.58f, 1f);
             nrt.offsetMin = new Vector2(14f, 0f); nrt.offsetMax = new Vector2(0f, -6f);
 
             // ── Description ───────────────────────────────────────────────────
             var descT = MakeText(card.transform, "Desc", description,
-                11, TextSec, FontStyles.Normal, TextAlignmentOptions.TopLeft);
+                13, TextSec, FontStyles.Normal, TextAlignmentOptions.TopLeft);
             var drt = descT.rectTransform;
             drt.anchorMin = new Vector2(0f, 0.1f); drt.anchorMax = new Vector2(0.58f, 0.55f);
             drt.offsetMin = new Vector2(14f, 0f); drt.offsetMax = Vector2.zero;
@@ -238,7 +287,7 @@ namespace GameIdle
 
             // ── Level badge (top-right of card) ───────────────────────────────
             var lvlT = MakeText(card.transform, "Level", "",
-                13, GoldColor, FontStyles.Bold, TextAlignmentOptions.TopRight);
+                15, GoldColor, FontStyles.Bold, TextAlignmentOptions.TopRight);
             var lrt = lvlT.rectTransform;
             lrt.anchorMin = new Vector2(0.58f, 0.55f); lrt.anchorMax = new Vector2(1f, 1f);
             lrt.offsetMin = Vector2.zero; lrt.offsetMax = new Vector2(-14f, -6f);
@@ -256,7 +305,7 @@ namespace GameIdle
 
             // Cost label inside button
             var costT = MakeText(buyGO.transform, "Cost", "",
-                13, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
+                15, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
             var costRT = costT.rectTransform;
             costRT.anchorMin = Vector2.zero; costRT.anchorMax = Vector2.one;
             costRT.offsetMin = costRT.offsetMax = Vector2.zero;

@@ -107,9 +107,8 @@ namespace GameIdle
             float maxC = Mathf.Max(r, Mathf.Max(g, b));
             float minC = Mathf.Min(r, Mathf.Min(g, b));
             float sat = maxC > 0.001f ? (maxC - minC) / maxC : 0f;
-            float bright = (r + g + b) / 3f;
-            // White or light-gray: bright and low saturation.
-            return bright > 0.62f && sat < 0.18f;
+            // Any neutral gray (light OR dark checkerboard squares) — low saturation enough.
+            return sat < 0.12f;
         }
 
         private static float ColorDist(Color32 a, Color32 b)
