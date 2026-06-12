@@ -9,9 +9,15 @@ namespace GameIdle
         public int level;
         public bool isUnlocked;
 
-        private const double CostGrowth = 1.15;
+        private const double CostGrowthProducer   = 1.15;
+        // Multiplier characters cost more per level so their exponential value
+        // doesn't outpace their cost — prevents early game snowball.
+        private const double CostGrowthMultiplier = 1.28;
 
-        // Cost formula: baseCost * 1.15^level
+        private double CostGrowth =>
+            data.type == CharacterType.Multiplier ? CostGrowthMultiplier : CostGrowthProducer;
+
+        // Cost formula: baseCost * growth^level
         public double GetCurrentCost() =>
             data.baseCost * Math.Pow(CostGrowth, level);
 
@@ -20,18 +26,19 @@ namespace GameIdle
         public double GetCostForLevels(int count)
         {
             if (count <= 0) return 0;
+            double r = CostGrowth;
             double first = GetCurrentCost();
-            return first * (Math.Pow(CostGrowth, count) - 1) / (CostGrowth - 1);
+            return first * (Math.Pow(r, count) - 1) / (r - 1);
         }
 
         // Largest number of levels purchasable with `money`.
         public int GetMaxAffordable(double money)
         {
+            double r = CostGrowth;
             double first = GetCurrentCost();
             if (money < first) return 0;
-            // money >= first * (r^n - 1)/(r-1)  =>  r^n <= 1 + money*(r-1)/first
-            double rhs = 1.0 + money * (CostGrowth - 1) / first;
-            int n = (int)Math.Floor(Math.Log(rhs) / Math.Log(CostGrowth));
+            double rhs = 1.0 + money * (r - 1) / first;
+            int n = (int)Math.Floor(Math.Log(rhs) / Math.Log(r));
             return Math.Max(0, n);
         }
 
