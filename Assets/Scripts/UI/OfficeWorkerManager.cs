@@ -21,31 +21,28 @@ namespace GameIdle
         // Com a reserva 1-por-spot, os personagens não se sobrepõem.
         // Coordenadas calibradas pelos landmarks reais do escritório (mapeadas a
         // partir do screenshot). y é "para cima"; o centro do chão fica perto de (20,55).
+        // Spots de roaming no chão aberto — mesas são gerenciadas pelo OfficePropsLayer.
         public static readonly Vector2[] SpreadPositions =
         {
-            // mesas (em pé trabalhando)
-            new(-556f, 261f), // mesa esquerda (cima) — cadeira 1
-            new(-420f, 235f), // mesa esquerda (cima) — cadeira 2
-            new(-505f, -79f), // mesa esquerda (baixo) — cadeira 1
-            new(-403f, -96f), // mesa esquerda (baixo) — cadeira 2
-            // landmarks (em pé, na frente do objeto — sem animação de uso)
-            new(-344f, 250f), // em frente ao bebedouro de água
-            new( 350f,  10f), // em frente ao sofá (passando da mesinha de centro)
-            // chão aberto (em pé, circulando)
-            new(  20f,  55f), // centro
-            new(-150f, 120f), // centro-fundo
-            new( 180f,  20f), // centro-direita
-            new(-200f, -120f), // frente-esquerda
-            new(  -4f, 232f), // em frente à estante / lousa
+            new(  20f,   55f), // centro
+            new(-160f,  130f), // centro-fundo esquerda
+            new( 180f,   30f), // centro-direita
+            new(-200f, -110f), // frente-esquerda
+            new(  -4f,  220f), // fundo-centro
+            new( 100f,  180f), // fundo-direita
+            new(-100f,  -60f), // frente-centro
+            new( 280f,  120f), // direita
+            new(-280f,   60f), // esquerda
+            new(  60f, -100f), // frente
+            new(-60f,   280f), // fundo
         };
 
-        // Quais spots são mesas (o personagem fica mais tempo "trabalhando").
+        // Nenhum spot é cadeira — os workers só roam pelo chão aberto.
         public static readonly bool[] IsSeat =
         {
-            true,  true,  true,  true,
-            false, false,
             false, false, false, false,
-            false,
+            false, false, false, false,
+            false, false, false,
         };
 
         public void Init(RectTransform panelMain)

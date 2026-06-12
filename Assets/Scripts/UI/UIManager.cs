@@ -895,6 +895,11 @@ namespace GameIdle
             _boostBtnText.color = Color.white; _boostBtnText.raycastTarget = false;
             var btf = GetCachedFont(); if (btf != null) _boostBtnText.font = btf;
 
+            // ── Office Props Layer (mesas, props animados) ────────────────
+            var propsGO = new GameObject("OfficePropsLayer", typeof(OfficePropsLayer));
+            propsGO.transform.SetParent(pmGO.transform, false);
+            propsGO.GetComponent<OfficePropsLayer>().Init(panelMain);
+
             // ── Office Worker Manager ──────────────────────────────────────
             var workerGO = new GameObject("OfficeWorkerManager", typeof(OfficeWorkerManager));
             workerGO.transform.SetParent(pmGO.transform, false);
