@@ -5,8 +5,8 @@ using UnityEngine.UI;
 namespace GameIdle
 {
     /// <summary>
-    /// Coloca mesas, cadeiras, monitores e props animados sobre o chão do escritório.
-    /// As mesas são estáticas + trabalhadores genéricos sentados animados por cima.
+    /// Coloca estações de trabalho (kits completos) e props animados sobre o
+    /// chão limpo do escritório.
     /// </summary>
     public class OfficePropsLayer : MonoBehaviour
     {
@@ -27,20 +27,6 @@ namespace GameIdle
 
         // 0 = Kit1 Executivo, 1 = Kit2 Desenvolvedor
         private static readonly int[] DeskKit = { 0, 0, 0, 1, 1, 1 };
-
-        // ── Desk kit sheet layout (desk_kit.png) ─────────────────────────────
-        // A imagem tem:
-        //   Linha título  : ~8% da altura (ignoramos)
-        //   Previews       : ~32% da altura (Kit1 esquerda | Kit2 direita)
-        //   4 strips de anim: ~60% restantes, cada strip = 8 frames em 1 linha
-        //     strip 0: cadeiras Kit1
-        //     strip 1: cadeiras Kit2
-        //     strip 2: monitores Kit1
-        //     strip 3: monitores Kit2
-        private const float TitleFrac   = 0.08f;
-        private const float PreviewFrac = 0.32f;
-        private const int   AnimStrips  = 4;
-        private const int   AnimCols    = 8;
 
         // ── Props do ambiente ─────────────────────────────────────────────────
         // (path, pos, size, rows, cols)
@@ -63,93 +49,34 @@ namespace GameIdle
 
         private void SpawnDesks()
         {
-            var tex = Resources.Load<Texture2D>("Props/desk_kit");
-            if (tex == null)
+            // Kits completos (mesa + monitores + cadeira) como sprites estáticos limpos.
+            var kitSprites = new Sprite[2];
+            for (int k = 0; k < 2; k++)
             {
-                Debug.LogWarning("[OfficePropsLayer] Props/desk_kit.png not found");
-                return;
+                var tex = Resources.Load<Texture2D>($"Props/desk_kit{k + 1}");
+                if (tex == null) { Debug.LogWarning($"[OfficePropsLayer] Props/desk_kit{k + 1}.png not found"); continue; }
+                tex = SpriteBackgroundRemover.Process(tex);
+                kitSprites[k] = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height),
+                    new Vector2(0.5f, 0f), 100f, 0, SpriteMeshType.FullRect);
             }
-
-            float totalH    = tex.height;
-            float previewY0 = totalH * (1f - TitleFrac - PreviewFrac); // y bottom of preview band
-            float previewH  = totalH * PreviewFrac;
-            float animBandH = totalH * (1f - TitleFrac - PreviewFrac); // bottom band
-            float stripH    = animBandH / AnimStrips;
-            float frameW    = (float)tex.width / AnimCols;
-            float halfW     = tex.width * 0.5f;
 
             for (int i = 0; i < DeskPositions.Length; i++)
             {
-                int kit = DeskKit[i];
-
-                // ── Base da mesa (preview) ──────────────────────────────────
-                float baseX = kit == 0 ? 0f : halfW;
-                var baseRect = new Rect(baseX, previewY0, halfW, previewH);
-                var baseSprite = Sprite.Create(tex, baseRect, new Vector2(0.5f, 0f), 100f, 0, SpriteMeshType.FullRect);
+                var sprite = kitSprites[DeskKit[i]];
+                if (sprite == null) continue;
 
                 var deskGO = new GameObject($"Desk_{i}", typeof(RectTransform), typeof(Image));
                 deskGO.transform.SetParent(_panel, false);
                 var deskRt = deskGO.GetComponent<RectTransform>();
                 deskRt.anchorMin = deskRt.anchorMax = new Vector2(0.5f, 0.5f);
                 deskRt.pivot = new Vector2(0.5f, 0f);
-                deskRt.sizeDelta = new Vector2(210f, 120f);
+                deskRt.sizeDelta = new Vector2(230f, 130f);
                 deskRt.anchoredPosition = DeskPositions[i];
                 var deskImg = deskGO.GetComponent<Image>();
-                deskImg.sprite = baseSprite;
+                deskImg.sprite = sprite;
                 deskImg.preserveAspect = true;
                 deskImg.raycastTarget = false;
-                deskImg.color = new Color(1f, 1f, 1f, 0f); // oculto até ter sprite limpo de mesa
-
-                // ── Animação do monitor (strips 2 e 3) ─────────────────────
-                int monStripIdx = kit == 0 ? 2 : 3;
-                float monStripY = monStripIdx * stripH; // y from bottom of anim band = 0
-                var monFrames = SliceStrip(tex, frameW, stripH, monStripY, AnimCols);
-                if (monFrames != null)
-                    PlaceAnimLayer(deskGO.transform, "Monitor", monFrames,
-                        new Vector2(10f, 85f), new Vector2(75f, 45f), fps: 6f);
-
-                // ── Trabalhador sentado genérico ────────────────────────────
-                SpawnSeatedWorker(deskGO.transform, i);
             }
-        }
-
-        private static Sprite[] SliceStrip(Texture2D tex, float frameW, float stripH, float stripYFromBottom, int cols)
-        {
-            var frames = new Sprite[cols];
-            for (int c = 0; c < cols; c++)
-            {
-                var rect = new Rect(c * frameW, stripYFromBottom, frameW, stripH);
-                if (rect.xMax > tex.width || rect.yMax > tex.height) return null;
-                frames[c] = Sprite.Create(tex, rect, new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
-            }
-            return frames;
-        }
-
-        private void SpawnSeatedWorker(Transform deskParent, int deskIdx)
-        {
-            string path = (deskIdx % 2 == 0) ? "Characters/Sprites/seated_a"
-                                              : "Characters/Sprites/seated_b";
-            var tex = Resources.Load<Texture2D>(path);
-            if (tex == null) return;
-
-            tex = SpriteBackgroundRemover.Process(tex);
-
-            // 12 frames: 2 linhas × 6 colunas
-            const int cols = 6, rows = 2;
-            int frameW = tex.width  / cols;
-            int frameH = tex.height / rows;
-            var frames = new Sprite[rows * cols];
-            for (int r = 0; r < rows; r++)
-            {
-                int y = tex.height - (r + 1) * frameH;
-                for (int c = 0; c < cols; c++)
-                    frames[r * cols + c] = Sprite.Create(tex,
-                        new Rect(c * frameW, y, frameW, frameH),
-                        new Vector2(0.5f, 0f), 100f, 0, SpriteMeshType.FullRect);
-            }
-
-            PlaceAnimLayer(deskParent, "SeatedWorker", frames,
-                new Vector2(0f, 5f), new Vector2(105f, 125f), fps: 3f);
         }
 
         // ── Props do ambiente ─────────────────────────────────────────────────
