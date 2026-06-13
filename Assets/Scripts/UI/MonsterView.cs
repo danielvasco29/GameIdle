@@ -244,7 +244,7 @@ namespace GameIdle
                 // Worm is a wide creature → give it a wide slot; others stay tall.
                 _spriteImg.rectTransform.sizeDelta =
                     isBoss ? new Vector2(680f, 460f)
-                    : isWorm ? new Vector2(780f, 320f)
+                    : isWorm ? new Vector2(702f, 288f)
                     : new Vector2(440f, 440f);
             }
 
