@@ -246,7 +246,7 @@ namespace GameIdle
                 if (_torchGlows[i] == null) continue;
                 _torchGlowPhases[i] += dt * 1.8f;
                 float glowPulse = (Mathf.Sin(_torchGlowPhases[i]) + 1f) * 0.5f;
-                float glowAlpha = Mathf.Lerp(0.06f, 0.18f, glowPulse);
+                float glowAlpha = Mathf.Lerp(0.22f, 0.55f, glowPulse);
                 var glowColor = _torchGlows[i].color;
                 glowColor.a = glowAlpha;
                 _torchGlows[i].color = glowColor;
@@ -256,7 +256,7 @@ namespace GameIdle
             if (_runicOverlay != null)
             {
                 float p = (Mathf.Sin(_pulsePhase) + 1f) * 0.5f;
-                _runicOverlay.color = new Color(1f, 1f, 1f, Mathf.Lerp(0.05f, 0.35f, p));
+                _runicOverlay.color = new Color(1f, 1f, 1f, Mathf.Lerp(0.30f, 0.85f, p));
             }
 
             // Runic circle breathing — slow sinusoidal scale + alpha pulse
