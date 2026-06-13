@@ -11,28 +11,29 @@ namespace GameIdle
         private readonly List<WorkerAvatar> _workers = new();
 
         // Roam rect: x/y origin = bottom-left corner, width/height = size.
-        // Keep workers inside the open floor: clear of the prestige bar (y<-170)
-        // and away from the left-wall desks and right-column desks.
-        private static readonly Rect RoamBounds = new Rect(-220f, -155f, 500f, 295f);
+        // Cobre toda a faixa de chão aberto: das aisles em frente às mesas da
+        // parede esquerda até a coluna de mesas da direita, do fundo até a
+        // frente (acima da barra de prestígio).
+        private static readonly Rect RoamBounds = new Rect(-420f, -150f, 820f, 310f);
 
         // Posições atualmente reservadas por algum worker (evita dois no mesmo spot).
         internal static readonly HashSet<int> ClaimedTargets = new();
 
-        // 10 spots no chão aberto central — calibrados para o cenário original.
-        // x: -220..+280 (livre das mesas de parede esquerda e coluna direita)
-        // y: -155..+140 (acima da barra de prestígio, abaixo das mesas do fundo)
+        // 10 spots cobrindo todo o chão aberto (mapeados dos cantos marcados).
+        // x: -400..+370  (aisle esquerda ↔ aisle direita)
+        // y: -120..+130  (frente ↔ fundo, sem invadir mesas nem a barra)
         public static readonly Vector2[] SpreadPositions =
         {
-            new(-100f,  130f), // fundo centro-esquerda
-            new(  80f,  130f), // fundo centro-direita
-            new(-180f,   50f), // meio esquerda
-            new(   0f,   60f), // centro do chão
-            new( 210f,   50f), // meio direita (área do sofá)
-            new(-150f,  -50f), // frente esquerda
-            new(  60f,  -50f), // frente centro
-            new( 220f,  -50f), // frente direita
-            new( -60f, -130f), // bem na frente esquerda
-            new( 140f, -130f), // bem na frente direita
+            new( -40f,  130f), // fundo centro
+            new( 200f,  110f), // fundo direita (sofá)
+            new(-200f,   70f), // meio esquerda
+            new(-400f,    0f), // aisle extrema-esquerda (frente das mesas da parede)
+            new( 370f,   45f), // aisle extrema-direita (frente da coluna de mesas)
+            new(  40f,   30f), // centro do chão
+            new(-110f,  -40f), // centro-frente esquerda
+            new(  10f, -120f), // frente centro
+            new( 230f,  -70f), // frente direita
+            new(-250f, -110f), // frente esquerda
         };
 
         // Nenhum spot é cadeira — os workers só roam pelo chão aberto.
