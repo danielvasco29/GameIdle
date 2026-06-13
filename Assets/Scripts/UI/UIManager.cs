@@ -734,7 +734,7 @@ namespace GameIdle
             {
                 floorImg.color = Color.white;
                 floorImg.type  = Image.Type.Simple;
-                floorImg.preserveAspect = false;
+                floorImg.preserveAspect = true;
             }
             else
             {
@@ -744,7 +744,7 @@ namespace GameIdle
                     floorImg.sprite = Sprite.Create(officeTex, new Rect(0,0,officeTex.width,officeTex.height), new Vector2(0.5f,0.5f));
                     floorImg.color  = Color.white;
                     floorImg.type   = Image.Type.Simple;
-                    floorImg.preserveAspect = false;
+                    floorImg.preserveAspect = true;
                 }
                 else floorImg.color = NavyDark;
             }
