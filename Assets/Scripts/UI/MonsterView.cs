@@ -486,9 +486,9 @@ namespace GameIdle
             // A single run that covers most of the width = one continuous body
             // (the worm). Anything else = discrete poses arranged in 8 cells.
             bool continuous = runs.Count <= 1 && span > w * 0.7f;
-            int count = continuous ? 4 : 8;
-            int cw = span / count;
-            for (int i = 0; i < count; i++)
+            int frameCount = continuous ? 4 : 8;
+            int cw = span / frameCount;
+            for (int i = 0; i < frameCount; i++)
             {
                 int fx = spanX0 + i * cw;
                 frames.Add(Sprite.Create(tex, new Rect(fx, rowY0, cw, rowH),
