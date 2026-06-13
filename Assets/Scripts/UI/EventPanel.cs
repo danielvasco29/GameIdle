@@ -50,7 +50,7 @@ namespace GameIdle
             sImg.raycastTarget = false;
 
             // Título do evento (fonte maior e centralizado na faixa)
-            _titleText = MakeLabel("Title", 28f, GoldColor, FontStyles.Bold, TextAlignmentOptions.Center,
+            _titleText = MakeLabel("Title", 32f, GoldColor, FontStyles.Bold, TextAlignmentOptions.Center,
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
                 new Vector2(24f, -94f), new Vector2(-24f, -10f), font);
 
@@ -69,7 +69,7 @@ namespace GameIdle
             // Descrição do evento (região abaixo do separador, texto centralizado).
             // Os offsets definem a região completa — não sobrescrever com sizeDelta,
             // senão a label vai parar na borda superior e fica cortada.
-            _descText = MakeLabel("Desc", 20f, TextMain, FontStyles.Normal, TextAlignmentOptions.Top,
+            _descText = MakeLabel("Desc", 23f, TextMain, FontStyles.Normal, TextAlignmentOptions.Top,
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
                 new Vector2(30f, -236f), new Vector2(-30f, -114f), font);
             _descText.textWrappingMode = TextWrappingModes.Normal;
@@ -132,34 +132,39 @@ namespace GameIdle
             img.color = new Color(0.12f, 0.22f, 0.36f, 1f);
             go.GetComponent<Button>().onClick.AddListener(() => onClick());
 
-            // Linha de acento esquerda
-            var ac = new GameObject("Accent", typeof(RectTransform), typeof(Image));
-            ac.transform.SetParent(go.transform, false);
-            var art = ac.GetComponent<RectTransform>();
-            art.anchorMin = new Vector2(0f, 0f); art.anchorMax = new Vector2(0f, 1f);
-            art.offsetMin = new Vector2(0f, 6f); art.offsetMax = new Vector2(4f, -6f);
-            ac.GetComponent<Image>().color = GreenColor; ac.GetComponent<Image>().raycastTarget = false;
+            // Acentos verdes nas duas pontas (simétrico, já que o texto é centralizado)
+            foreach (float ax in new[] { 0f, 1f })
+            {
+                var ac = new GameObject("Accent", typeof(RectTransform), typeof(Image));
+                ac.transform.SetParent(go.transform, false);
+                var art = ac.GetComponent<RectTransform>();
+                art.anchorMin = new Vector2(ax, 0f); art.anchorMax = new Vector2(ax, 1f);
+                art.pivot = new Vector2(ax, 0.5f);
+                art.offsetMin = new Vector2(ax == 0f ? 0f : -4f, 8f);
+                art.offsetMax = new Vector2(ax == 0f ? 4f : 0f, -8f);
+                ac.GetComponent<Image>().color = GreenColor; ac.GetComponent<Image>().raycastTarget = false;
+            }
 
-            // Texto principal da escolha
+            // Texto principal da escolha (centralizado)
             var top = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
             top.transform.SetParent(go.transform, false);
             var trt = top.GetComponent<RectTransform>();
-            trt.anchorMin = new Vector2(0f, 0.48f); trt.anchorMax = Vector2.one;
-            trt.offsetMin = new Vector2(16f, 0f); trt.offsetMax = new Vector2(-12f, -4f);
+            trt.anchorMin = new Vector2(0f, 0.46f); trt.anchorMax = Vector2.one;
+            trt.offsetMin = new Vector2(16f, 0f); trt.offsetMax = new Vector2(-16f, -6f);
             var ttmp = top.GetComponent<TextMeshProUGUI>();
-            ttmp.text = choice.text; ttmp.fontSize = 21; ttmp.fontStyle = FontStyles.Bold;
-            ttmp.color = Color.white; ttmp.alignment = TextAlignmentOptions.BottomLeft; ttmp.raycastTarget = false;
+            ttmp.text = choice.text; ttmp.fontSize = 25; ttmp.fontStyle = FontStyles.Bold;
+            ttmp.color = Color.white; ttmp.alignment = TextAlignmentOptions.Bottom; ttmp.raycastTarget = false;
             if (font != null) ttmp.font = font;
 
-            // Efeito/recompensa da escolha
+            // Efeito/recompensa da escolha (centralizado)
             var sub = new GameObject("Effect", typeof(RectTransform), typeof(TextMeshProUGUI));
             sub.transform.SetParent(go.transform, false);
             var srt = sub.GetComponent<RectTransform>();
-            srt.anchorMin = Vector2.zero; srt.anchorMax = new Vector2(1f, 0.48f);
-            srt.offsetMin = new Vector2(16f, 4f); srt.offsetMax = new Vector2(-12f, 0f);
+            srt.anchorMin = Vector2.zero; srt.anchorMax = new Vector2(1f, 0.46f);
+            srt.offsetMin = new Vector2(16f, 6f); srt.offsetMax = new Vector2(-16f, 0f);
             var stmp = sub.GetComponent<TextMeshProUGUI>();
-            stmp.text = choice.effectDescription; stmp.fontSize = 16; stmp.fontStyle = FontStyles.Bold;
-            stmp.color = GreenColor; stmp.alignment = TextAlignmentOptions.TopLeft; stmp.raycastTarget = false;
+            stmp.text = choice.effectDescription; stmp.fontSize = 19; stmp.fontStyle = FontStyles.Bold;
+            stmp.color = GreenColor; stmp.alignment = TextAlignmentOptions.Top; stmp.raycastTarget = false;
             if (font != null) stmp.font = font;
 
             return go;
