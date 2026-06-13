@@ -9,7 +9,13 @@ namespace GameIdle
     // Se nao existir, cai na fonte default do TextMeshPro (comportamento antigo).
     public static class UiFont
     {
-        private const string CustomFontPath = "Fonts/GameFont SDF";
+        // Aceita variacoes de nome do arquivo gerado (espaco/underline).
+        private static readonly string[] CustomFontPaths =
+        {
+            "Fonts/GameFont SDF",
+            "Fonts/GameFont_SDF",
+            "Fonts/GameFont",
+        };
         private static TMP_FontAsset _cached;
         private static bool _resolved;
 
@@ -18,8 +24,12 @@ namespace GameIdle
             if (_resolved && _cached != null) return _cached;
             _resolved = true;
 
-            // 1) Fonte custom gerada (se existir)
-            _cached = Resources.Load<TMP_FontAsset>(CustomFontPath);
+            // 1) Fonte custom gerada (se existir), tentando as variacoes de nome
+            foreach (var p in CustomFontPaths)
+            {
+                _cached = Resources.Load<TMP_FontAsset>(p);
+                if (_cached != null) break;
+            }
 
             // 2) Fonte que a cena ja usa (comportamento antigo, sempre tem glifos)
             if (_cached == null)
