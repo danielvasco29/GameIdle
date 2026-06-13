@@ -87,13 +87,14 @@ namespace GameIdle
         public struct WorkerFrames
         {
             public Sprite[] walk;
-            public Sprite[] idle; // null when the sheet only has one row
+            public Sprite[] idle;     // null when the sheet only has one row
+            public bool     fullBody; // true = render the full-body sprite (vs. circle portrait)
         }
 
-        // Sheet convention: 8 square frames per row.
-        //   1 row  (e.g. 1024x128) → walk only (idle reuses walk frame 0)
-        //   2 rows (e.g. 1024x256) → top row = walk, bottom row = idle/working
-        // A non-sheet portrait (width < 2x height) yields a single static frame.
+        // Wide character sheets (~4:1) are 12-col x 2-row walk/work grids, but
+        // their column counts/poses vary, so we take only the clean top-left
+        // frame as a static full-body sprite. A near-square image is treated as
+        // a single portrait.
         private static WorkerFrames? LoadFrames(CharacterInstance ci)
         {
             var tex = Resources.Load<Texture2D>($"Characters/Sprites/{ci.data.characterId}");
@@ -109,36 +110,26 @@ namespace GameIdle
                 {
                     walk = new[] { Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height),
                                                  new Vector2(0.5f, 0.5f)) },
-                    idle = null
+                    idle = null,
+                    fullBody = false
                 };
 
-            // Character sheets are a 12-col x 2-row grid (top: walk, bottom:
-            // work). Wide sheets (~4:1) match this; the old square-frame guess
-            // (8 cols) sliced 1.5 characters per frame and showed doubles.
-            int cols, rows;
-            if (tex.width >= tex.height * 3) { cols = 12; rows = 2; }
-            else
-            {
-                cols = 8;
-                rows = Mathf.Max(1, Mathf.RoundToInt((float)tex.height / (tex.width / cols)));
-            }
-            int frameW = tex.width  / cols;
-            int frameH = tex.height / rows;
-
-            Sprite[] SliceRow(int rowFromTop)
-            {
-                int y = tex.height - (rowFromTop + 1) * frameH; // texture y=0 is bottom
-                var arr = new Sprite[cols];
-                for (int i = 0; i < cols; i++)
-                    arr[i] = Sprite.Create(tex, new Rect(i * frameW, y, frameW, frameH),
-                                           new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
-                return arr;
-            }
+            // Character sheets are wide (~4:1) walk/work grids, but the column
+            // count and pose layout differ from sheet to sheet (some 12 cols,
+            // some mix idle poses in), so animating every frame exposed doubled
+            // and invisible characters. Use the single clean top-left frame as a
+            // static full-body sprite — the same crop the employee list uses.
+            int fw = tex.width / 12;       // 12 columns
+            int fh = tex.height / 2;       // 2 rows (top = standing/walk)
+            int fy = tex.height - fh;      // top row (texture y origin = bottom)
+            var frame0 = Sprite.Create(tex, new Rect(0, fy, fw, fh),
+                new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
 
             return new WorkerFrames
             {
-                walk = SliceRow(0),
-                idle = rows >= 2 ? SliceRow(1) : null
+                walk     = new[] { frame0 },
+                idle     = null,
+                fullBody = true
             };
         }
 
@@ -159,7 +150,7 @@ namespace GameIdle
             // Start at exact spread position — no jitter to prevent overlap
             rt.anchoredPosition = SpreadPositions[index % SpreadPositions.Length];
 
-            bool hasSpriteSheet = frames != null && frames.Length > 1;
+            bool hasSpriteSheet = loaded.HasValue && loaded.Value.fullBody;
 
             if (hasSpriteSheet)
             {
