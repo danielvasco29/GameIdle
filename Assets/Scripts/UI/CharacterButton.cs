@@ -208,9 +208,10 @@ namespace GameIdle
             go.transform.SetAsFirstSibling();
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(0f, 0f); rt.anchorMax = new Vector2(0f, 1f);
-            rt.offsetMin = Vector2.zero; rt.offsetMax = new Vector2(5f, 0f);
+            rt.offsetMin = Vector2.zero; rt.offsetMax = new Vector2(6f, 0f);
             affordableIndicator = go.GetComponent<Image>();
-            affordableIndicator.color = new Color(GreenColor.r, GreenColor.g, GreenColor.b, 0f);
+            // Rarity-colored accent: always visible, brightens when affordable.
+            affordableIndicator.color = new Color(_rarity.r, _rarity.g, _rarity.b, 0.55f);
             affordableIndicator.raycastTarget = false;
         }
 
@@ -467,8 +468,8 @@ namespace GameIdle
 
             if (affordableIndicator != null)
                 affordableIndicator.color = affordable
-                    ? new Color(0.35f, 0.75f, 1f, 1f)   // cyan-blue when affordable
-                    : new Color(0f, 0f, 0f, 0f);         // invisible otherwise
+                    ? new Color(_rarity.r, _rarity.g, _rarity.b, 1f)    // full rarity glow when affordable
+                    : new Color(_rarity.r, _rarity.g, _rarity.b, 0.50f); // dim rarity tint otherwise
 
             if (costProgressBar != null)
             {
