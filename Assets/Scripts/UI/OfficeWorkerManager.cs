@@ -23,21 +23,21 @@ namespace GameIdle
         // partir do screenshot). y é "para cima"; o centro do chão fica perto de (20,55).
         // Spots de roaming no chão aberto — bem espalhados entre as duas colunas
         // de mesas (x≈-420 e x≈300) para os personagens não se aglomerarem.
-        // Spots nos CORREDORES entre as mesas (colunas em x≈-300/20/300, fileiras
-        // em y≈80/-190) e na frente do escritório. Calibrados para não cair em
-        // cima de nenhuma mesa nem aglomerar no centro.
+        // Spots no chão aberto do cenário original (mesas embutidas no fundo).
+        // O centro do escritório é a área livre principal; evitar as mesas
+        // na parede de cima-esquerda e na fileira de baixo-direita.
         public static readonly Vector2[] SpreadPositions =
         {
-            new(-150f,  210f), // fundo, corredor esquerdo
-            new( 160f,  210f), // fundo, corredor direito
-            new(-150f,  -55f), // corredor esquerdo (entre colunas esq/centro)
-            new( 160f,  -55f), // corredor direito (entre colunas centro/dir)
-            new( -10f,  -60f), // centro, aberto
-            new(-150f, -300f), // frente esquerda
-            new( 160f, -300f), // frente direita
-            new( -10f, -300f), // frente centro
-            new(-300f, -320f), // frente, canto esquerdo aberto
-            new( 300f, -320f), // frente, canto direito aberto
+            new(-120f,  100f), // centro-esquerda, perto das mesas do fundo
+            new( 120f,  100f), // centro-direita
+            new(   0f,    0f), // bem no centro do chão
+            new(-200f,  -50f), // esquerda, meio
+            new( 200f,  -50f), // direita, meio
+            new(-120f, -180f), // frente esquerda
+            new( 120f, -180f), // frente direita
+            new(   0f, -250f), // frente centro
+            new(-280f, -280f), // canto frontal esquerdo
+            new( 280f, -280f), // canto frontal direito
         };
 
         // Nenhum spot é cadeira — os workers só roam pelo chão aberto.

@@ -43,8 +43,7 @@ namespace GameIdle
         public void Init(RectTransform panel)
         {
             _panel = panel;
-            SpawnDesks();
-            SpawnAmbientProps();
+            // Original background already has built-in furniture — no overlay needed.
         }
 
         // ── Mesas ─────────────────────────────────────────────────────────────
