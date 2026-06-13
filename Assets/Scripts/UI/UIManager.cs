@@ -796,11 +796,10 @@ namespace GameIdle
                 frt.offsetMin = frt.offsetMax = Vector2.zero;
                 floorImg.transform.SetAsLastSibling(); // cobre o tom escuro do Panel_BG
 
-                // Fundo "cover": copia do escritorio esticada para preencher TODA a
-                // tela (sem preservar aspecto), escurecida. Como o escritorio nitido
-                // ajusta pela altura, sobravam barras pretas nas laterais; este layer
-                // atras delas estende o cenario e elimina os buracos pretos.
-                if (floorImg.sprite != null)
+                // Fundo das laterais: gradiente navy combinando com o tema. O
+                // escritorio nitido ajusta pela altura e sobravam barras pretas nas
+                // laterais; este layer atras preenche tudo com um degrade suave
+                // (escuro embaixo -> navy mais claro em cima) integrando o cenario.
                 {
                     var staleCover = bgPanel.transform.Find("BgCover");
                     if (staleCover != null) DestroyImmediate(staleCover.gameObject);
@@ -811,10 +810,10 @@ namespace GameIdle
                     crt.anchorMin = Vector2.zero; crt.anchorMax = Vector2.one;
                     crt.offsetMin = crt.offsetMax = Vector2.zero;
                     var coverImg = coverGO.GetComponent<Image>();
-                    coverImg.sprite = floorImg.sprite;
+                    coverImg.sprite = UiSpriteFactory.VerticalGradient();
                     coverImg.type = Image.Type.Simple;
-                    coverImg.preserveAspect = false;       // estica para cobrir as laterais
-                    coverImg.color = new Color(0.34f, 0.38f, 0.46f, 1f); // escurecido/dessaturado
+                    coverImg.preserveAspect = false;
+                    coverImg.color = new Color(0.11f, 0.17f, 0.30f, 1f); // navy do tema
                     coverImg.raycastTarget = false;
                     coverGO.transform.SetAsFirstSibling(); // atras do escritorio nitido
                 }
