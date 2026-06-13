@@ -19,12 +19,12 @@ namespace GameIdle
         private static readonly Color BlueColor = new(0.35f, 0.65f, 1f, 1f);
         private static readonly Color RedColor  = new(1f, 0.35f, 0.35f, 1f);
 
-        private const float PanelW  = 480f;
-        private const float RowH    = 52f;
-        private const float RowGap  = 6f;
-        private const float TopPad  = 52f;
-        private const float BotPad  = 58f;
-        private const float SidePad = 16f;
+        private const float PanelW  = 600f;
+        private const float RowH    = 66f;
+        private const float RowGap  = 8f;
+        private const float TopPad  = 64f;
+        private const float BotPad  = 70f;
+        private const float SidePad = 18f;
         private const int   MaxRows = 8;
 
         private class EffectRow
@@ -59,7 +59,7 @@ namespace GameIdle
             trt.sizeDelta = new Vector2(PanelW - 2 * SidePad, 36f);
             trt.anchoredPosition = new Vector2(0f, -8f);
             var ttmp = titleGO.GetComponent<TextMeshProUGUI>();
-            ttmp.text = "BÔNUS ATIVOS"; ttmp.fontSize = 18; ttmp.fontStyle = FontStyles.Bold;
+            ttmp.text = "BÔNUS ATIVOS"; ttmp.fontSize = 24; ttmp.fontStyle = FontStyles.Bold;
             ttmp.color = GoldColor; ttmp.alignment = TextAlignmentOptions.Center; ttmp.raycastTarget = false;
             if (font != null) ttmp.font = font;
 
@@ -71,7 +71,7 @@ namespace GameIdle
             ert.offsetMin = new Vector2(SidePad, 0f); ert.offsetMax = new Vector2(-SidePad, 0f);
             var etmp = emptyGO.GetComponent<TextMeshProUGUI>();
             etmp.text = "Nenhum bônus ativo no momento.\nParticipe de eventos para ganhar bônus!";
-            etmp.fontSize = 13; etmp.color = GrayColor; etmp.alignment = TextAlignmentOptions.Center;
+            etmp.fontSize = 17; etmp.color = GrayColor; etmp.alignment = TextAlignmentOptions.Center;
             etmp.fontStyle = FontStyles.Bold; etmp.textWrappingMode = TextWrappingModes.Normal;
             etmp.raycastTarget = false;
             if (font != null) etmp.font = font;
@@ -89,8 +89,8 @@ namespace GameIdle
             closeGO.transform.SetParent(transform, false);
             var clrt = closeGO.GetComponent<RectTransform>();
             clrt.anchorMin = clrt.anchorMax = new Vector2(0.5f, 0f); clrt.pivot = new Vector2(0.5f, 0f);
-            clrt.sizeDelta = new Vector2(PanelW - 2 * SidePad, 40f);
-            clrt.anchoredPosition = new Vector2(0f, 10f);
+            clrt.sizeDelta = new Vector2(PanelW - 2 * SidePad, 48f);
+            clrt.anchoredPosition = new Vector2(0f, 12f);
             closeGO.GetComponent<Image>().sprite = UiSpriteFactory.RoundedBox();
             closeGO.GetComponent<Image>().type = Image.Type.Sliced;
             closeGO.GetComponent<Image>().color = GrayColor;
@@ -101,7 +101,7 @@ namespace GameIdle
             cllrt.anchorMin = Vector2.zero; cllrt.anchorMax = Vector2.one;
             cllrt.offsetMin = cllrt.offsetMax = Vector2.zero;
             var cltmp = cl.GetComponent<TextMeshProUGUI>();
-            cltmp.text = "Fechar"; cltmp.fontSize = 14; cltmp.fontStyle = FontStyles.Bold;
+            cltmp.text = "Fechar"; cltmp.fontSize = 18; cltmp.fontStyle = FontStyles.Bold;
             cltmp.color = Color.white; cltmp.alignment = TextAlignmentOptions.Center; cltmp.raycastTarget = false;
             if (font != null) cltmp.font = font;
 
@@ -136,21 +136,21 @@ namespace GameIdle
 
             // Nome do bônus
             row.nameText = MakeLabel(go.transform, "Name",
-                new Vector2(0f, 0.5f), new Vector2(0.60f, 1f),
-                new Vector2(20f, 0f), Vector2.zero,
-                13f, Color.white, TextAlignmentOptions.BottomLeft, font);
+                new Vector2(0f, 0.5f), new Vector2(0.62f, 1f),
+                new Vector2(24f, 0f), Vector2.zero,
+                18f, Color.white, TextAlignmentOptions.BottomLeft, font);
 
             // Descrição / tipo
             row.valueText = MakeLabel(go.transform, "Val",
-                new Vector2(0f, 0f), new Vector2(0.60f, 0.5f),
-                new Vector2(20f, 0f), Vector2.zero,
-                10.5f, GrayColor, TextAlignmentOptions.TopLeft, font);
+                new Vector2(0f, 0f), new Vector2(0.62f, 0.5f),
+                new Vector2(24f, 0f), Vector2.zero,
+                14f, GrayColor, TextAlignmentOptions.TopLeft, font);
 
             // Timer / "permanente"
             row.timerText = MakeLabel(go.transform, "Timer",
-                new Vector2(0.60f, 0f), new Vector2(1f, 1f),
-                Vector2.zero, new Vector2(-12f, 0f),
-                12f, GoldColor, TextAlignmentOptions.Midline, font);
+                new Vector2(0.62f, 0f), new Vector2(1f, 1f),
+                Vector2.zero, new Vector2(-16f, 0f),
+                16f, GoldColor, TextAlignmentOptions.Midline, font);
 
             go.SetActive(false);
             return row;
@@ -189,6 +189,13 @@ namespace GameIdle
             var effects = GameManager.Instance != null ? GameManager.Instance.GetActiveEffects() : null;
             int count = effects?.Count ?? 0;
             bool any = count > 0;
+
+            // Ajusta a altura do painel ao número de bônus ativos (evita espaço vazio).
+            // Sem bônus, reserva espaço para ~2 linhas para a mensagem caber.
+            int rowsForHeight = Mathf.Clamp(any ? count : 2, 1, MaxRows);
+            float panelH = TopPad + BotPad + rowsForHeight * RowH + (rowsForHeight - 1) * RowGap;
+            var prt = (RectTransform)transform;
+            prt.sizeDelta = new Vector2(PanelW, panelH);
 
             _emptyLabel.SetActive(!any);
 
