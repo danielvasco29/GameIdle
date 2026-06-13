@@ -49,7 +49,7 @@ namespace GameIdle
             trt.anchorMin = new Vector2(0f, 0.85f); trt.anchorMax = Vector2.one;
             trt.offsetMin = new Vector2(16f, 0f); trt.offsetMax = new Vector2(-16f, -8f);
             var ttmp = titleGO.GetComponent<TextMeshProUGUI>();
-            ttmp.text = "MISSÕES DIÁRIAS"; ttmp.fontSize = 23; ttmp.fontStyle = FontStyles.Bold;
+            ttmp.text = "MISSÕES DIÁRIAS"; ttmp.fontSize = 27; ttmp.fontStyle = FontStyles.Bold;
             ttmp.color = GoldColor; ttmp.alignment = TextAlignmentOptions.Center; ttmp.raycastTarget = false;
             if (font != null) ttmp.font = font;
 
@@ -104,7 +104,7 @@ namespace GameIdle
             nrt.anchorMin = new Vector2(0f, 0.55f); nrt.anchorMax = new Vector2(0.65f, 1f);
             nrt.offsetMin = new Vector2(10f, 0f); nrt.offsetMax = Vector2.zero;
             row.nameText = nameGO.GetComponent<TextMeshProUGUI>();
-            row.nameText.text = mission.name; row.nameText.fontSize = 18; row.nameText.fontStyle = FontStyles.Bold;
+            row.nameText.text = mission.name; row.nameText.fontSize = 21; row.nameText.fontStyle = FontStyles.Bold;
             row.nameText.color = Color.white; row.nameText.alignment = TextAlignmentOptions.MidlineLeft;
             row.nameText.raycastTarget = false; if (font != null) row.nameText.font = font;
 
@@ -115,7 +115,7 @@ namespace GameIdle
             prrt.anchorMin = new Vector2(0f, 0.05f); prrt.anchorMax = new Vector2(0.65f, 0.55f);
             prrt.offsetMin = new Vector2(10f, 0f); prrt.offsetMax = Vector2.zero;
             row.progressText = progGO.GetComponent<TextMeshProUGUI>();
-            row.progressText.fontSize = 15; row.progressText.color = new Color(0.7f, 0.8f, 1f);
+            row.progressText.fontSize = 17; row.progressText.color = new Color(0.82f, 0.89f, 1f);
             row.progressText.alignment = TextAlignmentOptions.MidlineLeft; row.progressText.raycastTarget = false;
             if (font != null) row.progressText.font = font;
 
@@ -150,7 +150,7 @@ namespace GameIdle
             var blrt = bLbl.GetComponent<RectTransform>();
             blrt.anchorMin = Vector2.zero; blrt.anchorMax = Vector2.one; blrt.offsetMin = blrt.offsetMax = Vector2.zero;
             row.claimBtnText = bLbl.GetComponent<TextMeshProUGUI>();
-            row.claimBtnText.fontSize = 16; row.claimBtnText.fontStyle = FontStyles.Bold;
+            row.claimBtnText.fontSize = 18; row.claimBtnText.fontStyle = FontStyles.Bold;
             row.claimBtnText.alignment = TextAlignmentOptions.Center; row.claimBtnText.raycastTarget = false;
             if (font != null) row.claimBtnText.font = font;
 
@@ -183,18 +183,22 @@ namespace GameIdle
                 {
                     r.claimBtnImg.color = GrayColor;
                     r.claimBtnText.text = "Coletado";
+                    r.claimBtnText.color = new Color(0.85f, 0.88f, 0.94f, 1f);
                     r.claimBtn.interactable = false;
                 }
                 else if (complete)
                 {
                     r.claimBtnImg.color = GoldColor;
                     r.claimBtnText.text = $"+{m.gemReward} gemas";
+                    // Texto escuro sobre o dourado → contraste alto e legível
+                    r.claimBtnText.color = new Color(0.10f, 0.08f, 0.02f, 1f);
                     r.claimBtn.interactable = true;
                 }
                 else
                 {
                     r.claimBtnImg.color = new Color(0.18f, 0.22f, 0.34f, 1f);
                     r.claimBtnText.text = $"+{m.gemReward}";
+                    r.claimBtnText.color = Color.white;
                     r.claimBtn.interactable = false;
                 }
             }

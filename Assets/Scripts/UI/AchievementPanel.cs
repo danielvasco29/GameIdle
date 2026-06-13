@@ -13,8 +13,8 @@ namespace GameIdle
         private static readonly Color NavyReady = new(0.10f,  0.22f,  0.16f,  1f);
         private static readonly Color GoldColor = new(1f, 0.808f, 0.227f, 1f);
         private static readonly Color GreenDone = new(0.35f, 0.95f, 0.55f, 1f);
-        private static readonly Color TextSec   = new(0.62f, 0.70f, 0.79f, 1f);
-        private static readonly Color GrayDim   = new(0.45f, 0.50f, 0.60f, 1f);
+        private static readonly Color TextSec   = new(0.78f, 0.84f, 0.92f, 1f);
+        private static readonly Color GrayDim   = new(0.78f, 0.82f, 0.90f, 1f);
 
         private class Row
         {
@@ -27,7 +27,7 @@ namespace GameIdle
         private void BuildUI()
         {
             int count = AchievementManager.All.Length;
-            const float rowH    = 70f;   // mais alto → respiração
+            const float rowH    = 80f;   // mais alto → respiração
             const float rowGap  = 4f;
             const float topPad  = 60f;
             const float botPad  = 68f;
@@ -59,7 +59,7 @@ namespace GameIdle
             trt.sizeDelta = new Vector2(trt.sizeDelta.x, 40f);
             trt.anchoredPosition = new Vector2(0f, -12f);
             var ttmp = titleGO.GetComponent<TextMeshProUGUI>();
-            ttmp.text = "CONQUISTAS"; ttmp.fontSize = 22; ttmp.fontStyle = FontStyles.Bold;
+            ttmp.text = "CONQUISTAS"; ttmp.fontSize = 26; ttmp.fontStyle = FontStyles.Bold;
             ttmp.color = GoldColor; ttmp.alignment = TextAlignmentOptions.Center; ttmp.raycastTarget = false;
             if (font != null) ttmp.font = font;
 
@@ -161,17 +161,17 @@ namespace GameIdle
             row.nameText = MakeLabel(go.transform, "Name",
                 new Vector2(0f, 0.5f), new Vector2(0.76f, 1f),
                 new Vector2(16f, 0f), new Vector2(0f, -3f),
-                18f, Color.white, TextAlignmentOptions.BottomLeft, font);
+                21f, Color.white, TextAlignmentOptions.BottomLeft, font);
             row.descText = MakeLabel(go.transform, "Desc",
                 new Vector2(0f, 0f), new Vector2(0.76f, 0.5f),
                 new Vector2(16f, 3f), Vector2.zero,
-                14f, TextSec, TextAlignmentOptions.TopLeft, font);
+                16f, TextSec, TextAlignmentOptions.TopLeft, font);
 
             // Coluna direita: status (gemas ou OK)
             row.statusText = MakeLabel(go.transform, "Status",
-                new Vector2(0.76f, 0f), new Vector2(1f, 1f),
+                new Vector2(0.74f, 0f), new Vector2(1f, 1f),
                 Vector2.zero, new Vector2(-16f, 0f),
-                19f, GoldColor, TextAlignmentOptions.Midline, font);
+                22f, GoldColor, TextAlignmentOptions.Midline, font);
 
             row.nameText.text = a.name;
             row.descText.text = a.description;

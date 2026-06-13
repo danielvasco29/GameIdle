@@ -26,7 +26,7 @@ namespace GameIdle
             var rt = GetComponent<RectTransform>() ?? gameObject.AddComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(580f, 440f);
+            rt.sizeDelta = new Vector2(660f, 520f);
             rt.anchoredPosition = Vector2.zero;
 
             var bg = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
@@ -34,25 +34,25 @@ namespace GameIdle
 
             TMP_FontAsset font = TMP_Settings.defaultFontAsset;
 
-            // Faixa dourada no topo (destaque do evento)
+            // Faixa dourada no topo (destaque do evento) — recuada das bordas
+            // arredondadas para não vazar nos cantos do painel
             var stripe = new GameObject("TitleStripe", typeof(RectTransform), typeof(Image));
             stripe.transform.SetParent(transform, false);
             var srt = stripe.GetComponent<RectTransform>();
             srt.anchorMin = new Vector2(0f, 1f); srt.anchorMax = new Vector2(1f, 1f);
             srt.pivot = new Vector2(0.5f, 1f);
-            srt.offsetMin = Vector2.zero; srt.offsetMax = Vector2.zero;
-            srt.sizeDelta = new Vector2(0f, 68f);
+            srt.offsetMin = new Vector2(10f, 0f); srt.offsetMax = new Vector2(-10f, 0f);
+            srt.sizeDelta = new Vector2(0f, 84f);
+            srt.anchoredPosition = new Vector2(0f, -10f);
             var sImg = stripe.GetComponent<Image>();
             sImg.sprite = UiSpriteFactory.RoundedBox(); sImg.type = Image.Type.Sliced;
             sImg.color = new Color(0.22f, 0.15f, 0.04f, 1f);
             sImg.raycastTarget = false;
 
-            // Título do evento
-            _titleText = MakeLabel("Title", 22f, GoldColor, FontStyles.Bold, TextAlignmentOptions.Center,
+            // Título do evento (fonte maior e centralizado na faixa)
+            _titleText = MakeLabel("Title", 28f, GoldColor, FontStyles.Bold, TextAlignmentOptions.Center,
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
-                new Vector2(20f, -68f), new Vector2(-20f, 0f), font);
-            _titleText.rectTransform.sizeDelta = new Vector2(0f, 68f);
-            _titleText.rectTransform.anchoredPosition = Vector2.zero;
+                new Vector2(24f, -94f), new Vector2(-24f, -10f), font);
 
             // Linha separadora
             var sepGO = new GameObject("Sep", typeof(RectTransform), typeof(Image));
@@ -60,29 +60,29 @@ namespace GameIdle
             var sepRT = sepGO.GetComponent<RectTransform>();
             sepRT.anchorMin = new Vector2(0f, 1f); sepRT.anchorMax = new Vector2(1f, 1f);
             sepRT.pivot = new Vector2(0.5f, 1f);
-            sepRT.offsetMin = new Vector2(20f, 0f); sepRT.offsetMax = new Vector2(-20f, 0f);
+            sepRT.offsetMin = new Vector2(24f, 0f); sepRT.offsetMax = new Vector2(-24f, 0f);
             sepRT.sizeDelta = new Vector2(0f, 2f);
-            sepRT.anchoredPosition = new Vector2(0f, -68f);
+            sepRT.anchoredPosition = new Vector2(0f, -100f);
             sepGO.GetComponent<Image>().color = new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0.35f);
             sepGO.GetComponent<Image>().raycastTarget = false;
 
-            // Descrição do evento
-            _descText = MakeLabel("Desc", 16f, TextMain, FontStyles.Normal, TextAlignmentOptions.TopLeft,
+            // Descrição do evento (fonte maior)
+            _descText = MakeLabel("Desc", 20f, TextMain, FontStyles.Normal, TextAlignmentOptions.TopLeft,
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
-                new Vector2(24f, -78f), new Vector2(-24f, 0f), font);
+                new Vector2(28f, -116f), new Vector2(-28f, 0f), font);
             _descText.rectTransform.sizeDelta = new Vector2(0f, 120f);
             _descText.rectTransform.anchoredPosition = Vector2.zero;
             _descText.textWrappingMode = TextWrappingModes.Normal;
-            _descText.lineSpacing = 8f;
+            _descText.lineSpacing = 10f;
 
             // Área das escolhas
             var areaGO = new GameObject("Choices", typeof(RectTransform), typeof(VerticalLayoutGroup));
             areaGO.transform.SetParent(transform, false);
             _choicesArea = areaGO.GetComponent<RectTransform>();
             _choicesArea.anchorMin = new Vector2(0f, 0f); _choicesArea.anchorMax = new Vector2(1f, 1f);
-            _choicesArea.offsetMin = new Vector2(20f, 16f); _choicesArea.offsetMax = new Vector2(-20f, -208f);
+            _choicesArea.offsetMin = new Vector2(22f, 20f); _choicesArea.offsetMax = new Vector2(-22f, -244f);
             var vlg = areaGO.GetComponent<VerticalLayoutGroup>();
-            vlg.spacing = 10f; vlg.childForceExpandWidth = true; vlg.childForceExpandHeight = true;
+            vlg.spacing = 14f; vlg.childForceExpandWidth = true; vlg.childForceExpandHeight = true;
             vlg.childControlWidth = true; vlg.childControlHeight = true;
             vlg.childAlignment = TextAnchor.MiddleCenter;
 
@@ -147,7 +147,7 @@ namespace GameIdle
             trt.anchorMin = new Vector2(0f, 0.48f); trt.anchorMax = Vector2.one;
             trt.offsetMin = new Vector2(16f, 0f); trt.offsetMax = new Vector2(-12f, -4f);
             var ttmp = top.GetComponent<TextMeshProUGUI>();
-            ttmp.text = choice.text; ttmp.fontSize = 16; ttmp.fontStyle = FontStyles.Bold;
+            ttmp.text = choice.text; ttmp.fontSize = 21; ttmp.fontStyle = FontStyles.Bold;
             ttmp.color = Color.white; ttmp.alignment = TextAlignmentOptions.BottomLeft; ttmp.raycastTarget = false;
             if (font != null) ttmp.font = font;
 
@@ -158,7 +158,7 @@ namespace GameIdle
             srt.anchorMin = Vector2.zero; srt.anchorMax = new Vector2(1f, 0.48f);
             srt.offsetMin = new Vector2(16f, 4f); srt.offsetMax = new Vector2(-12f, 0f);
             var stmp = sub.GetComponent<TextMeshProUGUI>();
-            stmp.text = choice.effectDescription; stmp.fontSize = 13; stmp.fontStyle = FontStyles.Bold;
+            stmp.text = choice.effectDescription; stmp.fontSize = 16; stmp.fontStyle = FontStyles.Bold;
             stmp.color = GreenColor; stmp.alignment = TextAlignmentOptions.TopLeft; stmp.raycastTarget = false;
             if (font != null) stmp.font = font;
 

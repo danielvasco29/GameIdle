@@ -25,10 +25,15 @@ namespace GameIdle
         private TextMeshProUGUI _valGems;
         private TextMeshProUGUI _valAchievements;
 
-        // Referências do gráfico
+        // Referências do gráfico de donut (conquistas)
         private Image           _donutFill;
         private TextMeshProUGUI _donutLabel;
         private TextMeshProUGUI _donutSub;
+
+        // Referências do gráfico de barras (atividade: cliques/monstros/etc.)
+        private const int BarCount = 4;
+        private readonly Image[]           _barFills  = new Image[BarCount];
+        private readonly TextMeshProUGUI[] _barValues = new TextMeshProUGUI[BarCount];
 
         private void Awake()
         {
@@ -68,6 +73,24 @@ namespace GameIdle
             _donutFill.fillAmount = pct;
             _donutLabel.text = $"{unlocked}/{total}";
             _donutSub.text   = $"{Mathf.RoundToInt(pct * 100f)}%";
+
+            // Atualiza gráfico de barras (cliques, monstros, bosses, prestígios)
+            long clicks    = gm != null ? gm.LifetimeTapCount       : 0;
+            long kills     = gm != null ? gm.LifetimeKillCount      : 0;
+            long bossKills = gm != null ? gm.LifetimeBossKillCount  : 0;
+            long prestiges = gm != null ? gm.LifetimePrestigeCount  : 0;
+            long[] barVals = { clicks, kills, bossKills, prestiges };
+
+            // Normaliza pelo maior valor; mantém um mínimo visível quando > 0.
+            long maxVal = 1;
+            foreach (var v in barVals) if (v > maxVal) maxVal = v;
+            for (int i = 0; i < _barFills.Length; i++)
+            {
+                if (_barFills[i] == null) continue;
+                float frac = (float)barVals[i] / maxVal;
+                _barFills[i].fillAmount = barVals[i] > 0 ? Mathf.Max(frac, 0.03f) : 0f;
+                _barValues[i].text = barVals[i].ToString("N0");
+            }
         }
 
         private void BuildUI()
@@ -245,11 +268,11 @@ namespace GameIdle
             slTxt.color = GoldColor; slTxt.alignment = TextAlignmentOptions.Center;
             slTxt.raycastTarget = false;
 
-            // Donut: círculo de fundo (cinza) centralizado
+            // Donut: círculo de fundo (cinza) centralizado — compacto, no topo
             var bgCircleGO = new GameObject("DonutBG", typeof(RectTransform), typeof(Image));
             bgCircleGO.transform.SetParent(parent, false);
             var bgRT = bgCircleGO.GetComponent<RectTransform>();
-            bgRT.anchorMin = new Vector2(0.1f, 0.35f); bgRT.anchorMax = new Vector2(0.9f, 0.82f);
+            bgRT.anchorMin = new Vector2(0.18f, 0.66f); bgRT.anchorMax = new Vector2(0.82f, 0.93f);
             bgRT.offsetMin = Vector2.zero; bgRT.offsetMax = Vector2.zero;
             var bgImg = bgCircleGO.GetComponent<Image>();
             bgImg.sprite = UiSpriteFactory.Circle();
@@ -263,7 +286,7 @@ namespace GameIdle
             var fillGO = new GameObject("DonutFill", typeof(RectTransform), typeof(Image));
             fillGO.transform.SetParent(parent, false);
             var fillRT = fillGO.GetComponent<RectTransform>();
-            fillRT.anchorMin = new Vector2(0.1f, 0.35f); fillRT.anchorMax = new Vector2(0.9f, 0.82f);
+            fillRT.anchorMin = new Vector2(0.18f, 0.66f); fillRT.anchorMax = new Vector2(0.82f, 0.93f);
             fillRT.offsetMin = Vector2.zero; fillRT.offsetMax = Vector2.zero;
             _donutFill = fillGO.GetComponent<Image>();
             _donutFill.sprite = UiSpriteFactory.Circle();
@@ -278,7 +301,7 @@ namespace GameIdle
             var holeGO = new GameObject("DonutHole", typeof(RectTransform), typeof(Image));
             holeGO.transform.SetParent(parent, false);
             var holeRT = holeGO.GetComponent<RectTransform>();
-            holeRT.anchorMin = new Vector2(0.25f, 0.44f); holeRT.anchorMax = new Vector2(0.75f, 0.73f);
+            holeRT.anchorMin = new Vector2(0.31f, 0.72f); holeRT.anchorMax = new Vector2(0.69f, 0.87f);
             holeRT.offsetMin = Vector2.zero; holeRT.offsetMax = Vector2.zero;
             var holeImg = holeGO.GetComponent<Image>();
             holeImg.sprite = UiSpriteFactory.Circle();
@@ -289,7 +312,7 @@ namespace GameIdle
             var lblGO = new GameObject("DonutLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
             lblGO.transform.SetParent(parent, false);
             var lblRT = lblGO.GetComponent<RectTransform>();
-            lblRT.anchorMin = new Vector2(0.1f, 0.52f); lblRT.anchorMax = new Vector2(0.9f, 0.68f);
+            lblRT.anchorMin = new Vector2(0.1f, 0.78f); lblRT.anchorMax = new Vector2(0.9f, 0.86f);
             lblRT.offsetMin = Vector2.zero; lblRT.offsetMax = Vector2.zero;
             _donutLabel = lblGO.GetComponent<TextMeshProUGUI>();
             _donutLabel.font = font; _donutLabel.text = "0/0";
@@ -301,25 +324,108 @@ namespace GameIdle
             var subGO = new GameObject("DonutSub", typeof(RectTransform), typeof(TextMeshProUGUI));
             subGO.transform.SetParent(parent, false);
             var subRT = subGO.GetComponent<RectTransform>();
-            subRT.anchorMin = new Vector2(0.1f, 0.47f); subRT.anchorMax = new Vector2(0.9f, 0.54f);
+            subRT.anchorMin = new Vector2(0.1f, 0.73f); subRT.anchorMax = new Vector2(0.9f, 0.79f);
             subRT.offsetMin = Vector2.zero; subRT.offsetMax = Vector2.zero;
             _donutSub = subGO.GetComponent<TextMeshProUGUI>();
             _donutSub.font = font; _donutSub.text = "0%";
             _donutSub.fontSize = 13f; _donutSub.color = GreenColor;
             _donutSub.alignment = TextAlignmentOptions.Center; _donutSub.raycastTarget = false;
 
-            // Legenda: verde = desbloqueadas
-            BuildLegendRow(parent, font, new Vector2(0.05f, 0.28f), new Vector2(0.95f, 0.35f),
-                           GreenColor, "Desbloqueadas");
-            // Legenda: cinza = bloqueadas
-            BuildLegendRow(parent, font, new Vector2(0.05f, 0.21f), new Vector2(0.95f, 0.28f),
-                           new Color(0.25f, 0.32f, 0.42f, 1f), "Bloqueadas");
+            // Legendas compactas lado a lado (verde = desbloqueadas, cinza = bloqueadas)
+            BuildLegendRow(parent, font, new Vector2(0.05f, 0.595f), new Vector2(0.52f, 0.655f),
+                           GreenColor, "Desbloq.");
+            BuildLegendRow(parent, font, new Vector2(0.52f, 0.595f), new Vector2(0.98f, 0.655f),
+                           new Color(0.25f, 0.32f, 0.42f, 1f), "Bloq.");
 
-            // Cards de destaque (kills e prestígios)
-            BuildStatCard(parent, font, new Vector2(0.04f, 0.09f), new Vector2(0.96f, 0.18f),
-                          "⚔ Monstros", GoldColor);
-            BuildStatCard(parent, font, new Vector2(0.04f, 0f), new Vector2(0.96f, 0.09f),
-                          "★ Prestígios", new Color(0.5f, 0.8f, 1f, 1f));
+            // ── Gráfico de barras: ATIVIDADE ─────────────────────────────────
+            // Compara totais acumulados (cliques, monstros, bosses, prestígios).
+            // Não há histórico temporal salvo, então usamos barras comparativas
+            // em vez de linhas — cada barra é normalizada pelo maior valor.
+            var barTitle = new GameObject("BarTitle", typeof(RectTransform), typeof(TextMeshProUGUI));
+            barTitle.transform.SetParent(parent, false);
+            var btRT = barTitle.GetComponent<RectTransform>();
+            btRT.anchorMin = new Vector2(0f, 0.52f); btRT.anchorMax = new Vector2(1f, 0.585f);
+            btRT.offsetMin = Vector2.zero; btRT.offsetMax = Vector2.zero;
+            var btTxt = barTitle.GetComponent<TextMeshProUGUI>();
+            btTxt.font = font; btTxt.text = "ATIVIDADE";
+            btTxt.fontSize = 14f; btTxt.fontStyle = FontStyles.Bold;
+            btTxt.color = GoldColor; btTxt.alignment = TextAlignmentOptions.Center;
+            btTxt.raycastTarget = false;
+
+            // 4 barras horizontais, de cima para baixo
+            (string label, Color color)[] bars =
+            {
+                ("Cliques",    new Color(0.40f, 0.80f, 1.00f, 1f)),
+                ("Monstros",   GreenColor),
+                ("Bosses",     GoldColor),
+                ("Prestígios", new Color(0.78f, 0.55f, 1.00f, 1f)),
+            };
+            const float barTop = 0.48f, barH = 0.085f, barGap = 0.025f;
+            for (int i = 0; i < BarCount; i++)
+            {
+                float yMax = barTop - i * (barH + barGap);
+                float yMin = yMax - barH;
+                BuildBar(parent, font, i, new Vector2(0.04f, yMin), new Vector2(0.96f, yMax),
+                         bars[i].label, bars[i].color);
+            }
+        }
+
+        // Constrói uma barra horizontal: rótulo | trilho com preenchimento | valor.
+        private void BuildBar(Transform parent, TMP_FontAsset font, int index,
+                              Vector2 aMin, Vector2 aMax, string label, Color color)
+        {
+            var go = new GameObject($"Bar_{index}", typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = aMin; rt.anchorMax = aMax;
+            rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+
+            // Rótulo (esquerda)
+            var lblGO = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
+            lblGO.transform.SetParent(go.transform, false);
+            var lrt = lblGO.GetComponent<RectTransform>();
+            lrt.anchorMin = new Vector2(0f, 0f); lrt.anchorMax = new Vector2(0.34f, 1f);
+            lrt.offsetMin = new Vector2(2f, 0f); lrt.offsetMax = new Vector2(-4f, 0f);
+            var ltmp = lblGO.GetComponent<TextMeshProUGUI>();
+            ltmp.font = font; ltmp.text = label; ltmp.fontSize = 13f;
+            ltmp.fontStyle = FontStyles.Bold; ltmp.color = TextSec;
+            ltmp.alignment = TextAlignmentOptions.MidlineLeft;
+            ltmp.overflowMode = TextOverflowModes.Ellipsis; ltmp.raycastTarget = false;
+
+            // Trilho (fundo da barra)
+            var trackGO = new GameObject("Track", typeof(RectTransform), typeof(Image));
+            trackGO.transform.SetParent(go.transform, false);
+            var trRT = trackGO.GetComponent<RectTransform>();
+            trRT.anchorMin = new Vector2(0.34f, 0.15f); trRT.anchorMax = new Vector2(1f, 0.85f);
+            trRT.offsetMin = Vector2.zero; trRT.offsetMax = Vector2.zero;
+            var trackImg = trackGO.GetComponent<Image>();
+            trackImg.sprite = UiSpriteFactory.RoundedBox(); trackImg.type = Image.Type.Sliced;
+            trackImg.color = new Color(1f, 1f, 1f, 0.08f); trackImg.raycastTarget = false;
+
+            // Preenchimento da barra
+            var fillGO = new GameObject("Fill", typeof(RectTransform), typeof(Image));
+            fillGO.transform.SetParent(trackGO.transform, false);
+            var fRT = fillGO.GetComponent<RectTransform>();
+            fRT.anchorMin = Vector2.zero; fRT.anchorMax = Vector2.one;
+            fRT.offsetMin = Vector2.zero; fRT.offsetMax = Vector2.zero;
+            var fillImg = fillGO.GetComponent<Image>();
+            fillImg.sprite = UiSpriteFactory.RoundedBox(); fillImg.type = Image.Type.Filled;
+            fillImg.fillMethod = Image.FillMethod.Horizontal;
+            fillImg.fillOrigin = (int)Image.OriginHorizontal.Left;
+            fillImg.fillAmount = 0f; fillImg.color = color; fillImg.raycastTarget = false;
+            _barFills[index] = fillImg;
+
+            // Valor (sobre o trilho, alinhado à direita)
+            var valGO = new GameObject("V", typeof(RectTransform), typeof(TextMeshProUGUI));
+            valGO.transform.SetParent(trackGO.transform, false);
+            var vRT = valGO.GetComponent<RectTransform>();
+            vRT.anchorMin = Vector2.zero; vRT.anchorMax = Vector2.one;
+            vRT.offsetMin = new Vector2(6f, 0f); vRT.offsetMax = new Vector2(-6f, 0f);
+            var vtmp = valGO.GetComponent<TextMeshProUGUI>();
+            vtmp.font = font; vtmp.text = "0"; vtmp.fontSize = 12f;
+            vtmp.fontStyle = FontStyles.Bold; vtmp.color = TextPrimary;
+            vtmp.alignment = TextAlignmentOptions.MidlineRight; vtmp.raycastTarget = false;
+            _barValues[index] = vtmp;
         }
 
         private void BuildLegendRow(Transform parent, TMP_FontAsset font, Vector2 aMin, Vector2 aMax, Color dotColor, string label)
@@ -348,35 +454,6 @@ namespace GameIdle
             tmp.font = font; tmp.text = label; tmp.fontSize = 13f;
             tmp.color = TextSec; tmp.alignment = TextAlignmentOptions.MidlineLeft;
             tmp.raycastTarget = false;
-        }
-
-        private void BuildStatCard(Transform parent, TMP_FontAsset font, Vector2 aMin, Vector2 aMax, string label, Color accentColor)
-        {
-            var go = new GameObject("Card", typeof(RectTransform), typeof(Image));
-            go.transform.SetParent(parent, false);
-            var rt = go.GetComponent<RectTransform>();
-            rt.anchorMin = aMin; rt.anchorMax = aMax;
-            rt.offsetMin = new Vector2(0f, 2f); rt.offsetMax = new Vector2(0f, -2f);
-            go.GetComponent<Image>().color = new Color(0.10f, 0.16f, 0.27f, 1f);
-            go.GetComponent<Image>().raycastTarget = false;
-
-            // Linha de acento esquerda
-            var ac = new GameObject("Ac", typeof(RectTransform), typeof(Image));
-            ac.transform.SetParent(go.transform, false);
-            var art = ac.GetComponent<RectTransform>();
-            art.anchorMin = new Vector2(0f, 0f); art.anchorMax = new Vector2(0f, 1f);
-            art.offsetMin = new Vector2(0f, 2f); art.offsetMax = new Vector2(3f, -2f);
-            ac.GetComponent<Image>().color = accentColor; ac.GetComponent<Image>().raycastTarget = false;
-
-            var txtGO = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
-            txtGO.transform.SetParent(go.transform, false);
-            var trt = txtGO.GetComponent<RectTransform>();
-            trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
-            trt.offsetMin = new Vector2(10f, 0f); trt.offsetMax = Vector2.zero;
-            var tmp = txtGO.GetComponent<TextMeshProUGUI>();
-            tmp.font = font; tmp.text = label; tmp.fontSize = 13f;
-            tmp.fontStyle = FontStyles.Bold; tmp.color = accentColor;
-            tmp.alignment = TextAlignmentOptions.MidlineLeft; tmp.raycastTarget = false;
         }
 
         private TextMeshProUGUI BuildRow(Transform parent, TMP_FontAsset font,
