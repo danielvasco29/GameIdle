@@ -107,9 +107,12 @@ namespace GameIdle
             float maxC = Mathf.Max(r, Mathf.Max(g, b));
             float minC = Mathf.Min(r, Mathf.Min(g, b));
             float sat = maxC > 0.001f ? (maxC - minC) / maxC : 0f;
-            // Any neutral gray or warm shadow — low saturation catches white, gray,
-            // checkerboard squares AND the warm beige shadows desks cast on white backgrounds.
-            return sat < 0.20f;
+            // Background = BRIGHT and unsaturated (white, light gray, checkerboard
+            // squares, warm beige shadows). The brightness gate is essential: a
+            // pure saturation test also matched mid/dark low-saturation pixels
+            // inside characters (grey suits, silver hair, pale skin) and the
+            // flood-fill ate them, leaving ghostly half-transparent sprites.
+            return maxC > 0.62f && sat < 0.20f;
         }
 
         private static float ColorDist(Color32 a, Color32 b)

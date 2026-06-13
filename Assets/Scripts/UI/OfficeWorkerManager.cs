@@ -114,23 +114,113 @@ namespace GameIdle
                     fullBody = false
                 };
 
-            // Character sheets are wide (~4:1) walk/work grids, but the column
-            // count and pose layout differ from sheet to sheet (some 12 cols,
-            // some mix idle poses in), so animating every frame exposed doubled
-            // and invisible characters. Use the single clean top-left frame as a
-            // static full-body sprite — the same crop the employee list uses.
-            int fw = tex.width / 12;       // 12 columns
-            int fh = tex.height / 2;       // 2 rows (top = standing/walk)
-            int fy = tex.height - fh;      // top row (texture y origin = bottom)
-            var frame0 = Sprite.Create(tex, new Rect(0, fy, fw, fh),
-                new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+            // Wide (~4:1) walk/work sheets. Column counts and pose layouts vary
+            // per sheet, so a fixed grid sliced 1.5 characters per cell. Instead
+            // detect each character by the transparent gaps between them and blit
+            // it onto its own uniform canvas (same technique as the monster
+            // sheets) — this auto-handles any frame count with no doubles.
+            var walk = SliceRowByContent(tex, rowFromTop: 0, rows: 2);
+            var idle = SliceRowByContent(tex, rowFromTop: 1, rows: 2);
 
-            return new WorkerFrames
+            if (walk == null || walk.Length == 0)
             {
-                walk     = new[] { frame0 },
-                idle     = null,
-                fullBody = true
-            };
+                // Fallback: static top-left frame so the worker is never invisible.
+                int fw = tex.width / 12, fh = tex.height / 2;
+                walk = new[] { Sprite.Create(tex, new Rect(0, tex.height - fh, fw, fh),
+                    new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect) };
+                idle = null;
+            }
+
+            return new WorkerFrames { walk = walk, idle = idle, fullBody = true };
+        }
+
+        // Slices one row of a sheet into per-character frames by detecting the
+        // transparent gaps between bodies (the sheet must already have its
+        // background removed). Each character is blitted onto its own uniform
+        // canvas, bottom-aligned so feet stay on a constant baseline while the
+        // walk pose changes. Robust to sheets with differing frame counts.
+        private static Sprite[] SliceRowByContent(Texture2D tex, int rowFromTop, int rows)
+        {
+            int w = tex.width;
+            int rowH = tex.height / rows;
+            int bandY0 = tex.height - (rowFromTop + 1) * rowH; // texture y=0 is bottom
+            int bandY1 = bandY0 + rowH;
+
+            Color32[] px;
+            try { px = tex.GetPixels32(); }
+            catch { return null; }
+
+            // Per-column opaque mass within the row band.
+            var colMass = new int[w];
+            for (int x = 0; x < w; x++)
+            {
+                int c = 0;
+                for (int y = bandY0; y < bandY1; y++)
+                    if (px[y * w + x].a > 40) c++;
+                colMass[x] = c;
+            }
+
+            // Content runs separated by empty gaps = individual characters.
+            int threshold = Mathf.Max(2, rowH / 14);
+            var runs = new List<Vector2Int>();
+            int start = -1;
+            for (int x = 0; x < w; x++)
+            {
+                bool filled = colMass[x] > threshold;
+                if (filled && start < 0) start = x;
+                else if (!filled && start >= 0) { runs.Add(new Vector2Int(start, x)); start = -1; }
+            }
+            if (start >= 0) runs.Add(new Vector2Int(start, w));
+            runs.RemoveAll(r => (r.y - r.x) < w / 40); // drop specks
+
+            if (runs.Count == 0) return null;
+
+            // Bbox per character, scanned between the gap-midpoints so limbs are
+            // fully captured while a neighbour can never leak in.
+            var boxes = new RectInt[runs.Count];
+            int maxW = 0, maxH = 0;
+            for (int i = 0; i < runs.Count; i++)
+            {
+                int leftLimit  = (i == 0) ? 0 : (runs[i - 1].y + runs[i].x) / 2;
+                int rightLimit = (i == runs.Count - 1) ? w : (runs[i].y + runs[i + 1].x) / 2;
+
+                int minX = rightLimit, maxX = leftLimit, minY = bandY1, maxY = bandY0;
+                for (int y = bandY0; y < bandY1; y++)
+                for (int x = leftLimit; x < rightLimit; x++)
+                    if (px[y * w + x].a > 40)
+                    {
+                        if (x < minX) minX = x; if (x > maxX) maxX = x;
+                        if (y < minY) minY = y; if (y > maxY) maxY = y;
+                    }
+                boxes[i] = new RectInt(minX, minY, Mathf.Max(1, maxX - minX), Mathf.Max(1, maxY - minY));
+                maxW = Mathf.Max(maxW, boxes[i].width);
+                maxH = Mathf.Max(maxH, boxes[i].height);
+            }
+
+            int canvasW = maxW + 12, canvasH = maxH + 12;
+            const int footMargin = 6;
+            var frames = new Sprite[runs.Count];
+            for (int i = 0; i < runs.Count; i++)
+            {
+                var canvas = new Color32[canvasW * canvasH]; // alpha 0 by default
+                var box = boxes[i];
+                int offX = (canvasW - box.width) / 2;   // centre horizontally
+                int offY = footMargin;                  // bottom-align feet
+                for (int y = 0; y < box.height; y++)
+                for (int x = 0; x < box.width; x++)
+                {
+                    var c = px[(box.y + y) * w + (box.x + x)];
+                    if (c.a <= 40) continue;
+                    canvas[(offY + y) * canvasW + (offX + x)] = c;
+                }
+                var ftex = new Texture2D(canvasW, canvasH, TextureFormat.RGBA32, false)
+                    { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+                ftex.SetPixels32(canvas);
+                ftex.Apply();
+                frames[i] = Sprite.Create(ftex, new Rect(0, 0, canvasW, canvasH),
+                    new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+            }
+            return frames;
         }
 
         private WorkerAvatar SpawnWorker(CharacterInstance ci, int index)
