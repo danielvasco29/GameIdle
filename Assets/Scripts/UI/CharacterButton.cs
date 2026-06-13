@@ -227,12 +227,24 @@ namespace GameIdle
                 // Remove o fundo branco/xadrez para o personagem ficar solto na cena
                 tex = SpriteBackgroundRemover.Process(tex);
 
-                // If sprite sheet (width >> height), use only the first frame
+                // Character sheets are a 12-column x 2-row grid (top: walk cycle,
+                // bottom: work pose). Earlier code assumed square single-row frames
+                // and ended up cropping several characters at once. Grab the single
+                // top-left frame for a clean standing portrait.
                 int fw = tex.width;
                 int fh = tex.height;
-                if (tex.width >= tex.height * 2)
+                int x = 0, y = 0;
+                if (tex.width >= tex.height * 3)        // wide multi-frame sheet (~4:1)
+                {
+                    fw = tex.width  / 12;               // 12 columns
+                    fh = tex.height / 2;                // 2 rows
+                    y  = tex.height - fh;               // top row (y origin = bottom)
+                }
+                else if (tex.width >= tex.height * 2)   // single-row strip fallback
+                {
                     fw = tex.width / Mathf.Max(2, Mathf.RoundToInt((float)tex.width / tex.height));
-                iconImage.sprite = Sprite.Create(tex, new Rect(0, 0, fw, fh), new Vector2(0.5f, 0.5f));
+                }
+                iconImage.sprite = Sprite.Create(tex, new Rect(x, y, fw, fh), new Vector2(0.5f, 0.5f));
                 iconImage.color  = Color.white;
                 // hide initial letter
                 var init = transform.Find("Icon/Initial");
