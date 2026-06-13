@@ -32,7 +32,7 @@ namespace GameIdle
             var rt = GetComponent<RectTransform>() ?? gameObject.AddComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot     = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(460f, 440f);
+            rt.sizeDelta = new Vector2(660f, 500f);
             rt.anchoredPosition = Vector2.zero;
 
             var bg = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
@@ -49,7 +49,7 @@ namespace GameIdle
             trt.anchorMin = new Vector2(0f, 0.85f); trt.anchorMax = Vector2.one;
             trt.offsetMin = new Vector2(16f, 0f); trt.offsetMax = new Vector2(-16f, -8f);
             var ttmp = titleGO.GetComponent<TextMeshProUGUI>();
-            ttmp.text = "MISSOES DIARIAS"; ttmp.fontSize = 18; ttmp.fontStyle = FontStyles.Bold;
+            ttmp.text = "MISSÕES DIÁRIAS"; ttmp.fontSize = 23; ttmp.fontStyle = FontStyles.Bold;
             ttmp.color = GoldColor; ttmp.alignment = TextAlignmentOptions.Center; ttmp.raycastTarget = false;
             if (font != null) ttmp.font = font;
 
@@ -77,7 +77,7 @@ namespace GameIdle
             var clrt = cLbl.GetComponent<RectTransform>();
             clrt.anchorMin = Vector2.zero; clrt.anchorMax = Vector2.one; clrt.offsetMin = clrt.offsetMax = Vector2.zero;
             var ctmp = cLbl.GetComponent<TextMeshProUGUI>();
-            ctmp.text = "Fechar"; ctmp.fontSize = 14; ctmp.fontStyle = FontStyles.Bold;
+            ctmp.text = "FECHAR"; ctmp.fontSize = 16; ctmp.fontStyle = FontStyles.Bold;
             ctmp.color = Color.white; ctmp.alignment = TextAlignmentOptions.Center; ctmp.raycastTarget = false;
             if (font != null) ctmp.font = font;
         }
@@ -104,7 +104,7 @@ namespace GameIdle
             nrt.anchorMin = new Vector2(0f, 0.55f); nrt.anchorMax = new Vector2(0.65f, 1f);
             nrt.offsetMin = new Vector2(10f, 0f); nrt.offsetMax = Vector2.zero;
             row.nameText = nameGO.GetComponent<TextMeshProUGUI>();
-            row.nameText.text = mission.name; row.nameText.fontSize = 15; row.nameText.fontStyle = FontStyles.Bold;
+            row.nameText.text = mission.name; row.nameText.fontSize = 18; row.nameText.fontStyle = FontStyles.Bold;
             row.nameText.color = Color.white; row.nameText.alignment = TextAlignmentOptions.MidlineLeft;
             row.nameText.raycastTarget = false; if (font != null) row.nameText.font = font;
 
@@ -115,7 +115,7 @@ namespace GameIdle
             prrt.anchorMin = new Vector2(0f, 0.05f); prrt.anchorMax = new Vector2(0.65f, 0.55f);
             prrt.offsetMin = new Vector2(10f, 0f); prrt.offsetMax = Vector2.zero;
             row.progressText = progGO.GetComponent<TextMeshProUGUI>();
-            row.progressText.fontSize = 13; row.progressText.color = new Color(0.7f, 0.8f, 1f);
+            row.progressText.fontSize = 15; row.progressText.color = new Color(0.7f, 0.8f, 1f);
             row.progressText.alignment = TextAlignmentOptions.MidlineLeft; row.progressText.raycastTarget = false;
             if (font != null) row.progressText.font = font;
 
@@ -150,7 +150,7 @@ namespace GameIdle
             var blrt = bLbl.GetComponent<RectTransform>();
             blrt.anchorMin = Vector2.zero; blrt.anchorMax = Vector2.one; blrt.offsetMin = blrt.offsetMax = Vector2.zero;
             row.claimBtnText = bLbl.GetComponent<TextMeshProUGUI>();
-            row.claimBtnText.fontSize = 14; row.claimBtnText.fontStyle = FontStyles.Bold;
+            row.claimBtnText.fontSize = 16; row.claimBtnText.fontStyle = FontStyles.Bold;
             row.claimBtnText.alignment = TextAlignmentOptions.Center; row.claimBtnText.raycastTarget = false;
             if (font != null) row.claimBtnText.font = font;
 

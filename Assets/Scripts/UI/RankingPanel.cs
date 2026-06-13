@@ -22,9 +22,11 @@ namespace GameIdle
         private void BuildUI()
         {
             var rt = GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0.05f, 0.05f);
-            rt.anchorMax = new Vector2(0.95f, 0.95f);
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot     = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(560f, 520f);
+            rt.anchoredPosition = Vector2.zero;
 
             // Fix 6: RoundedBox sprite + sliced + new background color
             var bg = gameObject.AddComponent<Image>();

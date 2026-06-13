@@ -27,7 +27,7 @@ namespace GameIdle
         private void BuildUI()
         {
             int count = AchievementManager.All.Length;
-            const float rowH    = 60f;   // mais alto → respiração
+            const float rowH    = 70f;   // mais alto → respiração
             const float rowGap  = 4f;
             const float topPad  = 60f;
             const float botPad  = 68f;
@@ -159,19 +159,19 @@ namespace GameIdle
 
             // Coluna esquerda: nome + descrição
             row.nameText = MakeLabel(go.transform, "Name",
-                new Vector2(0f, 0.5f), new Vector2(0.78f, 1f),
-                new Vector2(14f, 0f), new Vector2(0f, -2f),
-                15f, Color.white, TextAlignmentOptions.BottomLeft, font);
+                new Vector2(0f, 0.5f), new Vector2(0.76f, 1f),
+                new Vector2(16f, 0f), new Vector2(0f, -3f),
+                18f, Color.white, TextAlignmentOptions.BottomLeft, font);
             row.descText = MakeLabel(go.transform, "Desc",
-                new Vector2(0f, 0f), new Vector2(0.78f, 0.5f),
-                new Vector2(14f, 2f), Vector2.zero,
-                12f, TextSec, TextAlignmentOptions.TopLeft, font);
+                new Vector2(0f, 0f), new Vector2(0.76f, 0.5f),
+                new Vector2(16f, 3f), Vector2.zero,
+                14f, TextSec, TextAlignmentOptions.TopLeft, font);
 
             // Coluna direita: status (gemas ou OK)
             row.statusText = MakeLabel(go.transform, "Status",
-                new Vector2(0.78f, 0f), new Vector2(1f, 1f),
-                Vector2.zero, new Vector2(-14f, 0f),
-                16f, GoldColor, TextAlignmentOptions.Midline, font);
+                new Vector2(0.76f, 0f), new Vector2(1f, 1f),
+                Vector2.zero, new Vector2(-16f, 0f),
+                19f, GoldColor, TextAlignmentOptions.Midline, font);
 
             row.nameText.text = a.name;
             row.descText.text = a.description;

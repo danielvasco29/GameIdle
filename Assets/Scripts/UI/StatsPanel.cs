@@ -4,21 +4,16 @@ using UnityEngine.UI;
 
 namespace GameIdle
 {
-    /// <summary>
-    /// Modal panel showing lifetime game statistics.
-    /// All UI is built at runtime in C# — no prefabs required.
-    /// </summary>
     public class StatsPanel : MonoBehaviour
     {
-        // ── Colors ────────────────────────────────────────────────────────────
-        private static readonly Color NavyDark  = new(0.055f, 0.094f, 0.165f, 0.95f);
-        private static readonly Color NavyRow0  = new(0.075f, 0.120f, 0.200f, 1f);
-        private static readonly Color NavyRow1  = new(0.055f, 0.094f, 0.165f, 1f);
-        private static readonly Color GoldColor = new(1f,     0.808f, 0.227f, 1f);
+        private static readonly Color NavyDark    = new(0.055f, 0.094f, 0.165f, 0.95f);
+        private static readonly Color NavyRow0    = new(0.075f, 0.120f, 0.200f, 1f);
+        private static readonly Color NavyRow1    = new(0.055f, 0.094f, 0.165f, 1f);
+        private static readonly Color GoldColor   = new(1f,     0.808f, 0.227f, 1f);
+        private static readonly Color GreenColor  = new(0.247f, 0.749f, 0.353f, 1f);
         private static readonly Color TextPrimary = new(0.933f, 0.953f, 0.980f, 1f);
         private static readonly Color TextSec     = new(0.624f, 0.698f, 0.788f, 1f);
 
-        // ── Stat row value labels (repopulated on Open) ───────────────────────
         private TextMeshProUGUI _valTaps;
         private TextMeshProUGUI _valHires;
         private TextMeshProUGUI _valPrestiges;
@@ -30,14 +25,17 @@ namespace GameIdle
         private TextMeshProUGUI _valGems;
         private TextMeshProUGUI _valAchievements;
 
-        // ─────────────────────────────────────────────────────────────────────
+        // Referências do gráfico
+        private Image           _donutFill;
+        private TextMeshProUGUI _donutLabel;
+        private TextMeshProUGUI _donutSub;
+
         private void Awake()
         {
             BuildUI();
             gameObject.SetActive(false);
         }
 
-        // ── Public API ────────────────────────────────────────────────────────
         public void Open()
         {
             gameObject.SetActive(true);
@@ -51,278 +49,375 @@ namespace GameIdle
             var gm = GameManager.Instance;
             var cm = CombatManager.Instance;
 
-            _valTaps.text         = gm != null ? gm.LifetimeTapCount.ToString("N0")      : "0";
-            _valHires.text        = gm != null ? gm.LifetimeHireCount.ToString("N0")     : "0";
-            _valPrestiges.text    = gm != null ? gm.LifetimePrestigeCount.ToString("N0") : "0";
-            _valKills.text        = gm != null ? gm.LifetimeKillCount.ToString("N0")     : "0";
-            _valBossKills.text    = gm != null ? gm.LifetimeBossKillCount.ToString("N0") : "0";
-            _valCycle.text        = (cm?.Cycle ?? 1).ToString();
-            _valWave.text         = (cm?.Wave  ?? 1).ToString();
-            _valMoney.text        = gm != null ? "$" + NumberFormatter.Format(gm.TotalEarned) : "$0";
-            _valGems.text         = gm != null ? gm.LifetimeGemsEarned.ToString("N0") : "0";
+            _valTaps.text        = gm != null ? gm.LifetimeTapCount.ToString("N0")      : "0";
+            _valHires.text       = gm != null ? gm.LifetimeHireCount.ToString("N0")     : "0";
+            _valPrestiges.text   = gm != null ? gm.LifetimePrestigeCount.ToString("N0") : "0";
+            _valKills.text       = gm != null ? gm.LifetimeKillCount.ToString("N0")     : "0";
+            _valBossKills.text   = gm != null ? gm.LifetimeBossKillCount.ToString("N0") : "0";
+            _valCycle.text       = (cm?.Cycle ?? 1).ToString();
+            _valWave.text        = (cm?.Wave  ?? 1).ToString();
+            _valMoney.text       = gm != null ? "$" + NumberFormatter.Format(gm.TotalEarned) : "$0";
+            _valGems.text        = gm != null ? gm.LifetimeGemsEarned.ToString("N0") : "0";
 
             int unlocked = AchievementManager.GetSaved().Count;
             int total    = AchievementManager.All.Length;
             _valAchievements.text = $"{unlocked} / {total}";
+
+            // Atualiza gráfico de donut
+            float pct = total > 0 ? (float)unlocked / total : 0f;
+            _donutFill.fillAmount = pct;
+            _donutLabel.text = $"{unlocked}/{total}";
+            _donutSub.text   = $"{Mathf.RoundToInt(pct * 100f)}%";
         }
 
-        // ── UI Construction ───────────────────────────────────────────────────
         private void BuildUI()
         {
-            // Root RectTransform — stretch anchors as specified
             var rt = gameObject.GetComponent<RectTransform>() ?? gameObject.AddComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0.05f, 0.05f);
-            rt.anchorMax = new Vector2(0.95f, 0.95f);
+            rt.anchorMin = new Vector2(0.03f, 0.05f);
+            rt.anchorMax = new Vector2(0.97f, 0.95f);
             rt.offsetMin = Vector2.zero;
             rt.offsetMax = Vector2.zero;
 
-            // Panel background
             var bg = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
             bg.sprite = UiSpriteFactory.RoundedBox();
             bg.type   = Image.Type.Sliced;
             bg.color  = NavyDark;
 
             TMP_FontAsset font = TMP_Settings.defaultFontAsset;
-            const float sidePad  = 16f;
-            const float topPad   = 12f;
-            const float titleH   = 36f;
-            const float sepH     = 2f;
-            const float closeH   = 44f;
-            const float sepGap   = 6f;
+            const float sidePad = 14f;
+            const float topPad  = 12f;
+            const float titleH  = 36f;
+            const float sepH    = 2f;
+            const float sepGap  = 6f;
+            const float closeH  = 44f;
 
-            // ── Title ─────────────────────────────────────────────────────────
+            // ── Título ────────────────────────────────────────────────────────
             var titleGO = new GameObject("Title", typeof(RectTransform), typeof(TextMeshProUGUI));
             titleGO.transform.SetParent(transform, false);
             var trt = titleGO.GetComponent<RectTransform>();
-            trt.anchorMin = new Vector2(0f, 1f);
-            trt.anchorMax = new Vector2(1f, 1f);
-            trt.pivot     = new Vector2(0.5f, 1f);
-            trt.offsetMin = new Vector2(sidePad, 0f);
-            trt.offsetMax = new Vector2(-sidePad, 0f);
+            trt.anchorMin = new Vector2(0f, 1f); trt.anchorMax = new Vector2(1f, 1f);
+            trt.pivot = new Vector2(0.5f, 1f);
+            trt.offsetMin = new Vector2(sidePad, 0f); trt.offsetMax = new Vector2(-sidePad, 0f);
             trt.sizeDelta = new Vector2(trt.sizeDelta.x, titleH);
             trt.anchoredPosition = new Vector2(0f, -topPad);
-
             var titleTxt = titleGO.GetComponent<TextMeshProUGUI>();
-            titleTxt.font          = font;
-            titleTxt.text          = "ESTATÍSTICAS";
-            titleTxt.fontSize      = 24f;
-            titleTxt.fontStyle     = FontStyles.Bold;
-            titleTxt.color         = GoldColor;
-            titleTxt.alignment     = TextAlignmentOptions.Center;
+            titleTxt.font = font; titleTxt.text = "ESTATÍSTICAS"; titleTxt.fontSize = 24f;
+            titleTxt.fontStyle = FontStyles.Bold; titleTxt.color = GoldColor;
+            titleTxt.alignment = TextAlignmentOptions.Center; titleTxt.raycastTarget = false;
 
-            // ── Gold separator ────────────────────────────────────────────────
-            var sepGO = new GameObject("Separator", typeof(RectTransform), typeof(Image));
+            // ── Separador ─────────────────────────────────────────────────────
+            var sepGO = new GameObject("Sep", typeof(RectTransform), typeof(Image));
             sepGO.transform.SetParent(transform, false);
             var srt = sepGO.GetComponent<RectTransform>();
-            srt.anchorMin = new Vector2(0f, 1f);
-            srt.anchorMax = new Vector2(1f, 1f);
-            srt.pivot     = new Vector2(0.5f, 1f);
-            srt.offsetMin = new Vector2(sidePad, 0f);
-            srt.offsetMax = new Vector2(-sidePad, 0f);
+            srt.anchorMin = new Vector2(0f, 1f); srt.anchorMax = new Vector2(1f, 1f);
+            srt.pivot = new Vector2(0.5f, 1f);
+            srt.offsetMin = new Vector2(sidePad, 0f); srt.offsetMax = new Vector2(-sidePad, 0f);
             srt.sizeDelta = new Vector2(srt.sizeDelta.x, sepH);
             srt.anchoredPosition = new Vector2(0f, -(topPad + titleH + sepGap));
             sepGO.GetComponent<Image>().color = GoldColor;
+            sepGO.GetComponent<Image>().raycastTarget = false;
 
-            float scrollTop = topPad + titleH + sepGap + sepH + sepGap;
+            float contentTop    = topPad + titleH + sepGap + sepH + sepGap;
+            float contentBottom = closeH + 20f;
 
-            // ── Close button ─────────────────────────────────────────────────
-            var closeGO = new GameObject("CloseButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            // ── Botão Fechar ─────────────────────────────────────────────────
+            var closeGO = new GameObject("Close", typeof(RectTransform), typeof(Image), typeof(Button));
             closeGO.transform.SetParent(transform, false);
             var crt = closeGO.GetComponent<RectTransform>();
-            crt.anchorMin        = new Vector2(0f, 0f);
-            crt.anchorMax        = new Vector2(1f, 0f);
-            crt.pivot            = new Vector2(0.5f, 0f);
-            crt.offsetMin        = new Vector2(sidePad,  12f);
-            crt.offsetMax        = new Vector2(-sidePad, 12f);
-            crt.sizeDelta        = new Vector2(crt.sizeDelta.x, closeH);
+            crt.anchorMin = new Vector2(0f, 0f); crt.anchorMax = new Vector2(1f, 0f);
+            crt.pivot = new Vector2(0.5f, 0f);
+            crt.offsetMin = new Vector2(sidePad, 12f); crt.offsetMax = new Vector2(-sidePad, 12f);
+            crt.sizeDelta = new Vector2(crt.sizeDelta.x, closeH);
             crt.anchoredPosition = new Vector2(0f, 12f);
-
             var closeBtnImg = closeGO.GetComponent<Image>();
             closeBtnImg.sprite = UiSpriteFactory.RoundedBox();
-            closeBtnImg.type   = Image.Type.Sliced;
-            closeBtnImg.color  = new Color(0.10f, 0.16f, 0.28f, 1f);
-
-            var closeLblGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            closeLblGO.transform.SetParent(closeGO.transform, false);
-            var clrt = closeLblGO.GetComponent<RectTransform>();
-            clrt.anchorMin = Vector2.zero; clrt.anchorMax = Vector2.one;
-            clrt.offsetMin = Vector2.zero; clrt.offsetMax = Vector2.zero;
-            var closeTxt = closeLblGO.GetComponent<TextMeshProUGUI>();
-            closeTxt.font      = font;
-            closeTxt.text      = "FECHAR";
-            closeTxt.fontSize  = 17f;
-            closeTxt.fontStyle = FontStyles.Bold;
-            closeTxt.color     = Color.white;
-            closeTxt.alignment = TextAlignmentOptions.Center;
-
+            closeBtnImg.type = Image.Type.Sliced;
+            closeBtnImg.color = new Color(0.10f, 0.16f, 0.28f, 1f);
             closeGO.GetComponent<Button>().onClick.AddListener(Close);
+            var clblGO = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
+            clblGO.transform.SetParent(closeGO.transform, false);
+            var clrt2 = clblGO.GetComponent<RectTransform>();
+            clrt2.anchorMin = Vector2.zero; clrt2.anchorMax = Vector2.one;
+            clrt2.offsetMin = Vector2.zero; clrt2.offsetMax = Vector2.zero;
+            var closeTxt = clblGO.GetComponent<TextMeshProUGUI>();
+            closeTxt.font = font; closeTxt.text = "FECHAR"; closeTxt.fontSize = 17f;
+            closeTxt.fontStyle = FontStyles.Bold; closeTxt.color = Color.white;
+            closeTxt.alignment = TextAlignmentOptions.Center; closeTxt.raycastTarget = false;
 
-            float scrollBottom = closeH + 12f + 8f;
+            // ── Coluna esquerda: tabela (0 → 62%) ────────────────────────────
+            var tableAreaGO = new GameObject("TableArea", typeof(RectTransform));
+            tableAreaGO.transform.SetParent(transform, false);
+            var tableRT = tableAreaGO.GetComponent<RectTransform>();
+            tableRT.anchorMin = new Vector2(0f, 0f); tableRT.anchorMax = new Vector2(0.62f, 1f);
+            tableRT.offsetMin = new Vector2(sidePad, contentBottom);
+            tableRT.offsetMax = new Vector2(-4f, -contentTop);
 
-            // ── ScrollRect ────────────────────────────────────────────────────
-            var scrollGO = new GameObject("ScrollRect", typeof(RectTransform), typeof(ScrollRect), typeof(Image));
-            scrollGO.transform.SetParent(transform, false);
+            BuildScrollTable(tableAreaGO.transform, font);
+
+            // ── Coluna direita: gráfico (64% → 100%) ─────────────────────────
+            var chartAreaGO = new GameObject("ChartArea", typeof(RectTransform));
+            chartAreaGO.transform.SetParent(transform, false);
+            var chartRT = chartAreaGO.GetComponent<RectTransform>();
+            chartRT.anchorMin = new Vector2(0.62f, 0f); chartRT.anchorMax = new Vector2(1f, 1f);
+            chartRT.offsetMin = new Vector2(4f, contentBottom);
+            chartRT.offsetMax = new Vector2(-sidePad, -contentTop);
+
+            BuildChartArea(chartAreaGO.transform, font);
+        }
+
+        private void BuildScrollTable(Transform parent, TMP_FontAsset font)
+        {
+            var scrollGO = new GameObject("Scroll", typeof(RectTransform), typeof(ScrollRect), typeof(Image));
+            scrollGO.transform.SetParent(parent, false);
             var scrollRT = scrollGO.GetComponent<RectTransform>();
-            scrollRT.anchorMin = Vector2.zero;
-            scrollRT.anchorMax = Vector2.one;
-            scrollRT.offsetMin = new Vector2(sidePad,  scrollBottom);
-            scrollRT.offsetMax = new Vector2(-sidePad, -scrollTop);
-
-            var scrollImg = scrollGO.GetComponent<Image>();
-            scrollImg.color = new Color(0f, 0f, 0f, 0f); // transparent
-
+            scrollRT.anchorMin = Vector2.zero; scrollRT.anchorMax = Vector2.one;
+            scrollRT.offsetMin = Vector2.zero; scrollRT.offsetMax = Vector2.zero;
+            scrollGO.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             var scroll = scrollGO.GetComponent<ScrollRect>();
-            scroll.horizontal      = false;
-            scroll.vertical        = true;
-            scroll.scrollSensitivity = 30f;
+            scroll.horizontal = false; scroll.vertical = true; scroll.scrollSensitivity = 30f;
 
-            // Viewport
-            var vpGO = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(Mask));
+            var vpGO = new GameObject("VP", typeof(RectTransform), typeof(Image), typeof(Mask));
             vpGO.transform.SetParent(scrollGO.transform, false);
             var vpRT = vpGO.GetComponent<RectTransform>();
-            vpRT.anchorMin = Vector2.zero;
-            vpRT.anchorMax = Vector2.one;
-            vpRT.offsetMin = Vector2.zero;
-            vpRT.offsetMax = Vector2.zero;
+            vpRT.anchorMin = Vector2.zero; vpRT.anchorMax = Vector2.one;
+            vpRT.offsetMin = Vector2.zero; vpRT.offsetMax = Vector2.zero;
             vpGO.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.01f);
             vpGO.GetComponent<Mask>().showMaskGraphic = false;
 
-            // Content
-            var contentGO = new GameObject("Content", typeof(RectTransform), typeof(VerticalLayoutGroup),
-                                                       typeof(ContentSizeFitter));
+            var contentGO = new GameObject("Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
             contentGO.transform.SetParent(vpGO.transform, false);
-            var contentRT = contentGO.GetComponent<RectTransform>();
-            contentRT.anchorMin = new Vector2(0f, 1f);
-            contentRT.anchorMax = new Vector2(1f, 1f);
-            contentRT.pivot     = new Vector2(0f, 1f);
-            contentRT.offsetMin = Vector2.zero;
-            contentRT.offsetMax = Vector2.zero;
-
+            var crt = contentGO.GetComponent<RectTransform>();
+            crt.anchorMin = new Vector2(0f, 1f); crt.anchorMax = new Vector2(1f, 1f);
+            crt.pivot = new Vector2(0f, 1f);
+            crt.offsetMin = Vector2.zero; crt.offsetMax = Vector2.zero;
             var vlg = contentGO.GetComponent<VerticalLayoutGroup>();
-            vlg.spacing           = 0f;
-            vlg.childAlignment    = TextAnchor.UpperCenter;
-            vlg.childControlHeight  = false;
-            vlg.childControlWidth   = true;
-            vlg.childForceExpandHeight = false;
-            vlg.childForceExpandWidth  = true;
-            vlg.padding = new RectOffset(0, 0, 0, 0);
+            vlg.spacing = 0f; vlg.childAlignment = TextAnchor.UpperCenter;
+            vlg.childControlHeight = false; vlg.childControlWidth = true;
+            vlg.childForceExpandHeight = false; vlg.childForceExpandWidth = true;
+            contentGO.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            var csf = contentGO.GetComponent<ContentSizeFitter>();
-            csf.verticalFit   = ContentSizeFitter.FitMode.PreferredSize;
-            csf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            scroll.viewport = vpRT; scroll.content = crt;
 
-            scroll.viewport  = vpRT;
-            scroll.content   = contentRT;
-
-            // ── Stat rows ──────────────────────────────────────────────────────
-            (string label, string placeholder)[] rows =
+            (string label, string ph)[] rows =
             {
-                ("Cliques totais",              "0"),
-                ("Funcionários contratados",    "0"),
-                ("Prestígios realizados",       "0"),
-                ("Monstros derrotados",         "0"),
-                ("Bosses derrotados",           "0"),
-                ("Ciclo de combate atual",      "1"),
-                ("Onda atual",                  "1"),
-                ("Dinheiro ganho (total)",      "$0"),
-                ("Gemas coletadas (total)",      "0"),
-                ("Conquistas desbloqueadas",    "0 / 0"),
+                ("Cliques totais",           "0"),
+                ("Funcionários contratados", "0"),
+                ("Prestígios realizados",    "0"),
+                ("Monstros derrotados",      "0"),
+                ("Bosses derrotados",        "0"),
+                ("Ciclo atual",              "1"),
+                ("Onda atual",               "1"),
+                ("Dinheiro ganho",           "$0"),
+                ("Gemas coletadas",          "0"),
+                ("Conquistas",               "0 / 0"),
             };
 
-            TextMeshProUGUI[] valLabels = new TextMeshProUGUI[rows.Length];
-
+            var vals = new TextMeshProUGUI[rows.Length];
             for (int i = 0; i < rows.Length; i++)
-            {
-                var rowColor = (i % 2 == 0) ? NavyRow0 : NavyRow1;
-                valLabels[i] = BuildRow(contentGO.transform, font, rows[i].label, rows[i].placeholder,
-                                        rowColor, i);
-            }
+                vals[i] = BuildRow(contentGO.transform, font, rows[i].label, rows[i].ph,
+                                   i % 2 == 0 ? NavyRow0 : NavyRow1, i);
 
-            _valTaps          = valLabels[0];
-            _valHires         = valLabels[1];
-            _valPrestiges     = valLabels[2];
-            _valKills         = valLabels[3];
-            _valBossKills     = valLabels[4];
-            _valCycle         = valLabels[5];
-            _valWave          = valLabels[6];
-            _valMoney         = valLabels[7];
-            _valGems          = valLabels[8];
-            _valAchievements  = valLabels[9];
+            _valTaps         = vals[0];
+            _valHires        = vals[1];
+            _valPrestiges    = vals[2];
+            _valKills        = vals[3];
+            _valBossKills    = vals[4];
+            _valCycle        = vals[5];
+            _valWave         = vals[6];
+            _valMoney        = vals[7];
+            _valGems         = vals[8];
+            _valAchievements = vals[9];
         }
 
-        /// <summary>
-        /// Creates a single stat row with left-aligned label and right-aligned value.
-        /// Returns the value TextMeshProUGUI so it can be updated later.
-        /// </summary>
-        private TextMeshProUGUI BuildRow(Transform parent, TMP_FontAsset font,
-                                         string label, string placeholder,
-                                         Color bgColor, int index)
+        private void BuildChartArea(Transform parent, TMP_FontAsset font)
         {
-            const float rowH    = 64f;
-            const float padH    = 20f;
+            // Título da seção
+            var secLbl = new GameObject("ChartTitle", typeof(RectTransform), typeof(TextMeshProUGUI));
+            secLbl.transform.SetParent(parent, false);
+            var slrt = secLbl.GetComponent<RectTransform>();
+            slrt.anchorMin = new Vector2(0f, 1f); slrt.anchorMax = new Vector2(1f, 1f);
+            slrt.pivot = new Vector2(0.5f, 1f);
+            slrt.sizeDelta = new Vector2(0f, 28f);
+            slrt.anchoredPosition = new Vector2(0f, -4f);
+            var slTxt = secLbl.GetComponent<TextMeshProUGUI>();
+            slTxt.font = font; slTxt.text = "CONQUISTAS";
+            slTxt.fontSize = 14f; slTxt.fontStyle = FontStyles.Bold;
+            slTxt.color = GoldColor; slTxt.alignment = TextAlignmentOptions.Center;
+            slTxt.raycastTarget = false;
 
-            var rowGO = new GameObject($"Row_{index}", typeof(RectTransform), typeof(Image),
-                                                        typeof(LayoutElement));
+            // Donut: círculo de fundo (cinza) centralizado
+            var bgCircleGO = new GameObject("DonutBG", typeof(RectTransform), typeof(Image));
+            bgCircleGO.transform.SetParent(parent, false);
+            var bgRT = bgCircleGO.GetComponent<RectTransform>();
+            bgRT.anchorMin = new Vector2(0.1f, 0.35f); bgRT.anchorMax = new Vector2(0.9f, 0.82f);
+            bgRT.offsetMin = Vector2.zero; bgRT.offsetMax = Vector2.zero;
+            var bgImg = bgCircleGO.GetComponent<Image>();
+            bgImg.sprite = UiSpriteFactory.Circle();
+            bgImg.color = new Color(0.12f, 0.18f, 0.28f, 1f);
+            bgImg.type = Image.Type.Filled;
+            bgImg.fillMethod = Image.FillMethod.Radial360;
+            bgImg.fillAmount = 1f;
+            bgImg.raycastTarget = false;
+
+            // Donut: arco de progresso (verde)
+            var fillGO = new GameObject("DonutFill", typeof(RectTransform), typeof(Image));
+            fillGO.transform.SetParent(parent, false);
+            var fillRT = fillGO.GetComponent<RectTransform>();
+            fillRT.anchorMin = new Vector2(0.1f, 0.35f); fillRT.anchorMax = new Vector2(0.9f, 0.82f);
+            fillRT.offsetMin = Vector2.zero; fillRT.offsetMax = Vector2.zero;
+            _donutFill = fillGO.GetComponent<Image>();
+            _donutFill.sprite = UiSpriteFactory.Circle();
+            _donutFill.color = GreenColor;
+            _donutFill.type = Image.Type.Filled;
+            _donutFill.fillMethod = Image.FillMethod.Radial360;
+            _donutFill.fillOrigin = (int)Image.Origin360.Top;
+            _donutFill.fillAmount = 0f;
+            _donutFill.raycastTarget = false;
+
+            // Buraco do donut (círculo central cobrindo o centro)
+            var holeGO = new GameObject("DonutHole", typeof(RectTransform), typeof(Image));
+            holeGO.transform.SetParent(parent, false);
+            var holeRT = holeGO.GetComponent<RectTransform>();
+            holeRT.anchorMin = new Vector2(0.25f, 0.44f); holeRT.anchorMax = new Vector2(0.75f, 0.73f);
+            holeRT.offsetMin = Vector2.zero; holeRT.offsetMax = Vector2.zero;
+            var holeImg = holeGO.GetComponent<Image>();
+            holeImg.sprite = UiSpriteFactory.Circle();
+            holeImg.color = NavyDark;
+            holeImg.raycastTarget = false;
+
+            // Número central (X/Y)
+            var lblGO = new GameObject("DonutLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
+            lblGO.transform.SetParent(parent, false);
+            var lblRT = lblGO.GetComponent<RectTransform>();
+            lblRT.anchorMin = new Vector2(0.1f, 0.52f); lblRT.anchorMax = new Vector2(0.9f, 0.68f);
+            lblRT.offsetMin = Vector2.zero; lblRT.offsetMax = Vector2.zero;
+            _donutLabel = lblGO.GetComponent<TextMeshProUGUI>();
+            _donutLabel.font = font; _donutLabel.text = "0/0";
+            _donutLabel.fontSize = 18f; _donutLabel.fontStyle = FontStyles.Bold;
+            _donutLabel.color = TextPrimary; _donutLabel.alignment = TextAlignmentOptions.Center;
+            _donutLabel.raycastTarget = false;
+
+            // Percentual abaixo do número
+            var subGO = new GameObject("DonutSub", typeof(RectTransform), typeof(TextMeshProUGUI));
+            subGO.transform.SetParent(parent, false);
+            var subRT = subGO.GetComponent<RectTransform>();
+            subRT.anchorMin = new Vector2(0.1f, 0.47f); subRT.anchorMax = new Vector2(0.9f, 0.54f);
+            subRT.offsetMin = Vector2.zero; subRT.offsetMax = Vector2.zero;
+            _donutSub = subGO.GetComponent<TextMeshProUGUI>();
+            _donutSub.font = font; _donutSub.text = "0%";
+            _donutSub.fontSize = 13f; _donutSub.color = GreenColor;
+            _donutSub.alignment = TextAlignmentOptions.Center; _donutSub.raycastTarget = false;
+
+            // Legenda: verde = desbloqueadas
+            BuildLegendRow(parent, font, new Vector2(0.05f, 0.28f), new Vector2(0.95f, 0.35f),
+                           GreenColor, "Desbloqueadas");
+            // Legenda: cinza = bloqueadas
+            BuildLegendRow(parent, font, new Vector2(0.05f, 0.21f), new Vector2(0.95f, 0.28f),
+                           new Color(0.25f, 0.32f, 0.42f, 1f), "Bloqueadas");
+
+            // Cards de destaque (kills e prestígios)
+            BuildStatCard(parent, font, new Vector2(0.04f, 0.09f), new Vector2(0.96f, 0.18f),
+                          "⚔ Monstros", GoldColor);
+            BuildStatCard(parent, font, new Vector2(0.04f, 0f), new Vector2(0.96f, 0.09f),
+                          "★ Prestígios", new Color(0.5f, 0.8f, 1f, 1f));
+        }
+
+        private void BuildLegendRow(Transform parent, TMP_FontAsset font, Vector2 aMin, Vector2 aMax, Color dotColor, string label)
+        {
+            var go = new GameObject("Legend", typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = aMin; rt.anchorMax = aMax;
+            rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+
+            var dotGO = new GameObject("Dot", typeof(RectTransform), typeof(Image));
+            dotGO.transform.SetParent(go.transform, false);
+            var drt = dotGO.GetComponent<RectTransform>();
+            drt.anchorMin = new Vector2(0f, 0.2f); drt.anchorMax = new Vector2(0f, 0.8f);
+            drt.offsetMin = new Vector2(4f, 0f); drt.offsetMax = new Vector2(14f, 0f);
+            var dotImg = dotGO.GetComponent<Image>();
+            dotImg.sprite = UiSpriteFactory.Circle();
+            dotImg.color = dotColor; dotImg.raycastTarget = false;
+
+            var txtGO = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
+            txtGO.transform.SetParent(go.transform, false);
+            var trt2 = txtGO.GetComponent<RectTransform>();
+            trt2.anchorMin = new Vector2(0f, 0f); trt2.anchorMax = new Vector2(1f, 1f);
+            trt2.offsetMin = new Vector2(20f, 0f); trt2.offsetMax = Vector2.zero;
+            var tmp = txtGO.GetComponent<TextMeshProUGUI>();
+            tmp.font = font; tmp.text = label; tmp.fontSize = 13f;
+            tmp.color = TextSec; tmp.alignment = TextAlignmentOptions.MidlineLeft;
+            tmp.raycastTarget = false;
+        }
+
+        private void BuildStatCard(Transform parent, TMP_FontAsset font, Vector2 aMin, Vector2 aMax, string label, Color accentColor)
+        {
+            var go = new GameObject("Card", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = aMin; rt.anchorMax = aMax;
+            rt.offsetMin = new Vector2(0f, 2f); rt.offsetMax = new Vector2(0f, -2f);
+            go.GetComponent<Image>().color = new Color(0.10f, 0.16f, 0.27f, 1f);
+            go.GetComponent<Image>().raycastTarget = false;
+
+            // Linha de acento esquerda
+            var ac = new GameObject("Ac", typeof(RectTransform), typeof(Image));
+            ac.transform.SetParent(go.transform, false);
+            var art = ac.GetComponent<RectTransform>();
+            art.anchorMin = new Vector2(0f, 0f); art.anchorMax = new Vector2(0f, 1f);
+            art.offsetMin = new Vector2(0f, 2f); art.offsetMax = new Vector2(3f, -2f);
+            ac.GetComponent<Image>().color = accentColor; ac.GetComponent<Image>().raycastTarget = false;
+
+            var txtGO = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
+            txtGO.transform.SetParent(go.transform, false);
+            var trt = txtGO.GetComponent<RectTransform>();
+            trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
+            trt.offsetMin = new Vector2(10f, 0f); trt.offsetMax = Vector2.zero;
+            var tmp = txtGO.GetComponent<TextMeshProUGUI>();
+            tmp.font = font; tmp.text = label; tmp.fontSize = 13f;
+            tmp.fontStyle = FontStyles.Bold; tmp.color = accentColor;
+            tmp.alignment = TextAlignmentOptions.MidlineLeft; tmp.raycastTarget = false;
+        }
+
+        private TextMeshProUGUI BuildRow(Transform parent, TMP_FontAsset font,
+                                         string label, string placeholder, Color bgColor, int index)
+        {
+            const float rowH = 60f;
+            const float padH = 12f;
+
+            var rowGO = new GameObject($"Row_{index}", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
             rowGO.transform.SetParent(parent, false);
-
-            var rowRT = rowGO.GetComponent<RectTransform>();
-            rowRT.pivot = new Vector2(0f, 1f);
-
+            rowGO.GetComponent<RectTransform>().pivot = new Vector2(0f, 1f);
             var le = rowGO.GetComponent<LayoutElement>();
-            le.preferredHeight = rowH;
-            le.flexibleWidth   = 1f;
+            le.preferredHeight = rowH; le.flexibleWidth = 1f;
+            rowGO.GetComponent<Image>().color = bgColor;
 
-            var rowImg = rowGO.GetComponent<Image>();
-            rowImg.color = bgColor;
-
-            // HorizontalLayoutGroup inside the row
-            var hlgGO = new GameObject("HLG", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            var hlgGO = new GameObject("H", typeof(RectTransform), typeof(HorizontalLayoutGroup));
             hlgGO.transform.SetParent(rowGO.transform, false);
             var hlgRT = hlgGO.GetComponent<RectTransform>();
-            hlgRT.anchorMin = Vector2.zero;
-            hlgRT.anchorMax = Vector2.one;
-            hlgRT.offsetMin = new Vector2(padH, 0f);
-            hlgRT.offsetMax = new Vector2(-padH, 0f);
-
+            hlgRT.anchorMin = Vector2.zero; hlgRT.anchorMax = Vector2.one;
+            hlgRT.offsetMin = new Vector2(padH, 0f); hlgRT.offsetMax = new Vector2(-padH, 0f);
             var hlg = hlgGO.GetComponent<HorizontalLayoutGroup>();
-            hlg.spacing              = 8f;
-            hlg.childAlignment       = TextAnchor.MiddleLeft;
-            hlg.childControlHeight   = true;
-            hlg.childControlWidth    = false;
-            hlg.childForceExpandHeight = true;
-            hlg.childForceExpandWidth  = false;
-            hlg.padding = new RectOffset(0, 0, 0, 0);
+            hlg.spacing = 6f; hlg.childAlignment = TextAnchor.MiddleLeft;
+            hlg.childControlHeight = true; hlg.childControlWidth = false;
+            hlg.childForceExpandHeight = true; hlg.childForceExpandWidth = false;
 
-            // Label (left, flexible width)
-            var lblGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI),
-                                               typeof(LayoutElement));
+            var lblGO = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(LayoutElement));
             lblGO.transform.SetParent(hlgGO.transform, false);
-            var lblLE = lblGO.GetComponent<LayoutElement>();
-            lblLE.flexibleWidth = 1f;
-
+            lblGO.GetComponent<LayoutElement>().flexibleWidth = 1f;
             var lblTxt = lblGO.GetComponent<TextMeshProUGUI>();
-            lblTxt.font      = font;
-            lblTxt.text      = label;
-            lblTxt.fontSize  = 18f;
-            lblTxt.color     = TextSec;
-            lblTxt.alignment = TextAlignmentOptions.MidlineLeft;
-            lblTxt.overflowMode = TextOverflowModes.Ellipsis;
+            lblTxt.font = font; lblTxt.text = label; lblTxt.fontSize = 16f;
+            lblTxt.color = TextSec; lblTxt.alignment = TextAlignmentOptions.MidlineLeft;
+            lblTxt.overflowMode = TextOverflowModes.Ellipsis; lblTxt.raycastTarget = false;
 
-            // Value (right, fixed preferred width)
-            var valGO = new GameObject("Value", typeof(RectTransform), typeof(TextMeshProUGUI),
-                                               typeof(LayoutElement));
+            var valGO = new GameObject("V", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(LayoutElement));
             valGO.transform.SetParent(hlgGO.transform, false);
             var valLE = valGO.GetComponent<LayoutElement>();
-            valLE.preferredWidth = 170f;
-            valLE.minWidth       = 100f;
-
+            valLE.preferredWidth = 110f; valLE.minWidth = 80f;
             var valTxt = valGO.GetComponent<TextMeshProUGUI>();
-            valTxt.font      = font;
-            valTxt.text      = placeholder;
-            valTxt.fontSize  = 20f;
-            valTxt.fontStyle = FontStyles.Bold;
-            valTxt.color     = TextPrimary;
-            valTxt.alignment = TextAlignmentOptions.MidlineRight;
+            valTxt.font = font; valTxt.text = placeholder; valTxt.fontSize = 18f;
+            valTxt.fontStyle = FontStyles.Bold; valTxt.color = TextPrimary;
+            valTxt.alignment = TextAlignmentOptions.MidlineRight; valTxt.raycastTarget = false;
 
             return valTxt;
         }
