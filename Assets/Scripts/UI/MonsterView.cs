@@ -211,12 +211,12 @@ namespace GameIdle
                 {
                     // Sheets are 4 stacked rows of DIFFERENT animations (movement /
                     // attack / hurt / death) with baked-in text labels. We only loop
-                    // the TOP movement row so the monster never jumps between
-                    // unrelated poses. Individual frames are found by gap detection:
-                    // some sheets pack 8 separate poses, others draw one continuous
-                    // body — SliceMovementRow handles both.
+                    // the TOP movement row so the monster never jumps between poses.
+                    // Frame count is fixed per sheet: the worm is drawn as one
+                    // continuous body (4 sliding chunks), golem/ghost pack 8 poses.
                     var tex = SpriteBackgroundRemover.ProcessSheet(srcTex);
-                    _idleFrames = SliceMovementRow(tex);
+                    int frameCount = def.spritePath.Contains("worm") ? 4 : 8;
+                    _idleFrames = SliceMovementRow(tex, frameCount);
                     _spriteImg.sprite = _idleFrames[0];
                     _spriteImg.preserveAspect = true;
                 }
@@ -431,70 +431,71 @@ namespace GameIdle
 
         // ── Sheet slicing ─────────────────────────────────────────────────────
 
-        // Slices the top "movement" row of a monster sheet into animation frames.
-        // The row is the top quarter of the texture. Frames are located by scanning
-        // for vertical gaps between opaque blobs (works for sheets that pack 8
-        // separate poses). If no gaps are found (a single continuous body, e.g. the
-        // worm) the row is split into 4 even chunks so the slide still animates.
-        // A vertical sampling window skips the baked-in text labels at the row edges.
-        private static Sprite[] SliceMovementRow(Texture2D tex)
+        // Slices the top "movement" row of a monster sheet into `frameCount` even
+        // cells, then tight-crops each cell to its visible content so the monster
+        // fills the display slot (the raw cells have lots of empty headroom plus
+        // baked-in label text along the row edges). The vertical crop window skips
+        // the labels printed at the very top/bottom of the band.
+        private static Sprite[] SliceMovementRow(Texture2D tex, int frameCount)
         {
             int w = tex.width;
             int rowH = tex.height / 4;
             int rowY0 = tex.height - rowH;            // bottom of the top row (Unity coords)
+            int cw = w / frameCount;
 
-            // Sample only the vertical middle of the row to avoid the label text
-            // printed along the top/bottom of each band.
-            int sampleY0 = rowY0 + Mathf.RoundToInt(rowH * 0.20f);
-            int sampleY1 = rowY0 + Mathf.RoundToInt(rowH * 0.80f);
+            // Vertical band that holds the monster art, excluding label text rows.
+            int bandY0 = rowY0 + Mathf.RoundToInt(rowH * 0.12f);
+            int bandY1 = rowY0 + Mathf.RoundToInt(rowH * 0.88f);
 
             Color32[] px;
             try { px = tex.GetPixels32(); }
-            catch { return new[] { Sprite.Create(tex, new Rect(0, rowY0, w, rowH),
-                        new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect) }; }
-
-            // Per-column opacity (count of visible pixels in the sample window).
-            var colMass = new int[w];
-            for (int x = 0; x < w; x++)
+            catch
             {
-                int count = 0;
-                for (int y = sampleY0; y < sampleY1; y++)
-                    if (px[y * w + x].a > 40) count++;
-                colMass[x] = count;
+                // Not readable — fall back to even cells, no cropping.
+                var fb = new Sprite[frameCount];
+                for (int i = 0; i < frameCount; i++)
+                    fb[i] = Sprite.Create(tex, new Rect(i * cw, rowY0, cw, rowH),
+                        new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+                return fb;
             }
 
-            // Detect contiguous content runs separated by empty columns, ignoring
-            // tiny specks (label digits). This tells us whether the row is a single
-            // continuous body or a series of discrete poses.
-            int threshold = Mathf.Max(2, (sampleY1 - sampleY0) / 12);
-            var runs = new System.Collections.Generic.List<Vector2Int>();
-            int start = -1;
-            for (int x = 0; x < w; x++)
-            {
-                bool filled = colMass[x] > threshold;
-                if (filled && start < 0) start = x;
-                else if (!filled && start >= 0) { runs.Add(new Vector2Int(start, x)); start = -1; }
-            }
-            if (start >= 0) runs.Add(new Vector2Int(start, w));
-            runs.RemoveAll(r => (r.y - r.x) < w / 40);
-
-            var frames = new System.Collections.Generic.List<Sprite>();
-            int spanX0 = runs.Count > 0 ? runs[0].x : 0;
-            int spanX1 = runs.Count > 0 ? runs[runs.Count - 1].y : w;
-            int span   = Mathf.Max(1, spanX1 - spanX0);
-
-            // A single run that covers most of the width = one continuous body
-            // (the worm). Anything else = discrete poses arranged in 8 cells.
-            bool continuous = runs.Count <= 1 && span > w * 0.7f;
-            int frameCount = continuous ? 4 : 8;
-            int cw = span / frameCount;
+            var frames = new Sprite[frameCount];
             for (int i = 0; i < frameCount; i++)
             {
-                int fx = spanX0 + i * cw;
-                frames.Add(Sprite.Create(tex, new Rect(fx, rowY0, cw, rowH),
-                    new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect));
+                int cellX0 = i * cw;
+                int cellX1 = cellX0 + cw;
+
+                // Find the content bounding box inside this cell (within the band).
+                int minX = cellX1, maxX = cellX0, minY = bandY1, maxY = bandY0;
+                for (int y = bandY0; y < bandY1; y++)
+                for (int x = cellX0; x < cellX1; x++)
+                    if (px[y * w + x].a > 40)
+                    {
+                        if (x < minX) minX = x; if (x > maxX) maxX = x;
+                        if (y < minY) minY = y; if (y > maxY) maxY = y;
+                    }
+
+                Rect r;
+                if (maxX <= minX || maxY <= minY)
+                {
+                    // Empty cell — use the whole cell so the animation never blanks.
+                    r = new Rect(cellX0, bandY0, cw, bandY1 - bandY0);
+                }
+                else
+                {
+                    // Pad the bbox a little and keep frames a consistent square-ish
+                    // size so the monster doesn't jitter between frames.
+                    int pad = Mathf.RoundToInt(cw * 0.06f);
+                    int fx = Mathf.Max(cellX0, minX - pad);
+                    int fy = Mathf.Max(bandY0, minY - pad);
+                    int fw = Mathf.Min(cellX1 - fx, (maxX - minX) + pad * 2);
+                    int fh = Mathf.Min(bandY1 - fy, (maxY - minY) + pad * 2);
+                    r = new Rect(fx, fy, fw, fh);
+                }
+                frames[i] = Sprite.Create(tex, r, new Vector2(0.5f, 0.5f),
+                    100f, 0, SpriteMeshType.FullRect);
             }
-            return frames.ToArray();
+            return frames;
         }
 
         // ── Helper ────────────────────────────────────────────────────────────
