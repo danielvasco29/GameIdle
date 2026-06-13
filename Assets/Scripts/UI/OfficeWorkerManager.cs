@@ -175,17 +175,29 @@ namespace GameIdle
             // detect each character by the transparent gaps between them and blit
             // it onto its own uniform canvas (same technique as the monster
             // sheets) — this auto-handles any frame count with no doubles.
-            var walk = SliceRowByContent(tex, rowFromTop: 0, rows: 2);
-            var idle = SliceRowByContent(tex, rowFromTop: 1, rows: 2);
-
-            // O AI engineer tem um gráfico/quadro nas poses de trabalho (linha de
-            // baixo) que não tem como fatiar limpo. Como a linha de cima (andando)
-            // é toda de corpo inteiro, descartamos a linha de baixo só para ele —
-            // assim ele nunca mostra o quadro do gráfico.
+            // O AI engineer tem um gráfico/quadro nas poses de trabalho que o
+            // flood-fill não consegue limpar. Para ele usamos o fatiamento direto
+            // da textura CRUA (descarte de branco pixel a pixel), que separava os
+            // quadros dele perfeitamente. Os demais continuam no flood-fill.
             string cid = (ci.data.characterId ?? "").Trim().ToLower();
             string cnm = (ci.data.characterName ?? "").Trim().ToLower();
-            if (cid.Contains("ai_engineer") || cnm.Contains("ai engineer") || cnm.Contains("ai_engineer"))
-                idle = null;
+            bool isAiEngineer = cid.Contains("ai_engineer")
+                || cnm.Contains("ai engineer") || cnm.Contains("ai_engineer");
+
+            Sprite[] walk, idle;
+            if (isAiEngineer)
+            {
+                var raw = Resources.Load<Texture2D>($"Characters/Sprites/{ci.data.characterId}");
+                if (raw == null) raw = Resources.Load<Texture2D>($"Characters/Sprites/{ci.data.characterName}");
+                if (raw == null) raw = tex;
+                walk = SliceRowByContentRaw(raw, rowFromTop: 0, rows: 2);
+                idle = SliceRowByContentRaw(raw, rowFromTop: 1, rows: 2);
+            }
+            else
+            {
+                walk = SliceRowByContent(tex, rowFromTop: 0, rows: 2);
+                idle = SliceRowByContent(tex, rowFromTop: 1, rows: 2);
+            }
 
             if (walk == null || walk.Length == 0)
             {
@@ -311,6 +323,115 @@ namespace GameIdle
                 {
                     var c = px[(box.y + y) * w + (box.x + x)];
                     if (c.a <= 40) continue;
+                    canvas[(offY + y) * canvasW + (offX + x)] = c;
+                }
+                var ftex = new Texture2D(canvasW, canvasH, TextureFormat.RGBA32, false)
+                    { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+                ftex.SetPixels32(canvas);
+                ftex.Apply();
+                frames[i] = Sprite.Create(ftex, new Rect(0, 0, canvasW, canvasH),
+                    new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+            }
+            return frames;
+        }
+
+        // Verdadeiro para pixels de fundo branco/cinza-claro/xadrez (claros E
+        // sem saturação). Pixels de corpo (coloridos ou cinzas escuros) passam e
+        // são mantidos.
+        private static bool IsBg(Color32 c)
+        {
+            float r = c.r / 255f, g = c.g / 255f, b = c.b / 255f;
+            float mx = Mathf.Max(r, Mathf.Max(g, b));
+            float mn = Mathf.Min(r, Mathf.Min(g, b));
+            float sat = mx > 0.001f ? (mx - mn) / mx : 0f;
+            return mx > 0.62f && sat < 0.20f;
+        }
+
+        // Fatiamento direto da textura CRUA com descarte de branco pixel a pixel
+        // (sem flood-fill). Usado só no AI engineer: o flood-fill "comia" o corpo
+        // claro e deixava o gráfico flutuando; o descarte por pixel só apaga o
+        // branco de verdade, então os quadros saem inteiros. Blobs bem mais
+        // largos que a mediana (aglomerados de poses frontais coladas no fim da
+        // linha) são descartados, pois não há como separá-los de forma confiável.
+        private static Sprite[] SliceRowByContentRaw(Texture2D tex, int rowFromTop, int rows)
+        {
+            int w = tex.width;
+            int rowH = tex.height / rows;
+            int bandY0 = tex.height - (rowFromTop + 1) * rowH; // y=0 é a base
+            int bandY1 = bandY0 + rowH;
+
+            Color32[] px;
+            try { px = tex.GetPixels32(); }
+            catch { return null; }
+
+            // Contagem por coluna de pixels que NÃO são fundo (corpo).
+            var colMass = new int[w];
+            for (int x = 0; x < w; x++)
+            {
+                int c = 0;
+                for (int y = bandY0; y < bandY1; y++)
+                    if (!IsBg(px[y * w + x])) c++;
+                colMass[x] = c;
+            }
+
+            int threshold = Mathf.Max(2, rowH / 50);
+            var runs = new List<Vector2Int>();
+            int start = -1;
+            for (int x = 0; x < w; x++)
+            {
+                bool filled = colMass[x] > threshold;
+                if (filled && start < 0) start = x;
+                else if (!filled && start >= 0) { runs.Add(new Vector2Int(start, x)); start = -1; }
+            }
+            if (start >= 0) runs.Add(new Vector2Int(start, w));
+            runs.RemoveAll(r => (r.y - r.x) < w / 40);
+            if (runs.Count == 0) return null;
+
+            // Descarta aglomerados (largura >> mediana de um personagem só).
+            var ws = new List<int>();
+            foreach (var r in runs) ws.Add(r.y - r.x);
+            ws.Sort();
+            int median = ws[ws.Count / 2];
+            var single = new List<Vector2Int>();
+            foreach (var r in runs)
+                if ((r.y - r.x) <= median * 3 / 2) single.Add(r);
+            if (single.Count == 0) single.AddRange(runs);
+            runs = single;
+
+            var boxes = new RectInt[runs.Count];
+            int maxW = 0, maxH = 0;
+            for (int i = 0; i < runs.Count; i++)
+            {
+                int leftLimit  = (i == 0) ? 0 : (runs[i - 1].y + runs[i].x) / 2;
+                int rightLimit = (i == runs.Count - 1) ? w : (runs[i].y + runs[i + 1].x) / 2;
+
+                int minX = rightLimit, maxX = leftLimit, minY = bandY1, maxY = bandY0;
+                for (int y = bandY0; y < bandY1; y++)
+                for (int x = leftLimit; x < rightLimit; x++)
+                    if (!IsBg(px[y * w + x]))
+                    {
+                        if (x < minX) minX = x; if (x > maxX) maxX = x;
+                        if (y < minY) minY = y; if (y > maxY) maxY = y;
+                    }
+                boxes[i] = new RectInt(minX, minY, Mathf.Max(1, maxX - minX), Mathf.Max(1, maxY - minY));
+                maxW = Mathf.Max(maxW, boxes[i].width);
+                maxH = Mathf.Max(maxH, boxes[i].height);
+            }
+
+            int canvasW = maxW + 12, canvasH = maxH + 12;
+            const int footMargin = 6;
+            var frames = new Sprite[runs.Count];
+            for (int i = 0; i < runs.Count; i++)
+            {
+                var canvas = new Color32[canvasW * canvasH];
+                var box = boxes[i];
+                int offX = (canvasW - box.width) / 2;
+                int offY = footMargin;
+                for (int y = 0; y < box.height; y++)
+                for (int x = 0; x < box.width; x++)
+                {
+                    var c = px[(box.y + y) * w + (box.x + x)];
+                    if (IsBg(c)) continue; // descarte de branco pixel a pixel
                     canvas[(offY + y) * canvasW + (offX + x)] = c;
                 }
                 var ftex = new Texture2D(canvasW, canvasH, TextureFormat.RGBA32, false)
