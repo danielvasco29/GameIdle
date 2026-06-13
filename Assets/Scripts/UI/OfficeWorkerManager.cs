@@ -253,40 +253,45 @@ namespace GameIdle
                 runs = split;
             }
 
-            // Bbox per character, scanned between the gap-midpoints so limbs are
-            // fully captured while a neighbour can never leak in.
+            // Bbox + opaque mass per character, scanned between gap-midpoints so
+            // limbs are fully captured while a neighbour can never leak in.
             var boxes = new RectInt[runs.Count];
-            int maxW = 0, maxH = 0;
+            var mass  = new int[runs.Count];
             for (int i = 0; i < runs.Count; i++)
             {
                 int leftLimit  = (i == 0) ? 0 : (runs[i - 1].y + runs[i].x) / 2;
                 int rightLimit = (i == runs.Count - 1) ? w : (runs[i].y + runs[i + 1].x) / 2;
 
-                int minX = rightLimit, maxX = leftLimit, minY = bandY1, maxY = bandY0;
+                int minX = rightLimit, maxX = leftLimit, minY = bandY1, maxY = bandY0, m = 0;
                 for (int y = bandY0; y < bandY1; y++)
                 for (int x = leftLimit; x < rightLimit; x++)
                     if (px[y * w + x].a > 40)
                     {
                         if (x < minX) minX = x; if (x > maxX) maxX = x;
                         if (y < minY) minY = y; if (y > maxY) maxY = y;
+                        m++;
                     }
                 boxes[i] = new RectInt(minX, minY, Mathf.Max(1, maxX - minX), Mathf.Max(1, maxY - minY));
+                mass[i]  = m;
             }
 
-            // Drop frames whose content is far shorter than the median: these are
-            // poses where the bg-remover ate the (light-coloured) body and only a
-            // small held object survived (e.g. the investor's flyer-only frame).
-            var hs = new List<int>();
-            foreach (var b in boxes) hs.Add(b.height);
-            hs.Sort();
-            int medianH = hs[hs.Count / 2];
-            int minKeepH = Mathf.RoundToInt(medianH * 0.6f);
+            // Drop "object-only" frames: poses where the bg-remover ate the
+            // light-coloured body and only a held prop survived (the investor's
+            // flyer, the CEO/AI-engineer presentation chart). These have far less
+            // opaque mass than a real body. Frames with < 55% of the median mass
+            // are discarded; sheets where every frame is a full body keep all.
+            var ms = new List<int>();
+            foreach (var v in mass) ms.Add(v);
+            ms.Sort();
+            int medianMass = ms[ms.Count / 2];
+            int minKeepMass = Mathf.RoundToInt(medianMass * 0.55f);
 
             var keptBoxes = new List<RectInt>();
-            foreach (var b in boxes)
-                if (b.height >= minKeepH) keptBoxes.Add(b);
+            for (int i = 0; i < runs.Count; i++)
+                if (mass[i] >= minKeepMass) keptBoxes.Add(boxes[i]);
             if (keptBoxes.Count == 0) keptBoxes.AddRange(boxes); // safety
 
+            int maxW = 0, maxH = 0;
             foreach (var b in keptBoxes)
             {
                 maxW = Mathf.Max(maxW, b.width);
