@@ -47,15 +47,28 @@ namespace GameIdle
 
         // ── Mesas ─────────────────────────────────────────────────────────────
 
+        private static Material _whiteDiscardMat;
+        private static Material WhiteDiscardMat()
+        {
+            if (_whiteDiscardMat != null) return _whiteDiscardMat;
+            var shader = Shader.Find("GameIdle/UIWhiteDiscard");
+            if (shader == null) return null;
+            _whiteDiscardMat = new Material(shader);
+            _whiteDiscardMat.SetFloat("_Threshold", 0.82f);
+            _whiteDiscardMat.SetFloat("_Softness", 0.08f);
+            return _whiteDiscardMat;
+        }
+
         private void SpawnDesks()
         {
-            // Kits completos (mesa + monitores + cadeira) como sprites estáticos limpos.
+            // Kits completos (mesa + monitores + cadeira) como sprites estáticos.
+            // Usamos UIWhiteDiscard para eliminar o fundo branco sem precisar de Reimport.
+            var mat = WhiteDiscardMat();
             var kitSprites = new Sprite[2];
             for (int k = 0; k < 2; k++)
             {
                 var tex = Resources.Load<Texture2D>($"Props/desk_kit{k + 1}");
                 if (tex == null) { Debug.LogWarning($"[OfficePropsLayer] Props/desk_kit{k + 1}.png not found"); continue; }
-                tex = SpriteBackgroundRemover.Process(tex);
                 kitSprites[k] = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height),
                     new Vector2(0.5f, 0f), 100f, 0, SpriteMeshType.FullRect);
             }
@@ -76,6 +89,7 @@ namespace GameIdle
                 deskImg.sprite = sprite;
                 deskImg.preserveAspect = true;
                 deskImg.raycastTarget = false;
+                if (mat != null) deskImg.material = mat;
             }
         }
 
@@ -122,6 +136,8 @@ namespace GameIdle
             img.sprite = frames[0];
             img.preserveAspect = true;
             img.raycastTarget = false;
+            var mat = WhiteDiscardMat();
+            if (mat != null) img.material = mat;
 
             if (frames.Length > 1)
                 StartCoroutine(AnimLoop(img, frames, fps));

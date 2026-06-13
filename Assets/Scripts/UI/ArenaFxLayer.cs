@@ -34,6 +34,8 @@ namespace GameIdle
                 if (t != null) t.gameObject.SetActive(!boss);
             foreach (var g in _torchGlows)
                 if (g != null) g.gameObject.SetActive(!boss);
+            // Hide runic circle on boss — it clashes with the boss art
+            if (_runicOverlay != null) _runicOverlay.gameObject.SetActive(!boss);
 
             if (boss)
             {

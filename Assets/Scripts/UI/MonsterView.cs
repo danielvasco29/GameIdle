@@ -208,21 +208,28 @@ namespace GameIdle
                 bool isSheet = def.spritePath.EndsWith("_sheet");
                 if (isSheet)
                 {
-                    // Sheet: 8 cols × 4 rows (1024x1024 → 128×256 per frame).
-                    // Top row = MOVIMENTO/idle animation. Remove checker background first.
+                    // Sheet: 8 cols × 4 rows (1024×1024 → 128×256 per frame).
+                    // Animate all rows so the full walk/attack cycle plays regardless
+                    // of row ordering in the source file.
                     var tex = SpriteBackgroundRemover.ProcessSheet(srcTex);
                     int cols   = 8;
-                    int frameW = tex.width / cols;       // 128
-                    int frameH = tex.height / 4;         // 256 (4 rows, clean division)
-                    _idleFrames = new Sprite[cols];
-                    int topRowY = tex.height - frameH;   // y=768 → top row in Unity coords
-                    for (int i = 0; i < cols; i++)
+                    int rows   = 4;
+                    int frameW = tex.width  / cols;   // 128
+                    int frameH = tex.height / rows;   // 256
+                    _idleFrames = new Sprite[rows * cols];
+                    for (int row = 0; row < rows; row++)
                     {
-                        var r = new Rect(i * frameW, topRowY, frameW, frameH);
-                        _idleFrames[i] = Sprite.Create(tex, r, new Vector2(0.5f, 0.5f),
-                            100f, 0, SpriteMeshType.FullRect);
+                        int y = tex.height - (row + 1) * frameH; // top row first
+                        for (int col = 0; col < cols; col++)
+                        {
+                            var r = new Rect(col * frameW, y, frameW, frameH);
+                            _idleFrames[row * cols + col] = Sprite.Create(tex, r,
+                                new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+                        }
                     }
                     _spriteImg.sprite = _idleFrames[0];
+                    // Fill the display area so portrait frames cover the full monster slot
+                    _spriteImg.preserveAspect = false;
                 }
                 else
                 {
