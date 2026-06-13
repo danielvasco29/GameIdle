@@ -15,9 +15,20 @@ namespace GameIdle
 
         public static TMP_FontAsset Get()
         {
-            if (_resolved) return _cached;
+            if (_resolved && _cached != null) return _cached;
             _resolved = true;
+
+            // 1) Fonte custom gerada (se existir)
             _cached = Resources.Load<TMP_FontAsset>(CustomFontPath);
+
+            // 2) Fonte que a cena ja usa (comportamento antigo, sempre tem glifos)
+            if (_cached == null)
+            {
+                var existing = Object.FindAnyObjectByType<TextMeshProUGUI>();
+                if (existing != null && existing.font != null) _cached = existing.font;
+            }
+
+            // 3) Ultimo recurso: default do TMP
             if (_cached == null) _cached = TMP_Settings.defaultFontAsset;
             return _cached;
         }
