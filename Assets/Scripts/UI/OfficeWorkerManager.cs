@@ -271,17 +271,35 @@ namespace GameIdle
                         if (y < minY) minY = y; if (y > maxY) maxY = y;
                     }
                 boxes[i] = new RectInt(minX, minY, Mathf.Max(1, maxX - minX), Mathf.Max(1, maxY - minY));
-                maxW = Mathf.Max(maxW, boxes[i].width);
-                maxH = Mathf.Max(maxH, boxes[i].height);
+            }
+
+            // Drop frames whose content is far shorter than the median: these are
+            // poses where the bg-remover ate the (light-coloured) body and only a
+            // small held object survived (e.g. the investor's flyer-only frame).
+            var hs = new List<int>();
+            foreach (var b in boxes) hs.Add(b.height);
+            hs.Sort();
+            int medianH = hs[hs.Count / 2];
+            int minKeepH = Mathf.RoundToInt(medianH * 0.6f);
+
+            var keptBoxes = new List<RectInt>();
+            foreach (var b in boxes)
+                if (b.height >= minKeepH) keptBoxes.Add(b);
+            if (keptBoxes.Count == 0) keptBoxes.AddRange(boxes); // safety
+
+            foreach (var b in keptBoxes)
+            {
+                maxW = Mathf.Max(maxW, b.width);
+                maxH = Mathf.Max(maxH, b.height);
             }
 
             int canvasW = maxW + 12, canvasH = maxH + 12;
             const int footMargin = 6;
-            var frames = new Sprite[runs.Count];
-            for (int i = 0; i < runs.Count; i++)
+            var frames = new Sprite[keptBoxes.Count];
+            for (int i = 0; i < keptBoxes.Count; i++)
             {
                 var canvas = new Color32[canvasW * canvasH]; // alpha 0 by default
-                var box = boxes[i];
+                var box = keptBoxes[i];
                 int offX = (canvasW - box.width) / 2;   // centre horizontally
                 int offY = footMargin;                  // bottom-align feet
                 for (int y = 0; y < box.height; y++)
