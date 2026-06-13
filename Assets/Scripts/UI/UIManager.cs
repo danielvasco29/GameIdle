@@ -790,20 +790,36 @@ namespace GameIdle
                 if (stale != null && stale != floorImg.transform)
                     DestroyImmediate(stale.gameObject);
 
-                floorImg.transform.SetParent(bgPanel.transform, false);
+                // Area de jogo entre a sidebar (esquerda, ~380px fixos) e a coluna de
+                // stats (direita, ~230px fixos). Como essas larguras sao fixas em px,
+                // ancoramos por insets — funciona em qualquer resolucao/janela. Uma
+                // mascara recorta o excesso do escritorio dentro dessa area.
+                const float sidebarInset = 360f; // logo apos a sidebar
+                const float statsInset   = 240f; // antes da coluna de stats à direita
+                var staleArea = bgPanel.transform.Find("PlayArea");
+                if (staleArea != null) DestroyImmediate(staleArea.gameObject);
+                var areaGO = new GameObject("PlayArea", typeof(RectTransform), typeof(RectMask2D));
+                areaGO.transform.SetParent(bgPanel.transform, false);
+                var art = areaGO.GetComponent<RectTransform>();
+                art.anchorMin = Vector2.zero; art.anchorMax = Vector2.one;
+                art.offsetMin = new Vector2(sidebarInset, 0f);
+                art.offsetMax = new Vector2(-statsInset, 0f);
+                areaGO.transform.SetAsLastSibling(); // acima do gradiente navy
+
+                // O escritorio preenche a area (EnvelopeParent = cobre e recorta o
+                // excesso) mantendo o aspecto, centralizado, em qualquer tamanho.
+                floorImg.transform.SetParent(areaGO.transform, false);
                 var frt = floorImg.rectTransform;
-                frt.anchorMin = Vector2.zero; frt.anchorMax = Vector2.one;
-                // Estica o escritorio para a esquerda (ate proximo da sidebar, com uma
-                // pequena folga navy) e o amplia: aumentando a altura via preserveAspect
-                // a imagem cresce em largura e preenche as laterais, eliminando o vao
-                // navy da esquerda. Pequeno deslocamento à direita para a folga.
-                // offsetMin.x e offsetMax.x somam ~250 -> mantem o MESMO centro
-                // horizontal (alinhado com os personagens); o offsetMax.x negativo
-                // apenas recua a borda direita, liberando navy para a coluna de stats
-                // sem deslocar o cenario para a esquerda dos personagens.
-                frt.offsetMin = new Vector2(360f, -150f); // esquerda recuada (mantem o centro)
-                frt.offsetMax = new Vector2(-110f, 150f); // recua a direita p/ a coluna de stats
-                floorImg.transform.SetAsLastSibling(); // cobre o tom escuro do Panel_BG
+                frt.anchorMin = frt.anchorMax = frt.pivot = new Vector2(0.5f, 0.5f);
+                frt.anchoredPosition = Vector2.zero;
+                frt.offsetMin = frt.offsetMax = Vector2.zero;
+                floorImg.preserveAspect = false; // o AspectRatioFitter controla o aspecto
+                var fitter = floorImg.GetComponent<AspectRatioFitter>()
+                             ?? floorImg.gameObject.AddComponent<AspectRatioFitter>();
+                fitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+                fitter.aspectRatio = floorImg.sprite != null
+                    ? floorImg.sprite.rect.width / floorImg.sprite.rect.height
+                    : 1672f / 941f;
 
                 // Fundo das laterais: gradiente navy combinando com o tema. O
                 // escritorio nitido ajusta pela altura e sobravam barras pretas nas
