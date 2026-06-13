@@ -209,27 +209,16 @@ namespace GameIdle
                 bool isSheet = def.spritePath.EndsWith("_sheet");
                 if (isSheet)
                 {
-                    // Auto-detect frame size: assume square frames with 4 rows.
-                    // cols = width / (height/4) handles both 4-col (256×256) and
-                    // 8-col (128×128) sheets without hardcoding per-monster.
+                    // Sheets are 4 stacked rows of DIFFERENT animations (movement /
+                    // attack / hurt / death) with baked-in text labels. We only loop
+                    // the TOP movement row so the monster never jumps between
+                    // unrelated poses. Individual frames are found by gap detection:
+                    // some sheets pack 8 separate poses, others draw one continuous
+                    // body — SliceMovementRow handles both.
                     var tex = SpriteBackgroundRemover.ProcessSheet(srcTex);
-                    int rows   = 4;
-                    int frameH = tex.height / rows;        // e.g. 256 for 1024-tall
-                    int cols   = tex.width  / frameH;      // square frames: 4 or 8
-                    int frameW = frameH;                   // always square
-                    _idleFrames = new Sprite[rows * cols];
-                    for (int row = 0; row < rows; row++)
-                    {
-                        int y = tex.height - (row + 1) * frameH;
-                        for (int col = 0; col < cols; col++)
-                        {
-                            var r = new Rect(col * frameW, y, frameW, frameH);
-                            _idleFrames[row * cols + col] = Sprite.Create(tex, r,
-                                new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
-                        }
-                    }
+                    _idleFrames = SliceMovementRow(tex);
                     _spriteImg.sprite = _idleFrames[0];
-                    _spriteImg.preserveAspect = true; // square frames fit naturally
+                    _spriteImg.preserveAspect = true;
                 }
                 else
                 {
@@ -438,6 +427,74 @@ namespace GameIdle
                 yield return null;
             }
             Destroy(go);
+        }
+
+        // ── Sheet slicing ─────────────────────────────────────────────────────
+
+        // Slices the top "movement" row of a monster sheet into animation frames.
+        // The row is the top quarter of the texture. Frames are located by scanning
+        // for vertical gaps between opaque blobs (works for sheets that pack 8
+        // separate poses). If no gaps are found (a single continuous body, e.g. the
+        // worm) the row is split into 4 even chunks so the slide still animates.
+        // A vertical sampling window skips the baked-in text labels at the row edges.
+        private static Sprite[] SliceMovementRow(Texture2D tex)
+        {
+            int w = tex.width;
+            int rowH = tex.height / 4;
+            int rowY0 = tex.height - rowH;            // bottom of the top row (Unity coords)
+
+            // Sample only the vertical middle of the row to avoid the label text
+            // printed along the top/bottom of each band.
+            int sampleY0 = rowY0 + Mathf.RoundToInt(rowH * 0.20f);
+            int sampleY1 = rowY0 + Mathf.RoundToInt(rowH * 0.80f);
+
+            Color32[] px;
+            try { px = tex.GetPixels32(); }
+            catch { return new[] { Sprite.Create(tex, new Rect(0, rowY0, w, rowH),
+                        new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect) }; }
+
+            // Per-column opacity (count of visible pixels in the sample window).
+            var colMass = new int[w];
+            for (int x = 0; x < w; x++)
+            {
+                int count = 0;
+                for (int y = sampleY0; y < sampleY1; y++)
+                    if (px[y * w + x].a > 40) count++;
+                colMass[x] = count;
+            }
+
+            // Detect contiguous content runs separated by empty columns, ignoring
+            // tiny specks (label digits). This tells us whether the row is a single
+            // continuous body or a series of discrete poses.
+            int threshold = Mathf.Max(2, (sampleY1 - sampleY0) / 12);
+            var runs = new System.Collections.Generic.List<Vector2Int>();
+            int start = -1;
+            for (int x = 0; x < w; x++)
+            {
+                bool filled = colMass[x] > threshold;
+                if (filled && start < 0) start = x;
+                else if (!filled && start >= 0) { runs.Add(new Vector2Int(start, x)); start = -1; }
+            }
+            if (start >= 0) runs.Add(new Vector2Int(start, w));
+            runs.RemoveAll(r => (r.y - r.x) < w / 40);
+
+            var frames = new System.Collections.Generic.List<Sprite>();
+            int spanX0 = runs.Count > 0 ? runs[0].x : 0;
+            int spanX1 = runs.Count > 0 ? runs[runs.Count - 1].y : w;
+            int span   = Mathf.Max(1, spanX1 - spanX0);
+
+            // A single run that covers most of the width = one continuous body
+            // (the worm). Anything else = discrete poses arranged in 8 cells.
+            bool continuous = runs.Count <= 1 && span > w * 0.7f;
+            int count = continuous ? 4 : 8;
+            int cw = span / count;
+            for (int i = 0; i < count; i++)
+            {
+                int fx = spanX0 + i * cw;
+                frames.Add(Sprite.Create(tex, new Rect(fx, rowY0, cw, rowH),
+                    new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect));
+            }
+            return frames.ToArray();
         }
 
         // ── Helper ────────────────────────────────────────────────────────────
