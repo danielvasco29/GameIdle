@@ -231,6 +231,28 @@ namespace GameIdle
 
             if (runs.Count == 0) return null;
 
+            // Some sheets have two poses touching with no gap between them (e.g.
+            // the investor's front-facing frames), which merge into one wide blob
+            // and render as a doubled character. Split any run much wider than the
+            // median into equal sub-frames.
+            var ws = new List<int>();
+            foreach (var r in runs) ws.Add(r.y - r.x);
+            ws.Sort();
+            int median = ws[ws.Count / 2];
+            if (median > 0)
+            {
+                var split = new List<Vector2Int>();
+                foreach (var r in runs)
+                {
+                    int wdt = r.y - r.x;
+                    int parts = Mathf.Max(1, Mathf.RoundToInt((float)wdt / median));
+                    if (parts <= 1) { split.Add(r); continue; }
+                    for (int k = 0; k < parts; k++)
+                        split.Add(new Vector2Int(r.x + wdt * k / parts, r.x + wdt * (k + 1) / parts));
+                }
+                runs = split;
+            }
+
             // Bbox per character, scanned between the gap-midpoints so limbs are
             // fully captured while a neighbour can never leak in.
             var boxes = new RectInt[runs.Count];
