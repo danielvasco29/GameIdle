@@ -796,6 +796,29 @@ namespace GameIdle
                 frt.offsetMin = frt.offsetMax = Vector2.zero;
                 floorImg.transform.SetAsLastSibling(); // cobre o tom escuro do Panel_BG
 
+                // Fundo "cover": copia do escritorio esticada para preencher TODA a
+                // tela (sem preservar aspecto), escurecida. Como o escritorio nitido
+                // ajusta pela altura, sobravam barras pretas nas laterais; este layer
+                // atras delas estende o cenario e elimina os buracos pretos.
+                if (floorImg.sprite != null)
+                {
+                    var staleCover = bgPanel.transform.Find("BgCover");
+                    if (staleCover != null) DestroyImmediate(staleCover.gameObject);
+
+                    var coverGO = new GameObject("BgCover", typeof(RectTransform), typeof(Image));
+                    coverGO.transform.SetParent(bgPanel.transform, false);
+                    var crt = coverGO.GetComponent<RectTransform>();
+                    crt.anchorMin = Vector2.zero; crt.anchorMax = Vector2.one;
+                    crt.offsetMin = crt.offsetMax = Vector2.zero;
+                    var coverImg = coverGO.GetComponent<Image>();
+                    coverImg.sprite = floorImg.sprite;
+                    coverImg.type = Image.Type.Simple;
+                    coverImg.preserveAspect = false;       // estica para cobrir as laterais
+                    coverImg.color = new Color(0.34f, 0.38f, 0.46f, 1f); // escurecido/dessaturado
+                    coverImg.raycastTarget = false;
+                    coverGO.transform.SetAsFirstSibling(); // atras do escritorio nitido
+                }
+
                 // Panel_Main fica transparente para revelar o escritorio atras dos
                 // workers / tap button / pills.
                 var pmImg = pmGO.GetComponent<Image>();
