@@ -401,10 +401,18 @@ namespace GameIdle
 
             var boxes = new RectInt[runs.Count];
             int maxW = 0, maxH = 0;
+            const int scanMargin = 6; // captura membros estendidos, sem alcançar vizinhos
             for (int i = 0; i < runs.Count; i++)
             {
-                int leftLimit  = (i == 0) ? 0 : (runs[i - 1].y + runs[i].x) / 2;
-                int rightLimit = (i == runs.Count - 1) ? w : (runs[i].y + runs[i + 1].x) / 2;
+                // IMPORTANTE: a varredura fica restrita à extensão do próprio run
+                // + uma margem pequena. Usar o "meio do vão" do vizinho fazia o
+                // bbox atravessar a região de um blob descartado (o aglomerado da
+                // CEO) e capturar seus pixels, inflando a largura e encolhendo o
+                // boneco. A margem é clampada para nunca invadir o run vizinho.
+                int leftLimit  = Mathf.Max(0, runs[i].x - scanMargin);
+                if (i > 0) leftLimit = Mathf.Max(leftLimit, runs[i - 1].y);
+                int rightLimit = Mathf.Min(w, runs[i].y + scanMargin);
+                if (i < runs.Count - 1) rightLimit = Mathf.Min(rightLimit, runs[i + 1].x);
 
                 int minX = rightLimit, maxX = leftLimit, minY = bandY1, maxY = bandY0;
                 for (int y = bandY0; y < bandY1; y++)
