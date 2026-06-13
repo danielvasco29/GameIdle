@@ -147,30 +147,34 @@ namespace GameIdle
             public bool     fullBody; // true = render the full-body sprite (vs. circle portrait)
         }
 
-        // Wide (~4:1) sheets are walk/work grids; near-square images are a single
-        // portrait. Worker frames are sliced from the RAW texture with a per-pixel
-        // white discard (NOT flood-fill): flood-fill bridged into light bodies and
-        // ate them in "presenting an object" poses, leaving a floating chart/flyer.
-        // Per-pixel discard only clears actual white pixels, so bodies stay intact.
+        // Wide character sheets (~4:1) are 12-col x 2-row walk/work grids, but
+        // their column counts/poses vary, so we take only the clean top-left
+        // frame as a static full-body sprite. A near-square image is treated as
+        // a single portrait.
         private static WorkerFrames? LoadFrames(CharacterInstance ci)
         {
             var tex = Resources.Load<Texture2D>($"Characters/Sprites/{ci.data.characterId}");
             if (tex == null) tex = Resources.Load<Texture2D>($"Characters/Sprites/{ci.data.characterName}");
             if (tex == null) return null;
 
-            // Portrait (not a sheet) — keep the flood-fill remover for the single frame.
+            // Strip baked-in white/gray/checkerboard backgrounds via flood-fill.
+            tex = SpriteBackgroundRemover.Process(tex);
+
+            // Portrait (not a sheet)
             if (tex.width < tex.height * 2)
-            {
-                var proc = SpriteBackgroundRemover.Process(tex);
                 return new WorkerFrames
                 {
-                    walk = new[] { Sprite.Create(proc, new Rect(0, 0, proc.width, proc.height),
+                    walk = new[] { Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height),
                                                  new Vector2(0.5f, 0.5f)) },
                     idle = null,
                     fullBody = false
                 };
-            }
 
+            // Wide (~4:1) walk/work sheets. Column counts and pose layouts vary
+            // per sheet, so a fixed grid sliced 1.5 characters per cell. Instead
+            // detect each character by the transparent gaps between them and blit
+            // it onto its own uniform canvas (same technique as the monster
+            // sheets) — this auto-handles any frame count with no doubles.
             var walk = SliceRowByContent(tex, rowFromTop: 0, rows: 2);
             var idle = SliceRowByContent(tex, rowFromTop: 1, rows: 2);
 
@@ -178,8 +182,7 @@ namespace GameIdle
             {
                 // Fallback: static top-left frame so the worker is never invisible.
                 int fw = tex.width / 12, fh = tex.height / 2;
-                var proc = SpriteBackgroundRemover.Process(tex);
-                walk = new[] { Sprite.Create(proc, new Rect(0, proc.height - fh, fw, fh),
+                walk = new[] { Sprite.Create(tex, new Rect(0, tex.height - fh, fw, fh),
                     new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect) };
                 idle = null;
             }
@@ -187,27 +190,11 @@ namespace GameIdle
             return new WorkerFrames { walk = walk, idle = idle, fullBody = true };
         }
 
-        // True for white/light-grey/checkerboard background pixels (bright AND
-        // unsaturated). Body pixels (coloured, or darker greys) fail this test and
-        // are kept — verified against the grey/navy suit sheets.
-        private static bool IsBg(Color32 c)
-        {
-            float r = c.r / 255f, g = c.g / 255f, b = c.b / 255f;
-            float mx = Mathf.Max(r, Mathf.Max(g, b));
-            float mn = Mathf.Min(r, Mathf.Min(g, b));
-            float sat = mx > 0.001f ? (mx - mn) / mx : 0f;
-            return mx > 0.62f && sat < 0.20f;
-        }
-
-        // Slices one row of a RAW sheet into per-character frames.
-        //  • A column is "background" if (almost) all its pixels are white/light.
-        //  • Content runs between background gaps are individual characters.
-        //  • Blobs much wider than the median are clusters of front-facing idle
-        //    poses crammed at the row end (2-3 figures) — dropped, since they are
-        //    not clean walk frames and splitting them reliably is impossible.
-        //  • Each kept character is blitted onto a uniform, bottom-aligned canvas,
-        //    copying only non-background pixels (per-pixel white discard, NO
-        //    flood-fill — so light bodies are never eaten).
+        // Slices one row of a sheet into per-character frames by detecting the
+        // transparent gaps between bodies (the sheet must already have its
+        // background removed). Each character is blitted onto its own uniform
+        // canvas, bottom-aligned so feet stay on a constant baseline while the
+        // walk pose changes. Robust to sheets with differing frame counts.
         private static Sprite[] SliceRowByContent(Texture2D tex, int rowFromTop, int rows)
         {
             int w = tex.width;
@@ -219,18 +206,18 @@ namespace GameIdle
             try { px = tex.GetPixels32(); }
             catch { return null; }
 
-            // Per-column count of non-background (body) pixels.
+            // Per-column opaque mass within the row band.
             var colMass = new int[w];
             for (int x = 0; x < w; x++)
             {
                 int c = 0;
                 for (int y = bandY0; y < bandY1; y++)
-                    if (!IsBg(px[y * w + x])) c++;
+                    if (px[y * w + x].a > 40) c++;
                 colMass[x] = c;
             }
 
-            // Content runs separated by background gaps = individual characters.
-            int threshold = Mathf.Max(2, rowH / 50); // ~2% of the row height
+            // Content runs separated by empty gaps = individual characters.
+            int threshold = Mathf.Max(2, rowH / 14);
             var runs = new List<Vector2Int>();
             int start = -1;
             for (int x = 0; x < w; x++)
@@ -244,23 +231,30 @@ namespace GameIdle
 
             if (runs.Count == 0) return null;
 
-            // Drop crammed multi-figure clusters (width >> median single figure).
+            // Some sheets have two poses touching with no gap between them (e.g.
+            // the investor's front-facing frames), which merge into one wide blob
+            // and render as a doubled character. Split any run much wider than the
+            // median into equal sub-frames.
             var ws = new List<int>();
             foreach (var r in runs) ws.Add(r.y - r.x);
             ws.Sort();
             int median = ws[ws.Count / 2];
-            var single = new List<Vector2Int>();
-            foreach (var r in runs)
-                if ((r.y - r.x) <= median * 3 / 2) single.Add(r);
-            if (single.Count == 0) single.AddRange(runs); // safety
-            runs = single;
+            if (median > 0)
+            {
+                var split = new List<Vector2Int>();
+                foreach (var r in runs)
+                {
+                    int wdt = r.y - r.x;
+                    int parts = Mathf.Max(1, Mathf.RoundToInt((float)wdt / median));
+                    if (parts <= 1) { split.Add(r); continue; }
+                    for (int k = 0; k < parts; k++)
+                        split.Add(new Vector2Int(r.x + wdt * k / parts, r.x + wdt * (k + 1) / parts));
+                }
+                runs = split;
+            }
 
-            // Walk cycles never exceed 10 frames — crammed idle clusters that
-            // slip past the width filter (each figure is narrow) are at the
-            // end of the row, so truncating to 10 drops them cleanly.
-            if (runs.Count > 10) runs = runs.GetRange(0, 10);
-
-            // Bbox of body pixels per character, scanned between gap-midpoints.
+            // Bbox per character, scanned between the gap-midpoints so limbs are
+            // fully captured while a neighbour can never leak in.
             var boxes = new RectInt[runs.Count];
             int maxW = 0, maxH = 0;
             for (int i = 0; i < runs.Count; i++)
@@ -271,7 +265,7 @@ namespace GameIdle
                 int minX = rightLimit, maxX = leftLimit, minY = bandY1, maxY = bandY0;
                 for (int y = bandY0; y < bandY1; y++)
                 for (int x = leftLimit; x < rightLimit; x++)
-                    if (!IsBg(px[y * w + x]))
+                    if (px[y * w + x].a > 40)
                     {
                         if (x < minX) minX = x; if (x > maxX) maxX = x;
                         if (y < minY) minY = y; if (y > maxY) maxY = y;
@@ -281,10 +275,23 @@ namespace GameIdle
                 maxH = Mathf.Max(maxH, boxes[i].height);
             }
 
-            int canvasW = maxW + 12, canvasH = Mathf.Max(maxH + 12, rowH);
+            // Drop "object-only" frames: in some sheets the flood-fill ate a
+            // light body in a "presenting" pose, leaving just the small held
+            // prop (the investor's floating flyer). A real full-body walk frame
+            // is tall; a leftover prop is short — so discard any frame far
+            // shorter than the tallest one. Isolated, height-only: never touches
+            // sheets whose frames are all full-body.
+            var keptBoxes = new List<RectInt>();
+            int minKeepH = Mathf.RoundToInt(maxH * 0.6f);
+            foreach (var b in boxes)
+                if (b.height >= minKeepH) keptBoxes.Add(b);
+            if (keptBoxes.Count == 0) keptBoxes.AddRange(boxes); // safety
+            boxes = keptBoxes.ToArray();
+
+            int canvasW = maxW + 12, canvasH = maxH + 12;
             const int footMargin = 6;
-            var frames = new Sprite[runs.Count];
-            for (int i = 0; i < runs.Count; i++)
+            var frames = new Sprite[boxes.Length];
+            for (int i = 0; i < boxes.Length; i++)
             {
                 var canvas = new Color32[canvasW * canvasH]; // alpha 0 by default
                 var box = boxes[i];
@@ -294,7 +301,7 @@ namespace GameIdle
                 for (int x = 0; x < box.width; x++)
                 {
                     var c = px[(box.y + y) * w + (box.x + x)];
-                    if (IsBg(c)) continue;              // per-pixel white discard
+                    if (c.a <= 40) continue;
                     canvas[(offY + y) * canvasW + (offX + x)] = c;
                 }
                 var ftex = new Texture2D(canvasW, canvasH, TextureFormat.RGBA32, false)
