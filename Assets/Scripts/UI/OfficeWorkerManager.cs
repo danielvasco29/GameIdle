@@ -182,8 +182,13 @@ namespace GameIdle
             // largos demais. Os demais personagens continuam no flood-fill.
             string cid = (ci.data.characterId ?? "").Trim().ToLower();
             string cnm = (ci.data.characterName ?? "").Trim().ToLower();
+            // marketing e investor mostravam um pedacinho de branco "preso" que o
+            // flood-fill (que só anda a partir da borda) não alcançava; o método
+            // cru apaga todo branco, esteja preso ou não, então entram aqui também.
             bool useRaw = cid.Contains("ai_engineer") || cnm.Contains("ai engineer")
-                || cnm.Contains("ai_engineer") || cid == "ceo" || cnm == "ceo";
+                || cnm.Contains("ai_engineer") || cid == "ceo" || cnm == "ceo"
+                || cid.Contains("market") || cnm.Contains("market")
+                || cid.Contains("invest") || cnm.Contains("invest");
 
             Sprite[] walk, idle;
             if (useRaw)
