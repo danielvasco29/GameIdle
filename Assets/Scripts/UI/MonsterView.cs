@@ -71,7 +71,7 @@ namespace GameIdle
         {
             // RectTransform layout (anchors/size) is owned by whoever spawns this
             // view (BattlePanel) — don't override it here.
-            var font = TMP_Settings.defaultFontAsset;
+            var font = UiFont.Get();
 
             // Wave badge (top-right)
             _waveText = MakeLabel("WaveBadge", "ONDA 1 / 10", 13f,
@@ -303,7 +303,7 @@ namespace GameIdle
             tmp.fontSize = 36f; tmp.fontStyle = FontStyles.Bold;
             tmp.color = GoldColor; tmp.alignment = TextAlignmentOptions.Center;
             tmp.raycastTarget = false;
-            var f = TMP_Settings.defaultFontAsset; if (f != null) tmp.font = f;
+            var f = UiFont.Get(); if (f != null) tmp.font = f;
             StartCoroutine(FloatUpAndFade(go, tmp, 1.8f));
         }
 
@@ -406,7 +406,7 @@ namespace GameIdle
             tmp.color = GoldColor;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.raycastTarget = false;
-            var f = TMP_Settings.defaultFontAsset; if (f != null) tmp.font = f;
+            var f = UiFont.Get(); if (f != null) tmp.font = f;
             StartCoroutine(FloatUpAndFade(go, tmp));
         }
 
@@ -426,7 +426,7 @@ namespace GameIdle
             tmp.color = new Color(0.25f, 0.9f, 0.35f, 1f);
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.raycastTarget = false;
-            var f = TMP_Settings.defaultFontAsset; if (f != null) tmp.font = f;
+            var f = UiFont.Get(); if (f != null) tmp.font = f;
             StartCoroutine(FloatUpAndFade(go, tmp, 1.4f));
         }
 

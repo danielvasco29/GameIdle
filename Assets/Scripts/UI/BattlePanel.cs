@@ -140,7 +140,7 @@ namespace GameIdle
                 _waveLabel.color = GoldColor;
                 _waveLabel.alignment = TextAlignmentOptions.Center;
                 _waveLabel.raycastTarget = false;
-                var f = TMP_Settings.defaultFontAsset; if (f != null) _waveLabel.font = f;
+                var f = UiFont.Get(); if (f != null) _waveLabel.font = f;
             }
 
             // ── Monster view — fixed-width column centered on screen ─────
@@ -175,7 +175,7 @@ namespace GameIdle
             _comboLabel.fontStyle = FontStyles.Bold;
             _comboLabel.alignment = TextAlignmentOptions.Center;
             _comboLabel.raycastTarget = false;
-            var cf = TMP_Settings.defaultFontAsset; if (cf != null) _comboLabel.font = cf;
+            var cf = UiFont.Get(); if (cf != null) _comboLabel.font = cf;
 
             // ATACAR (center, big)
             var atkGO = new GameObject("AtkBtn", typeof(RectTransform), typeof(Button));
@@ -233,7 +233,7 @@ namespace GameIdle
             tmp.text = text; tmp.fontSize = size; tmp.fontStyle = FontStyles.Bold;
             tmp.color = color; tmp.alignment = TextAlignmentOptions.Center;
             tmp.raycastTarget = false;
-            var f = TMP_Settings.defaultFontAsset; if (f != null) tmp.font = f;
+            var f = UiFont.Get(); if (f != null) tmp.font = f;
         }
 
         // ── Subscribe to CombatManager events ─────────────────────────────────

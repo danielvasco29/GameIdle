@@ -46,7 +46,7 @@ namespace GameIdle
         private static TMP_FontAsset ResolveFont()
         {
             if (sharedFont != null) return sharedFont;
-            sharedFont = TMP_Settings.defaultFontAsset;
+            sharedFont = UiFont.Get();
             if (sharedFont == null)
             {
                 var rf = Object.FindAnyObjectByType<TextMeshProUGUI>();

@@ -32,7 +32,7 @@ namespace GameIdle
             bg.type   = Image.Type.Sliced;
             bg.color  = NavyDark;
 
-            TMP_FontAsset font = TMP_Settings.defaultFontAsset;
+            TMP_FontAsset font = UiFont.Get();
 
             TextMeshProUGUI MakeLabel(string name, string text, float size, Color color,
                 Vector2 aMin, Vector2 aMax, Vector2 oMin, Vector2 oMax)
@@ -85,7 +85,7 @@ namespace GameIdle
             var tmp = txtGO.GetComponent<TextMeshProUGUI>();
             tmp.text = label; tmp.fontSize = 16; tmp.fontStyle = FontStyles.Bold;
             tmp.alignment = TextAlignmentOptions.Center; tmp.color = Color.white; tmp.raycastTarget = false;
-            var f = TMP_Settings.defaultFontAsset; if (f != null) tmp.font = f;
+            var f = UiFont.Get(); if (f != null) tmp.font = f;
         }
 
         public void Show(double earnings, long seconds)
