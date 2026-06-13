@@ -105,7 +105,7 @@ namespace GameIdle
             var titleTxt = titleGO.GetComponent<TextMeshProUGUI>();
             titleTxt.font          = font;
             titleTxt.text          = "ESTATÍSTICAS";
-            titleTxt.fontSize      = 20f;
+            titleTxt.fontSize      = 24f;
             titleTxt.fontStyle     = FontStyles.Bold;
             titleTxt.color         = GoldColor;
             titleTxt.alignment     = TextAlignmentOptions.Center;
@@ -140,7 +140,7 @@ namespace GameIdle
             var closeBtnImg = closeGO.GetComponent<Image>();
             closeBtnImg.sprite = UiSpriteFactory.RoundedBox();
             closeBtnImg.type   = Image.Type.Sliced;
-            closeBtnImg.color  = GoldColor;
+            closeBtnImg.color  = new Color(0.10f, 0.16f, 0.28f, 1f);
 
             var closeLblGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
             closeLblGO.transform.SetParent(closeGO.transform, false);
@@ -150,9 +150,9 @@ namespace GameIdle
             var closeTxt = closeLblGO.GetComponent<TextMeshProUGUI>();
             closeTxt.font      = font;
             closeTxt.text      = "FECHAR";
-            closeTxt.fontSize  = 16f;
+            closeTxt.fontSize  = 17f;
             closeTxt.fontStyle = FontStyles.Bold;
-            closeTxt.color     = new Color(0.055f, 0.094f, 0.165f, 1f);
+            closeTxt.color     = Color.white;
             closeTxt.alignment = TextAlignmentOptions.Center;
 
             closeGO.GetComponent<Button>().onClick.AddListener(Close);
@@ -258,8 +258,8 @@ namespace GameIdle
                                          string label, string placeholder,
                                          Color bgColor, int index)
         {
-            const float rowH    = 52f;
-            const float padH    = 16f;
+            const float rowH    = 64f;
+            const float padH    = 20f;
 
             var rowGO = new GameObject($"Row_{index}", typeof(RectTransform), typeof(Image),
                                                         typeof(LayoutElement));
@@ -303,7 +303,7 @@ namespace GameIdle
             var lblTxt = lblGO.GetComponent<TextMeshProUGUI>();
             lblTxt.font      = font;
             lblTxt.text      = label;
-            lblTxt.fontSize  = 15f;
+            lblTxt.fontSize  = 18f;
             lblTxt.color     = TextSec;
             lblTxt.alignment = TextAlignmentOptions.MidlineLeft;
             lblTxt.overflowMode = TextOverflowModes.Ellipsis;
@@ -319,7 +319,7 @@ namespace GameIdle
             var valTxt = valGO.GetComponent<TextMeshProUGUI>();
             valTxt.font      = font;
             valTxt.text      = placeholder;
-            valTxt.fontSize  = 15f;
+            valTxt.fontSize  = 20f;
             valTxt.fontStyle = FontStyles.Bold;
             valTxt.color     = TextPrimary;
             valTxt.alignment = TextAlignmentOptions.MidlineRight;

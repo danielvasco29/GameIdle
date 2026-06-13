@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 namespace GameIdle
 {
-    // Painel de eventos aleatórios — construído em runtime (sem prefabs).
     public class EventPanel : MonoBehaviour
     {
         private TextMeshProUGUI _titleText;
@@ -14,10 +13,11 @@ namespace GameIdle
         private readonly List<GameObject> _spawnedChoices = new();
         private EventData _currentEvent;
 
-        private static readonly Color NavyDark  = new(0.055f, 0.094f, 0.165f, 0.85f);
+        private static readonly Color NavyDark  = new(0.055f, 0.094f, 0.165f, 0.97f);
+        private static readonly Color NavyCard  = new(0.10f,  0.16f,  0.27f,  1f);
         private static readonly Color GoldColor = new(1f, 0.808f, 0.227f, 1f);
-        private static readonly Color GreenColor= new(0.247f, 0.749f, 0.353f, 1f);
-        private static readonly Color BtnColor  = new(0.16f, 0.30f, 0.46f, 1f);
+        private static readonly Color GreenColor= new(0.35f, 0.88f, 0.45f, 1f);
+        private static readonly Color TextMain  = new(0.93f, 0.95f, 0.98f, 1f);
 
         private void Awake() => BuildUI();
 
@@ -26,7 +26,7 @@ namespace GameIdle
             var rt = GetComponent<RectTransform>() ?? gameObject.AddComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(480f, 360f);
+            rt.sizeDelta = new Vector2(580f, 440f);
             rt.anchoredPosition = Vector2.zero;
 
             var bg = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
@@ -34,21 +34,55 @@ namespace GameIdle
 
             TMP_FontAsset font = TMP_Settings.defaultFontAsset;
 
-            _titleText = MakeLabel("Title", 20f, GoldColor, FontStyles.Bold, TextAlignmentOptions.Center,
-                new Vector2(0f, 0.82f), new Vector2(1f, 1f), new Vector2(16f, 0f), new Vector2(-16f, -10f), font);
+            // Faixa dourada no topo (destaque do evento)
+            var stripe = new GameObject("TitleStripe", typeof(RectTransform), typeof(Image));
+            stripe.transform.SetParent(transform, false);
+            var srt = stripe.GetComponent<RectTransform>();
+            srt.anchorMin = new Vector2(0f, 1f); srt.anchorMax = new Vector2(1f, 1f);
+            srt.pivot = new Vector2(0.5f, 1f);
+            srt.offsetMin = Vector2.zero; srt.offsetMax = Vector2.zero;
+            srt.sizeDelta = new Vector2(0f, 68f);
+            var sImg = stripe.GetComponent<Image>();
+            sImg.sprite = UiSpriteFactory.RoundedBox(); sImg.type = Image.Type.Sliced;
+            sImg.color = new Color(0.22f, 0.15f, 0.04f, 1f);
+            sImg.raycastTarget = false;
 
-            _descText = MakeLabel("Desc", 14f, new Color(0.85f, 0.89f, 0.96f), FontStyles.Normal, TextAlignmentOptions.Top,
-                new Vector2(0f, 0.55f), new Vector2(1f, 0.82f), new Vector2(20f, 0f), new Vector2(-20f, 0f), font);
+            // Título do evento
+            _titleText = MakeLabel("Title", 22f, GoldColor, FontStyles.Bold, TextAlignmentOptions.Center,
+                new Vector2(0f, 1f), new Vector2(1f, 1f),
+                new Vector2(20f, -68f), new Vector2(-20f, 0f), font);
+            _titleText.rectTransform.sizeDelta = new Vector2(0f, 68f);
+            _titleText.rectTransform.anchoredPosition = Vector2.zero;
+
+            // Linha separadora
+            var sepGO = new GameObject("Sep", typeof(RectTransform), typeof(Image));
+            sepGO.transform.SetParent(transform, false);
+            var sepRT = sepGO.GetComponent<RectTransform>();
+            sepRT.anchorMin = new Vector2(0f, 1f); sepRT.anchorMax = new Vector2(1f, 1f);
+            sepRT.pivot = new Vector2(0.5f, 1f);
+            sepRT.offsetMin = new Vector2(20f, 0f); sepRT.offsetMax = new Vector2(-20f, 0f);
+            sepRT.sizeDelta = new Vector2(0f, 2f);
+            sepRT.anchoredPosition = new Vector2(0f, -68f);
+            sepGO.GetComponent<Image>().color = new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0.35f);
+            sepGO.GetComponent<Image>().raycastTarget = false;
+
+            // Descrição do evento
+            _descText = MakeLabel("Desc", 16f, TextMain, FontStyles.Normal, TextAlignmentOptions.TopLeft,
+                new Vector2(0f, 1f), new Vector2(1f, 1f),
+                new Vector2(24f, -78f), new Vector2(-24f, 0f), font);
+            _descText.rectTransform.sizeDelta = new Vector2(0f, 120f);
+            _descText.rectTransform.anchoredPosition = Vector2.zero;
             _descText.textWrappingMode = TextWrappingModes.Normal;
+            _descText.lineSpacing = 8f;
 
             // Área das escolhas
             var areaGO = new GameObject("Choices", typeof(RectTransform), typeof(VerticalLayoutGroup));
             areaGO.transform.SetParent(transform, false);
             _choicesArea = areaGO.GetComponent<RectTransform>();
-            _choicesArea.anchorMin = new Vector2(0f, 0f); _choicesArea.anchorMax = new Vector2(1f, 0.55f);
-            _choicesArea.offsetMin = new Vector2(16f, 12f); _choicesArea.offsetMax = new Vector2(-16f, -4f);
+            _choicesArea.anchorMin = new Vector2(0f, 0f); _choicesArea.anchorMax = new Vector2(1f, 1f);
+            _choicesArea.offsetMin = new Vector2(20f, 16f); _choicesArea.offsetMax = new Vector2(-20f, -208f);
             var vlg = areaGO.GetComponent<VerticalLayoutGroup>();
-            vlg.spacing = 8f; vlg.childForceExpandWidth = true; vlg.childForceExpandHeight = true;
+            vlg.spacing = 10f; vlg.childForceExpandWidth = true; vlg.childForceExpandHeight = true;
             vlg.childControlWidth = true; vlg.childControlHeight = true;
             vlg.childAlignment = TextAnchor.MiddleCenter;
 
@@ -85,8 +119,7 @@ namespace GameIdle
             for (int i = 0; i < eventData.choices.Length; i++)
             {
                 int idx = i;
-                var choice = eventData.choices[i];
-                _spawnedChoices.Add(BuildChoiceButton(choice, () => OnChoiceSelected(idx), font));
+                _spawnedChoices.Add(BuildChoiceButton(eventData.choices[i], () => OnChoiceSelected(idx), font));
             }
         }
 
@@ -95,26 +128,37 @@ namespace GameIdle
             var go = new GameObject("Choice", typeof(RectTransform), typeof(Image), typeof(Button));
             go.transform.SetParent(_choicesArea, false);
             var img = go.GetComponent<Image>();
-            img.sprite = UiSpriteFactory.RoundedBox(); img.type = Image.Type.Sliced; img.color = BtnColor;
+            img.sprite = UiSpriteFactory.RoundedBox(); img.type = Image.Type.Sliced;
+            img.color = new Color(0.12f, 0.22f, 0.36f, 1f);
             go.GetComponent<Button>().onClick.AddListener(() => onClick());
 
+            // Linha de acento esquerda
+            var ac = new GameObject("Accent", typeof(RectTransform), typeof(Image));
+            ac.transform.SetParent(go.transform, false);
+            var art = ac.GetComponent<RectTransform>();
+            art.anchorMin = new Vector2(0f, 0f); art.anchorMax = new Vector2(0f, 1f);
+            art.offsetMin = new Vector2(0f, 6f); art.offsetMax = new Vector2(4f, -6f);
+            ac.GetComponent<Image>().color = GreenColor; ac.GetComponent<Image>().raycastTarget = false;
+
+            // Texto principal da escolha
             var top = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
             top.transform.SetParent(go.transform, false);
             var trt = top.GetComponent<RectTransform>();
-            trt.anchorMin = new Vector2(0f, 0.45f); trt.anchorMax = Vector2.one;
-            trt.offsetMin = new Vector2(12f, 0f); trt.offsetMax = new Vector2(-12f, -2f);
+            trt.anchorMin = new Vector2(0f, 0.48f); trt.anchorMax = Vector2.one;
+            trt.offsetMin = new Vector2(16f, 0f); trt.offsetMax = new Vector2(-12f, -4f);
             var ttmp = top.GetComponent<TextMeshProUGUI>();
-            ttmp.text = choice.text; ttmp.fontSize = 14; ttmp.fontStyle = FontStyles.Bold;
+            ttmp.text = choice.text; ttmp.fontSize = 16; ttmp.fontStyle = FontStyles.Bold;
             ttmp.color = Color.white; ttmp.alignment = TextAlignmentOptions.BottomLeft; ttmp.raycastTarget = false;
             if (font != null) ttmp.font = font;
 
+            // Efeito/recompensa da escolha
             var sub = new GameObject("Effect", typeof(RectTransform), typeof(TextMeshProUGUI));
             sub.transform.SetParent(go.transform, false);
             var srt = sub.GetComponent<RectTransform>();
-            srt.anchorMin = Vector2.zero; srt.anchorMax = new Vector2(1f, 0.45f);
-            srt.offsetMin = new Vector2(12f, 2f); srt.offsetMax = new Vector2(-12f, 0f);
+            srt.anchorMin = Vector2.zero; srt.anchorMax = new Vector2(1f, 0.48f);
+            srt.offsetMin = new Vector2(16f, 4f); srt.offsetMax = new Vector2(-12f, 0f);
             var stmp = sub.GetComponent<TextMeshProUGUI>();
-            stmp.text = choice.effectDescription; stmp.fontSize = 11; stmp.fontStyle = FontStyles.Bold;
+            stmp.text = choice.effectDescription; stmp.fontSize = 13; stmp.fontStyle = FontStyles.Bold;
             stmp.color = GreenColor; stmp.alignment = TextAlignmentOptions.TopLeft; stmp.raycastTarget = false;
             if (font != null) stmp.font = font;
 

@@ -40,7 +40,7 @@ namespace GameIdle
             trt.offsetMin = new Vector2(0f, -48f); trt.offsetMax = Vector2.zero;
             var ttmp = titleGO.GetComponent<TextMeshProUGUI>();
             ttmp.text = "RANKING DE PRESTÍGIOS";
-            ttmp.fontSize = 20;
+            ttmp.fontSize = 24;
             ttmp.fontStyle = FontStyles.Bold;
             ttmp.alignment = TextAlignmentOptions.Center;
             ttmp.color = new Color(1f, 0.84f, 0f);
@@ -146,13 +146,13 @@ namespace GameIdle
         {
             var rowGO = new GameObject($"Row{rank}", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup));
             rowGO.transform.SetParent(rowsContainer, false);
-            rowGO.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, 34f);
+            rowGO.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, 48f);
 
             rowGO.GetComponent<Image>().color = header
-                ? new Color(0.1f, 0.08f, 0.28f, 1f)
+                ? new Color(0.10f, 0.16f, 0.30f, 1f)
                 : (rank % 2 == 0
-                    ? new Color(0.06f, 0.06f, 0.18f, 0.8f)
-                    : new Color(0.04f, 0.04f, 0.12f, 0.8f));
+                    ? new Color(0.10f, 0.16f, 0.26f, 1f)
+                    : new Color(0.075f, 0.12f, 0.20f, 1f));
 
             var hlg = rowGO.GetComponent<HorizontalLayoutGroup>();
             hlg.padding = new RectOffset(6, 6, 3, 3);
@@ -160,15 +160,15 @@ namespace GameIdle
             hlg.childForceExpandWidth = false;
 
             Color textColor = header ? new Color(1f, 0.84f, 0f) : Color.white;
-            FontStyles style = header ? FontStyles.Bold : FontStyles.Normal;
-            int fontSize = header ? 13 : 12;
+            FontStyles style = FontStyles.Bold;
+            int fontSize = header ? 15 : 16;
 
-            AddCell(rowGO.transform, pos,   32f, textColor, style, fontSize);
+            AddCell(rowGO.transform, pos,   36f, textColor, style, fontSize);
             AddCell(rowGO.transform, name,   0f, textColor, style, fontSize, flexible: true);
-            AddCell(rowGO.transform, count, 60f, textColor, style, fontSize);
-            AddCell(rowGO.transform, kills, 52f, textColor, style, fontSize);
-            AddCell(rowGO.transform, boss,  46f, textColor, style, fontSize);
-            AddCell(rowGO.transform, date,  76f, textColor, style, fontSize);
+            AddCell(rowGO.transform, count, 70f, textColor, style, fontSize);
+            AddCell(rowGO.transform, kills, 62f, textColor, style, fontSize);
+            AddCell(rowGO.transform, boss,  56f, textColor, style, fontSize);
+            AddCell(rowGO.transform, date,  84f, textColor, style, fontSize);
         }
 
         private static void AddCell(Transform parent, string text, float width, Color color,
