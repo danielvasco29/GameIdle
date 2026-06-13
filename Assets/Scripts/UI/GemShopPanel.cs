@@ -72,7 +72,7 @@ namespace GameIdle
             var gemTex = Resources.Load<Texture2D>("Icons/icon_gem");
             if (gemTex != null)
             {
-                var gemTex2 = SpriteBackgroundRemover.Process(gemTex);
+                var gemTex2 = SpriteBackgroundRemover.ProcessDarkBg(gemTex);
                 var gemSp = Sprite.Create(gemTex2, new Rect(0,0,gemTex2.width,gemTex2.height),
                     new Vector2(0.5f,0.5f), 100f, 0, SpriteMeshType.FullRect);
                 var iconGO = new GameObject("GemIcon", typeof(RectTransform), typeof(Image));
@@ -203,7 +203,7 @@ namespace GameIdle
                 var iconTex = Resources.Load<Texture2D>(UpgradeIcons[index]);
                 if (iconTex != null)
                 {
-                    var proc = SpriteBackgroundRemover.Process(iconTex);
+                    var proc = SpriteBackgroundRemover.ProcessDarkBg(iconTex);
                     var sp = Sprite.Create(proc, new Rect(0, 0, proc.width, proc.height),
                         new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
 
