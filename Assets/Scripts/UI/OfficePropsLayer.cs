@@ -13,20 +13,22 @@ namespace GameIdle
         private RectTransform _panel;
 
         // ── Posições das mesas ────────────────────────────────────────────────
-        // 3 Kit1 (Executivo, esquerda) + 3 Kit2 (Desenvolvedor, direita)
+        // Grade 3×2 preenchendo o chão: coluna central mata o vazio do meio,
+        // colunas laterais ficam afastadas das bordas (sem cortar) e do sofá.
         private static readonly Vector2[] DeskPositions =
         {
-            new(-420f,  150f),
-            new(-420f,  -40f),
-            new(-420f, -230f),
-
-            new( 300f,  150f),
-            new( 300f,  -40f),
-            new( 300f, -230f),
+            // fileira do fundo
+            new(-300f,   80f),
+            new(  20f,   80f),
+            new( 300f,   80f),
+            // fileira da frente
+            new(-300f, -190f),
+            new(  20f, -190f),
+            new( 300f, -190f),
         };
 
-        // 0 = Kit1 Executivo, 1 = Kit2 Desenvolvedor
-        private static readonly int[] DeskKit = { 0, 0, 0, 1, 1, 1 };
+        // 0 = Kit1 Executivo, 1 = Kit2 Desenvolvedor — alterna para dar variedade.
+        private static readonly int[] DeskKit = { 0, 1, 0, 1, 0, 1 };
 
         // ── Props do ambiente ─────────────────────────────────────────────────
         // (path, pos, size, rows, cols)

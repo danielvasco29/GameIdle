@@ -23,27 +23,28 @@ namespace GameIdle
         // partir do screenshot). y é "para cima"; o centro do chão fica perto de (20,55).
         // Spots de roaming no chão aberto — bem espalhados entre as duas colunas
         // de mesas (x≈-420 e x≈300) para os personagens não se aglomerarem.
+        // Spots nos CORREDORES entre as mesas (colunas em x≈-300/20/300, fileiras
+        // em y≈80/-190) e na frente do escritório. Calibrados para não cair em
+        // cima de nenhuma mesa nem aglomerar no centro.
         public static readonly Vector2[] SpreadPositions =
         {
-            new(-240f,  220f), // fundo-esquerda
-            new( -60f,  240f), // fundo-centro (porta)
-            new( 130f,  220f), // fundo-direita
-            new(-250f,   40f), // meio-esquerda
-            new( -50f,   80f), // centro
-            new( 150f,   40f), // meio-direita
-            new(-240f, -150f), // frente-esquerda
-            new( -40f, -110f), // frente-centro
-            new( 140f, -160f), // frente-direita
-            new(  60f, -260f), // frente-baixo
-            new(-130f, -260f), // frente-baixo esquerda
+            new(-150f,  210f), // fundo, corredor esquerdo
+            new( 160f,  210f), // fundo, corredor direito
+            new(-150f,  -55f), // corredor esquerdo (entre colunas esq/centro)
+            new( 160f,  -55f), // corredor direito (entre colunas centro/dir)
+            new( -10f,  -60f), // centro, aberto
+            new(-150f, -300f), // frente esquerda
+            new( 160f, -300f), // frente direita
+            new( -10f, -300f), // frente centro
+            new(-300f, -320f), // frente, canto esquerdo aberto
+            new( 300f, -320f), // frente, canto direito aberto
         };
 
         // Nenhum spot é cadeira — os workers só roam pelo chão aberto.
         public static readonly bool[] IsSeat =
         {
-            false, false, false, false,
-            false, false, false, false,
-            false, false, false,
+            false, false, false, false, false,
+            false, false, false, false, false,
         };
 
         public void Init(RectTransform panelMain)
