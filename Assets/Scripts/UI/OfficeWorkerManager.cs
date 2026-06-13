@@ -112,9 +112,17 @@ namespace GameIdle
                     idle = null
                 };
 
-            const int cols = 8;
-            int frameW = tex.width / cols;
-            int rows   = Mathf.Max(1, Mathf.RoundToInt((float)tex.height / frameW));
+            // Character sheets are a 12-col x 2-row grid (top: walk, bottom:
+            // work). Wide sheets (~4:1) match this; the old square-frame guess
+            // (8 cols) sliced 1.5 characters per frame and showed doubles.
+            int cols, rows;
+            if (tex.width >= tex.height * 3) { cols = 12; rows = 2; }
+            else
+            {
+                cols = 8;
+                rows = Mathf.Max(1, Mathf.RoundToInt((float)tex.height / (tex.width / cols)));
+            }
+            int frameW = tex.width  / cols;
             int frameH = tex.height / rows;
 
             Sprite[] SliceRow(int rowFromTop)
