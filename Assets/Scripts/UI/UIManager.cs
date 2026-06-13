@@ -793,7 +793,14 @@ namespace GameIdle
                 floorImg.transform.SetParent(bgPanel.transform, false);
                 var frt = floorImg.rectTransform;
                 frt.anchorMin = Vector2.zero; frt.anchorMax = Vector2.one;
-                frt.offsetMin = frt.offsetMax = Vector2.zero;
+                // Expande e desloca o escritorio para a direita: o lado esquerdo fica
+                // atras da sidebar (~380px), entao centralizar na tela inteira deixava
+                // muito navy sobrando a direita. Os insets abaixo recortam o lado
+                // esquerdo (coberto pela sidebar), estendem a direita e ampliam a
+                // altura (~aumenta a imagem via preserveAspect), alinhando o cenario
+                // com a area dos personagens (Panel_Main, deslocado +190).
+                frt.offsetMin = new Vector2(360f, -90f); // esquerda recuada, base estendida
+                frt.offsetMax = new Vector2(40f,  90f);  // direita e topo estendidos
                 floorImg.transform.SetAsLastSibling(); // cobre o tom escuro do Panel_BG
 
                 // Fundo das laterais: gradiente navy combinando com o tema. O
