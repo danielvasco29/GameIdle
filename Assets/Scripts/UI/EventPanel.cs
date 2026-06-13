@@ -66,12 +66,12 @@ namespace GameIdle
             sepGO.GetComponent<Image>().color = new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0.35f);
             sepGO.GetComponent<Image>().raycastTarget = false;
 
-            // Descrição do evento (fonte maior)
-            _descText = MakeLabel("Desc", 20f, TextMain, FontStyles.Normal, TextAlignmentOptions.TopLeft,
+            // Descrição do evento (região abaixo do separador, texto centralizado).
+            // Os offsets definem a região completa — não sobrescrever com sizeDelta,
+            // senão a label vai parar na borda superior e fica cortada.
+            _descText = MakeLabel("Desc", 20f, TextMain, FontStyles.Normal, TextAlignmentOptions.Top,
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
-                new Vector2(28f, -116f), new Vector2(-28f, 0f), font);
-            _descText.rectTransform.sizeDelta = new Vector2(0f, 120f);
-            _descText.rectTransform.anchoredPosition = Vector2.zero;
+                new Vector2(30f, -236f), new Vector2(-30f, -114f), font);
             _descText.textWrappingMode = TextWrappingModes.Normal;
             _descText.lineSpacing = 10f;
 
