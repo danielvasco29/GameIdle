@@ -33,6 +33,13 @@ namespace GameIdle
         private float    _animTimer;
         private int      _animFrame;
         private float    _animFps = 10f; // frames per second (per-monster)
+        private bool     _pingPong;      // bounce 0->n->0 instead of looping (worm)
+        private int      _animDir = 1;
+
+        // Crossfade between frames for smooth transitions
+        private Image    _fadeImg;       // shows the outgoing frame, fading out
+        private float    _fadeT;
+        private float    _fadeDur;
 
         // Damage flash
         private Coroutine _flashCo;
@@ -47,16 +54,47 @@ namespace GameIdle
         {
             if (_spriteImg == null) return;
 
-            // Idle animation
+            // Idle animation with crossfade between frames
             if (_idleFrames != null && _idleFrames.Length > 1)
             {
+                float interval = 1f / _animFps;
                 _animTimer += Time.deltaTime;
-                if (_animTimer >= 1f / _animFps)
+                if (_animTimer >= interval)
                 {
-                    _animTimer = 0f;
-                    _animFrame = (_animFrame + 1) % _idleFrames.Length;
+                    _animTimer -= interval;
+                    int prev = _animFrame;
+                    if (_pingPong)
+                    {
+                        _animFrame += _animDir;
+                        if (_animFrame >= _idleFrames.Length - 1) { _animFrame = _idleFrames.Length - 1; _animDir = -1; }
+                        else if (_animFrame <= 0) { _animFrame = 0; _animDir = 1; }
+                    }
+                    else
+                    {
+                        _animFrame = (_animFrame + 1) % _idleFrames.Length;
+                    }
+
                     if (_idleFrames[_animFrame] != null)
+                    {
+                        // Start a crossfade: outgoing frame on the overlay, new on base.
+                        if (_fadeImg != null && _idleFrames[prev] != null && prev != _animFrame)
+                        {
+                            _fadeImg.sprite = _idleFrames[prev];
+                            _fadeImg.color  = Color.white;
+                            _fadeT   = 0f;
+                            _fadeDur = interval * 0.9f;
+                        }
                         _spriteImg.sprite = _idleFrames[_animFrame];
+                    }
+                }
+
+                // Advance the crossfade (smoothstep ease for a softer dissolve).
+                if (_fadeImg != null && _fadeImg.color.a > 0f)
+                {
+                    _fadeT += Time.deltaTime;
+                    float a = _fadeDur > 0f ? Mathf.Clamp01(_fadeT / _fadeDur) : 1f;
+                    float e = a * a * (3f - 2f * a);
+                    _fadeImg.color = new Color(1f, 1f, 1f, 1f - e);
                 }
             }
 
@@ -144,6 +182,18 @@ namespace GameIdle
                 _spriteImg.preserveAspect = true;
                 _spriteImg.raycastTarget = true;
 
+                // Crossfade overlay — fills the sprite rect, shows the outgoing
+                // frame and fades out so frame swaps dissolve instead of popping.
+                var fadeGO = new GameObject("SpriteFade", typeof(RectTransform), typeof(Image));
+                fadeGO.transform.SetParent(go.transform, false);
+                var frt = fadeGO.GetComponent<RectTransform>();
+                frt.anchorMin = Vector2.zero; frt.anchorMax = Vector2.one;
+                frt.offsetMin = frt.offsetMax = Vector2.zero;
+                _fadeImg = fadeGO.GetComponent<Image>();
+                _fadeImg.preserveAspect = true;
+                _fadeImg.raycastTarget = false;
+                _fadeImg.color = new Color(1f, 1f, 1f, 0f);
+
                 // Tap the monster to attack
                 var btn = go.AddComponent<Button>();
                 btn.targetGraphic = _spriteImg;
@@ -203,6 +253,9 @@ namespace GameIdle
             _idleFrames = null;
             _animFrame  = 0;
             _animTimer  = 0f;
+            _animDir    = 1;
+            _pingPong   = false;
+            if (_fadeImg != null) _fadeImg.color = new Color(1f, 1f, 1f, 0f);
             var srcTex = Resources.Load<Texture2D>(def.spritePath);
             if (srcTex != null && _spriteImg != null)
             {
@@ -221,7 +274,8 @@ namespace GameIdle
                         // Antecipação / Estocada / Recuperação. We animate those as
                         // a slow writhe so the worm stays whole AND moves.
                         _idleFrames = SliceAttackRow(tex);
-                        _animFps = 4.5f;
+                        _animFps = 5f;
+                        _pingPong = true; // anticip->strike->recover->strike (no hard jump)
                     }
                     else
                     {
