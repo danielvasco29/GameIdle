@@ -102,9 +102,6 @@ namespace GameIdle
 
             tierCount = GetStarCount(character.data.baseCost);
             _rarity   = RarityColor(tierCount);
-            // Faint rarity wash over the glass-navy card (keeps it subtle: ~8/12%).
-            _cardBase  = Color.Lerp(CardColor,      _rarity, 0.08f); _cardBase.a  = CardColor.a;
-            _cardReady = Color.Lerp(CardColorReady, _rarity, 0.12f); _cardReady.a = CardColorReady.a;
 
             var le = GetComponent<LayoutElement>() ?? gameObject.AddComponent<LayoutElement>();
             le.minHeight = le.preferredHeight = 108;
@@ -113,7 +110,7 @@ namespace GameIdle
             // Rounded card background
             backgroundImage.sprite = GetRoundedSprite();
             backgroundImage.type   = Image.Type.Sliced;
-            backgroundImage.color  = _cardBase;
+            backgroundImage.color  = CardColor;
 
             SetupAvatar();
             SetupAffordableIndicator();
@@ -211,10 +208,9 @@ namespace GameIdle
             go.transform.SetAsFirstSibling();
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(0f, 0f); rt.anchorMax = new Vector2(0f, 1f);
-            rt.offsetMin = Vector2.zero; rt.offsetMax = new Vector2(6f, 0f);
+            rt.offsetMin = Vector2.zero; rt.offsetMax = new Vector2(5f, 0f);
             affordableIndicator = go.GetComponent<Image>();
-            // Rarity-colored accent: always visible, brightens when affordable.
-            affordableIndicator.color = new Color(_rarity.r, _rarity.g, _rarity.b, 0.55f);
+            affordableIndicator.color = new Color(GreenColor.r, GreenColor.g, GreenColor.b, 0f);
             affordableIndicator.raycastTarget = false;
         }
 
@@ -291,8 +287,6 @@ namespace GameIdle
         };
 
         private Color _rarity;
-        private Color _cardBase;
-        private Color _cardReady;
 
         private static void SetAnchors(RectTransform rt, Vector2 aMin, Vector2 aMax, Vector2 oMin, Vector2 oMax)
         {
@@ -469,12 +463,12 @@ namespace GameIdle
             bool affordable = !maxedOut && buyCount >= 1 && GameManager.Instance.Money >= buyCost;
 
             if (backgroundImage != null)
-                backgroundImage.color = affordable ? _cardReady : _cardBase;
+                backgroundImage.color = affordable ? CardColorReady : CardColor;
 
             if (affordableIndicator != null)
                 affordableIndicator.color = affordable
-                    ? new Color(_rarity.r, _rarity.g, _rarity.b, 1f)    // full rarity glow when affordable
-                    : new Color(_rarity.r, _rarity.g, _rarity.b, 0.50f); // dim rarity tint otherwise
+                    ? new Color(0.35f, 0.75f, 1f, 1f)   // cyan-blue when affordable
+                    : new Color(0f, 0f, 0f, 0f);         // invisible otherwise
 
             if (costProgressBar != null)
             {
@@ -545,10 +539,10 @@ namespace GameIdle
                 while (t < 0.12f)
                 {
                     t += Time.deltaTime;
-                    backgroundImage.color = Color.Lerp(new Color(0.55f, 0.80f, 1f, 1f), _cardReady, t / 0.12f);
+                    backgroundImage.color = Color.Lerp(new Color(0.55f, 0.80f, 1f, 1f), CardColorReady, t / 0.12f);
                     yield return null;
                 }
-                backgroundImage.color = _cardBase;
+                backgroundImage.color = CardColor;
             }
             if (pulseCoroutine != null) StopCoroutine(pulseCoroutine);
             pulseCoroutine = StartCoroutine(PulseCoroutine());
@@ -559,10 +553,10 @@ namespace GameIdle
             // Single gentle flash + small scale nudge
             var flash = new Color(0.40f, 0.78f, 1f, 1f);
             float e = 0f;
-            while (e < 0.20f) { e += Time.deltaTime; if (backgroundImage) backgroundImage.color = Color.Lerp(_cardReady, flash, e / 0.20f); yield return null; }
+            while (e < 0.20f) { e += Time.deltaTime; if (backgroundImage) backgroundImage.color = Color.Lerp(CardColorReady, flash, e / 0.20f); yield return null; }
             e = 0f;
-            while (e < 0.30f) { e += Time.deltaTime; if (backgroundImage) backgroundImage.color = Color.Lerp(flash, _cardReady, e / 0.30f); yield return null; }
-            if (backgroundImage) backgroundImage.color = _cardReady;
+            while (e < 0.30f) { e += Time.deltaTime; if (backgroundImage) backgroundImage.color = Color.Lerp(flash, CardColorReady, e / 0.30f); yield return null; }
+            if (backgroundImage) backgroundImage.color = CardColorReady;
             pulseCoroutine = null;
         }
 
