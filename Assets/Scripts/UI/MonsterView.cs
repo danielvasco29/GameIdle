@@ -492,17 +492,47 @@ namespace GameIdle
 
             if (runs.Count < 2) return new[] { CropMovementRowFull(tex) };
 
-            // Common window width = widest pose (+ pad) so all frames match scale.
-            int maxRunW = 0;
-            foreach (var r in runs) maxRunW = Mathf.Max(maxRunW, r.y - r.x);
-            int winW = Mathf.Min(w, maxRunW + Mathf.RoundToInt(maxRunW * 0.04f));
+            // Compute each pose's tight bounding box (its own columns only, so a
+            // neighbouring worm can never leak in).
+            var boxes = new RectInt[runs.Count];
+            int maxBoxW = 0, maxBoxH = 0;
+            for (int i = 0; i < runs.Count; i++)
+            {
+                int minX = runs[i].y, maxX = runs[i].x, minY = bandY1, maxY = bandY0;
+                for (int y = bandY0; y < bandY1; y++)
+                for (int x = runs[i].x; x < runs[i].y; x++)
+                    if (px[y * w + x].a > 40)
+                    {
+                        if (x < minX) minX = x; if (x > maxX) maxX = x;
+                        if (y < minY) minY = y; if (y > maxY) maxY = y;
+                    }
+                boxes[i] = new RectInt(minX, minY, Mathf.Max(1, maxX - minX), Mathf.Max(1, maxY - minY));
+                maxBoxW = Mathf.Max(maxBoxW, boxes[i].width);
+                maxBoxH = Mathf.Max(maxBoxH, boxes[i].height);
+            }
 
+            // Uniform transparent canvas sized to the largest pose (+ small margin).
+            int canvasW = maxBoxW + 16;
+            int canvasH = maxBoxH + 16;
             var frames = new Sprite[runs.Count];
             for (int i = 0; i < runs.Count; i++)
             {
-                int cx = (runs[i].x + runs[i].y) / 2;
-                int fx = Mathf.Clamp(cx - winW / 2, 0, w - winW);
-                frames[i] = Sprite.Create(tex, new Rect(fx, bandY0, winW, bandH),
+                var canvas = new Color32[canvasW * canvasH]; // alpha 0 by default
+                var box = boxes[i];
+                int offX = (canvasW - box.width) / 2;
+                int offY = (canvasH - box.height) / 2;
+                for (int y = 0; y < box.height; y++)
+                for (int x = 0; x < box.width; x++)
+                {
+                    var c = px[(box.y + y) * w + (box.x + x)];
+                    if (c.a <= 40) continue; // skip background; only blit the worm
+                    canvas[(offY + y) * canvasW + (offX + x)] = c;
+                }
+                var ftex = new Texture2D(canvasW, canvasH, TextureFormat.RGBA32, false)
+                    { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+                ftex.SetPixels32(canvas);
+                ftex.Apply();
+                frames[i] = Sprite.Create(ftex, new Rect(0, 0, canvasW, canvasH),
                     new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
             }
             return frames;
