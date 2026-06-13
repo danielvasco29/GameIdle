@@ -8,6 +8,7 @@ namespace GameIdle
     public static class UiSpriteFactory
     {
         private static Sprite circle;
+        private static Sprite glow;
         private static Sprite box;
         private static Sprite roundedBox;
         private static Sprite star;
@@ -153,6 +154,34 @@ namespace GameIdle
             circle = Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), 100f);
             circle.name = "GenCircle";
             return circle;
+        }
+
+        // Soft radial halo: bright at the centre, smoothly fading to transparent
+        // at the rim. Tint it and place it behind a solid Circle() face to make a
+        // premium glowing button (instead of a flat tinted disc).
+        public static Sprite Glow()
+        {
+            if (glow != null) return glow;
+            const int s = 64;
+            var tex = new Texture2D(s, s, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            float r = s / 2f;
+            var center = new Vector2(r - 0.5f, r - 0.5f);
+            var px = new Color32[s * s];
+            for (int y = 0; y < s; y++)
+            {
+                for (int x = 0; x < s; x++)
+                {
+                    float d = Vector2.Distance(new Vector2(x, y), center) / r; // 0..1
+                    float a = Mathf.Clamp01(1f - d);
+                    a = a * a; // quadratic falloff → soft halo
+                    px[y * s + x] = new Color32(255, 255, 255, (byte)(a * 255));
+                }
+            }
+            tex.SetPixels32(px);
+            tex.Apply();
+            glow = Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), 100f);
+            glow.name = "GenGlow";
+            return glow;
         }
 
         // Plain solid white square — used for cards/buttons/panels (sharp corners).

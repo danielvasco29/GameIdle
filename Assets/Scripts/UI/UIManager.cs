@@ -82,6 +82,8 @@ namespace GameIdle
         private Image _tapRingImg;
         private bool _tapPunching;
         private Image _prestigeSheen;
+        private Image _prestigeStarGlow;
+        private RectTransform _prestigeStarRt;
 
         // Boost TURBO
         private Image _boostBtnImg;
@@ -136,6 +138,7 @@ namespace GameIdle
         // Runtime-generated UI sprites (no dependency on Unity built-in resources)
         private static Sprite Circle()  => UiSpriteFactory.Circle();
         private static Sprite Rounded() => UiSpriteFactory.RoundedBox();
+        private static Sprite Glow()    => UiSpriteFactory.Glow();
 
         private void Awake()
         {
@@ -329,6 +332,26 @@ namespace GameIdle
         private double _pendingOfflineEarned;
         private long   _pendingOfflineSeconds;
 
+        // Fundo glass unificado das abas do topo + uma fina linha de acento na
+        // base, na cor do tema da aba. Dá coesão visual a MENU/MISSOES/etc.
+        private static readonly Color TabBg = new(0.075f, 0.122f, 0.200f, 0.92f);
+        private void StyleNavTab(GameObject btnGO, Color accent)
+        {
+            var img = btnGO.GetComponent<Image>();
+            if (img != null) img.color = TabBg;
+
+            if (btnGO.transform.Find("Accent") != null) return;
+            var ac = new GameObject("Accent", typeof(RectTransform), typeof(Image));
+            ac.transform.SetParent(btnGO.transform, false);
+            var art = ac.GetComponent<RectTransform>();
+            art.anchorMin = new Vector2(0f, 0f); art.anchorMax = new Vector2(1f, 0f);
+            art.pivot = new Vector2(0.5f, 0f);
+            art.offsetMin = new Vector2(10f, 4f); art.offsetMax = new Vector2(-10f, 7f);
+            var aImg = ac.GetComponent<Image>();
+            aImg.sprite = Rounded(); aImg.type = Image.Type.Sliced;
+            aImg.color = accent; aImg.raycastTarget = false;
+        }
+
         private void SetupShopAndSettings()
         {
             var canvas = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
@@ -368,6 +391,7 @@ namespace GameIdle
             mlt.textWrappingMode = TextWrappingModes.NoWrap; mlt.overflowMode = TextOverflowModes.Ellipsis;
             mlt.raycastTarget = false;
             var f = GetCachedFont(); if (f != null) mlt.font = f;
+            StyleNavTab(btnGO, TextSec);
 
             // ── Offline Progress Panel ─────────────────────────────────────
             var offlineGO = new GameObject("OfflineProgressPanel", typeof(RectTransform));
@@ -401,6 +425,7 @@ namespace GameIdle
             mblt.color = NeonCyan; mblt.alignment = TextAlignmentOptions.Center; mblt.raycastTarget = false;
             mblt.textWrappingMode = TextWrappingModes.NoWrap; mblt.overflowMode = TextOverflowModes.Ellipsis;
             var mf = GetCachedFont(); if (mf != null) mblt.font = mf;
+            StyleNavTab(mBtnGO, NeonCyan);
             _missionDot = MakeNotifyDot(mBtnGO.transform);
 
             // ── Achievement Panel ──────────────────────────────────────────
@@ -437,6 +462,7 @@ namespace GameIdle
             ablt.color = GoldColor; ablt.alignment = TextAlignmentOptions.Center; ablt.raycastTarget = false;
             ablt.textWrappingMode = TextWrappingModes.NoWrap; ablt.overflowMode = TextOverflowModes.Ellipsis;
             var af = GetCachedFont(); if (af != null) ablt.font = af;
+            StyleNavTab(aBtnGO, GoldColor);
             _achievementDot = MakeNotifyDot(aBtnGO.transform);
 
             // ── Active Effects Panel ───────────────────────────────────────
@@ -469,6 +495,7 @@ namespace GameIdle
             bblt.color = GoldColor; bblt.alignment = TextAlignmentOptions.Center; bblt.raycastTarget = false;
             bblt.textWrappingMode = TextWrappingModes.NoWrap; bblt.overflowMode = TextOverflowModes.Ellipsis;
             var bf = GetCachedFont(); if (bf != null) bblt.font = bf;
+            StyleNavTab(bBtnGO, GoldColor);
             _bonusDot = MakeNotifyDot(bBtnGO.transform);
         }
 
@@ -568,8 +595,8 @@ namespace GameIdle
                 return im;
             }
 
-            AddBatCircle("Ring",   new Vector2(-24f,-24f), new Vector2(24f,24f),  new Color(0.85f,0.15f,0.15f,0.22f), false);
-            AddBatCircle("Glow",   new Vector2(-14f,-14f), new Vector2(14f,14f),  new Color(0.85f,0.15f,0.15f,0.28f), false);
+            AddBatCircle("Ring",   new Vector2(-40f,-40f), new Vector2(40f,40f),  new Color(0.95f,0.22f,0.22f,0.26f), false).sprite = Glow();
+            AddBatCircle("Glow",   new Vector2(-22f,-22f), new Vector2(22f,22f),  new Color(0.95f,0.22f,0.22f,0.34f), false).sprite = Glow();
             AddBatCircle("Border", new Vector2( -2f, -2f), new Vector2( 2f, 2f),  new Color(0.40f,0.05f,0.05f,1f),   false);
             _attackBtnImg = AddBatCircle("Face", Vector2.zero, Vector2.zero, new Color(0.80f,0.12f,0.12f,1f), true);
             batGO.GetComponent<Button>().targetGraphic = _attackBtnImg;
@@ -636,6 +663,7 @@ namespace GameIdle
             ltmp.raycastTarget = false;
             var ff = GetCachedFont();
             if (ff != null) ltmp.font = ff;
+            StyleNavTab(btnGO, new Color(0.6f, 0.7f, 0.85f, 0.85f));
         }
 
         private void OpenRanking()
@@ -675,6 +703,7 @@ namespace GameIdle
             ltmp.color = new Color(0.6f, 0.7f, 0.85f, 0.85f);
             ltmp.alignment = TextAlignmentOptions.Center; ltmp.raycastTarget = false;
             var ff2 = GetCachedFont(); if (ff2 != null) ltmp.font = ff2;
+            StyleNavTab(btnGO, new Color(0.6f, 0.7f, 0.85f, 0.85f));
         }
 
         // ── Tap Button ────────────────────────────────────────────────────────
@@ -797,13 +826,15 @@ namespace GameIdle
                 return im;
             }
 
-            // Anel exterior pulsante — maior que o botão
-            _tapRingImg = AddCircle("Ring", new Vector2(-34f, -34f), new Vector2(34f, 34f),
-                new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.18f), false);
+            // Halo exterior pulsante — glow radial suave, bem maior que o botão
+            _tapRingImg = AddCircle("Ring", new Vector2(-56f, -56f), new Vector2(56f, 56f),
+                new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.22f), false);
+            _tapRingImg.sprite = Glow();
 
-            // Glow difuso
-            tapGlowImg = AddCircle("Glow", new Vector2(-20f, -20f), new Vector2(20f, 20f),
-                new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.30f), false);
+            // Glow difuso interno (halo radial mais concentrado)
+            tapGlowImg = AddCircle("Glow", new Vector2(-28f, -28f), new Vector2(28f, 28f),
+                new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.38f), false);
+            tapGlowImg.sprite = Glow();
 
             // Borda escura (circle ligeiramente maior que face)
             AddCircle("Border", new Vector2(-2f, -2f), new Vector2(2f, 2f),
@@ -1418,16 +1449,31 @@ namespace GameIdle
             _prestigeSheen.color = new Color(1f, 1f, 1f, 0.07f);
             _prestigeSheen.raycastTarget = false;
 
+            // Glow dourado atrás da estrela (pulsa quando o prestígio está pronto)
+            var starGlowGO = new GameObject("StarGlow", typeof(RectTransform), typeof(Image));
+            starGlowGO.transform.SetParent(prestigeButton.transform, false);
+            var sgrt = starGlowGO.GetComponent<RectTransform>();
+            sgrt.anchorMin = sgrt.anchorMax = sgrt.pivot = new Vector2(0f, 0.5f);
+            sgrt.anchoredPosition = new Vector2(38f, 0f);
+            sgrt.sizeDelta = new Vector2(78f, 78f);
+            _prestigeStarGlow = starGlowGO.GetComponent<Image>();
+            _prestigeStarGlow.sprite = Glow();
+            _prestigeStarGlow.color = new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0f);
+            _prestigeStarGlow.raycastTarget = false;
+
             // Ícone estrela à esquerda
             var starGO = new GameObject("StarIcon", typeof(RectTransform), typeof(Image));
             starGO.transform.SetParent(prestigeButton.transform, false);
-            var strt = starGO.GetComponent<RectTransform>();
+            _prestigeStarRt = starGO.GetComponent<RectTransform>();
+            var strt = _prestigeStarRt;
             strt.anchorMin = strt.anchorMax = strt.pivot = new Vector2(0f, 0.5f);
             strt.anchoredPosition = new Vector2(20f, 0f);
             strt.sizeDelta = new Vector2(36f, 36f);
             var stImg = starGO.GetComponent<Image>();
             stImg.sprite = UiSpriteFactory.Star(); stImg.color = GoldColor;
             stImg.raycastTarget = false;
+
+            StartCoroutine(PulsePrestigeReady());
 
             var labelGO = prestigeButton.transform.Find("PrestigeButtonLabel");
             TextMeshProUGUI label = labelGO != null
@@ -1491,6 +1537,36 @@ namespace GameIdle
 
             prestigeButtonLabel.color = ready ? new Color(1f, 0.95f, 0.70f) : Color.white;
             prestigeButtonLabel.fontSize = 17f;
+        }
+
+        // Quando o prestígio está disponível, a estrela respira (glow + escala)
+        // para chamar atenção; em repouso fica estática e discreta.
+        private IEnumerator PulsePrestigeReady()
+        {
+            float phase = 0f;
+            while (true)
+            {
+                bool ready = GameManager.Instance != null && GameManager.Instance.CanPrestige();
+                if (ready)
+                {
+                    phase += Time.deltaTime * 2.2f;
+                    float t = (Mathf.Sin(phase) + 1f) * 0.5f; // 0..1
+                    if (_prestigeStarGlow != null)
+                        _prestigeStarGlow.color = new Color(GoldColor.r, GoldColor.g, GoldColor.b,
+                            Mathf.Lerp(0.15f, 0.55f, t));
+                    if (_prestigeStarRt != null)
+                        _prestigeStarRt.localScale = Vector3.one * Mathf.Lerp(1f, 1.15f, t);
+                }
+                else
+                {
+                    phase = 0f;
+                    if (_prestigeStarGlow != null)
+                        _prestigeStarGlow.color = new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0f);
+                    if (_prestigeStarRt != null)
+                        _prestigeStarRt.localScale = Vector3.one;
+                }
+                yield return null;
+            }
         }
 
         // ── Background Animations ─────────────────────────────────────────────
