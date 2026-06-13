@@ -196,9 +196,7 @@ namespace GameIdle
             cImg.sprite = Rounded(); cImg.type = Image.Type.Sliced;
             cImg.color = NavyCard;
 
-            // Ícone à esquerda dentro de um tile circular com máscara: o recorte
-            // circular esconde o fundo quadrado do sprite, deixando o ícone limpo
-            // (antes parecia colado num bloco escuro desencontrado do card).
+            // Ícone à esquerda, direto sobre o card (fundo transparente, sem tile)
             float iconW = 0f;
             if (index < UpgradeIcons.Length)
             {
@@ -209,25 +207,13 @@ namespace GameIdle
                     var sp = Sprite.Create(proc, new Rect(0, 0, proc.width, proc.height),
                         new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
 
-                    // Tile circular (faz de fundo e de máscara)
-                    var tileGO = new GameObject("IconTile", typeof(RectTransform), typeof(Image), typeof(Mask));
-                    tileGO.transform.SetParent(card.transform, false);
-                    var trt = tileGO.GetComponent<RectTransform>();
-                    trt.anchorMin = new Vector2(0f, 0.5f); trt.anchorMax = new Vector2(0f, 0.5f);
-                    trt.pivot = new Vector2(0f, 0.5f);
-                    trt.anchoredPosition = new Vector2(12f, 0f);
-                    trt.sizeDelta = new Vector2(64f, 64f);
-                    var tImg = tileGO.GetComponent<Image>();
-                    tImg.sprite = Circle();
-                    tImg.color = new Color(0.16f, 0.23f, 0.36f, 1f); // tile sutil e uniforme
-                    tImg.raycastTarget = false;
-                    tileGO.GetComponent<Mask>().showMaskGraphic = true;
-
                     var iconGO = new GameObject("Icon", typeof(RectTransform), typeof(Image));
-                    iconGO.transform.SetParent(tileGO.transform, false);
+                    iconGO.transform.SetParent(card.transform, false);
                     var irt = iconGO.GetComponent<RectTransform>();
-                    irt.anchorMin = Vector2.zero; irt.anchorMax = Vector2.one;
-                    irt.offsetMin = new Vector2(6f, 6f); irt.offsetMax = new Vector2(-6f, -6f);
+                    irt.anchorMin = new Vector2(0f, 0.5f); irt.anchorMax = new Vector2(0f, 0.5f);
+                    irt.pivot = new Vector2(0f, 0.5f);
+                    irt.anchoredPosition = new Vector2(14f, 0f);
+                    irt.sizeDelta = new Vector2(60f, 60f);
                     var iImg = iconGO.GetComponent<Image>();
                     iImg.sprite = sp; iImg.preserveAspect = true; iImg.raycastTarget = false;
                     iconW = 84f;
