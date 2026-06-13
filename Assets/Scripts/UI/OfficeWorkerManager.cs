@@ -10,30 +10,31 @@ namespace GameIdle
         private RectTransform _panel;
         private readonly List<WorkerAvatar> _workers = new();
 
-        // Roam rect: x/y origin = bottom-left corner, width/height = size.
-        // Cobre toda a faixa de chão aberto: das aisles em frente às mesas da
-        // parede esquerda até a coluna de mesas da direita, do fundo até a
-        // frente (acima da barra de prestígio).
-        private static readonly Rect RoamBounds = new Rect(-420f, -150f, 820f, 310f);
-
         // Posições atualmente reservadas por algum worker (evita dois no mesmo spot).
         internal static readonly HashSet<int> ClaimedTargets = new();
 
-        // 10 spots cobrindo todo o chão aberto (mapeados dos cantos marcados).
-        // x: -400..+370  (aisle esquerda ↔ aisle direita)
-        // y: -120..+130  (frente ↔ fundo, sem invadir mesas nem a barra)
+        // ── Coordenadas NORMALIZADAS do escritório ────────────────────────────
+        // Os workers vivem no Panel_Main, mas a arte do escritório é renderizada
+        // no Panel_BG em tela cheia com preserveAspect — ou seja, em outro
+        // referencial que encolhe/centraliza conforme o aspecto da tela. Por isso
+        // posições absolutas nunca batiam com o chão visível. Agora cada spot é
+        // dado em [0..1] sobre a ARTE VISÍVEL (x: 0=esquerda,1=direita; y:
+        // 0=base,1=topo) e convertido para o espaço do Panel_Main em runtime,
+        // funcionando em qualquer aspecto.
+        // Spots no chão aberto, evitando as mesas das paredes, o sofá (canto
+        // sup. direito) e a barra de prestígio (base).
         public static readonly Vector2[] SpreadPositions =
         {
-            new( -40f,  130f), // fundo centro
-            new( 200f,  110f), // fundo direita (sofá)
-            new(-200f,   70f), // meio esquerda
-            new(-400f,    0f), // aisle extrema-esquerda (frente das mesas da parede)
-            new( 370f,   45f), // aisle extrema-direita (frente da coluna de mesas)
-            new(  40f,   30f), // centro do chão
-            new(-110f,  -40f), // centro-frente esquerda
-            new(  10f, -120f), // frente centro
-            new( 230f,  -70f), // frente direita
-            new(-250f, -110f), // frente esquerda
+            new(0.34f, 0.60f), // fundo esquerda-centro
+            new(0.42f, 0.66f), // fundo centro (à frente da porta/bebedouro)
+            new(0.55f, 0.62f), // fundo direita-centro (antes do quadro)
+            new(0.30f, 0.48f), // meio esquerda
+            new(0.42f, 0.46f), // centro
+            new(0.55f, 0.45f), // centro-direita
+            new(0.36f, 0.37f), // frente esquerda-centro
+            new(0.48f, 0.30f), // frente centro
+            new(0.60f, 0.40f), // direita (entre as mesas da direita e o sofá)
+            new(0.45f, 0.18f), // bem na frente (vão entre as duas ilhas de mesas)
         };
 
         // Nenhum spot é cadeira — os workers só roam pelo chão aberto.
@@ -43,9 +44,68 @@ namespace GameIdle
             false, false, false, false, false,
         };
 
+        // ── Mapeamento normalizado → local do Panel_Main ──────────────────────
+        private static RectTransform _sPanel;   // espaço onde os workers vivem
+        private static RectTransform _sFloorRt; // arte do escritório (tela cheia, preserveAspect)
+        private static Camera _sCam;            // câmera do canvas (null se Overlay)
+        private static float _sAspect = 16f / 9f;
+        private static readonly Vector3[] _sCorners = new Vector3[4];
+
+        // Converte um ponto [0..1] sobre a arte visível do escritório para a
+        // anchoredPosition correspondente no espaço do Panel_Main.
+        public static Vector2 OfficeToLocal(Vector2 n)
+        {
+            if (_sFloorRt == null || _sPanel == null)
+                return new Vector2((n.x - 0.5f) * 600f, (n.y - 0.5f) * 340f); // fallback grosseiro
+
+            _sFloorRt.GetWorldCorners(_sCorners); // 0=BL 1=TL 2=TR 3=BR
+            Vector3 bl = _sCorners[0], tr = _sCorners[2];
+            float rtW = tr.x - bl.x, rtH = tr.y - bl.y;
+            if (rtW <= 0f || rtH <= 0f) return Vector2.zero;
+
+            // Retângulo de conteúdo dentro do RT após preserveAspect (letterbox).
+            float rtAspect = rtW / rtH;
+            float cw, ch;
+            if (rtAspect > _sAspect) { ch = rtH; cw = rtH * _sAspect; }
+            else                     { cw = rtW; ch = rtW / _sAspect; }
+
+            float cx = (bl.x + tr.x) * 0.5f, cy = (bl.y + tr.y) * 0.5f;
+            var world = new Vector3(cx + (n.x - 0.5f) * cw, cy + (n.y - 0.5f) * ch, 0f);
+            var screen = RectTransformUtility.WorldToScreenPoint(_sCam, world);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(_sPanel, screen, _sCam, out var local);
+            return local;
+        }
+
+        // Retângulo do chão andável (em coords locais do Panel_Main), usado para
+        // limitar o roam. Margens em normalizado evitam paredes/mesas/barra.
+        public static Rect OfficeFloorBoundsLocal()
+        {
+            Vector2 lo = OfficeToLocal(new Vector2(0.15f, 0.10f));
+            Vector2 hi = OfficeToLocal(new Vector2(0.90f, 0.80f));
+            return Rect.MinMaxRect(Mathf.Min(lo.x, hi.x), Mathf.Min(lo.y, hi.y),
+                                   Mathf.Max(lo.x, hi.x), Mathf.Max(lo.y, hi.y));
+        }
+
         public void Init(RectTransform panelMain)
         {
             _panel = panelMain;
+            _sPanel = panelMain;
+
+            // Localiza a arte do escritório (movida para o Panel_BG em tela cheia)
+            // para mapear coordenadas normalizadas sobre ela.
+            var bg = GameObject.Find("Panel_BG");
+            var floor = bg != null ? bg.transform.Find("BgFloor") as RectTransform : null;
+            if (floor != null)
+            {
+                _sFloorRt = floor;
+                var img = floor.GetComponent<Image>();
+                if (img != null && img.sprite != null)
+                    _sAspect = img.sprite.rect.width / img.sprite.rect.height;
+            }
+            var canvas = panelMain.GetComponentInParent<Canvas>();
+            _sCam = (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+                ? canvas.worldCamera : null;
+
             ClaimedTargets.Clear(); // limpa reservas de uma sessão anterior (editor replay)
             if (CharacterManager.Instance != null)
                 CharacterManager.Instance.OnCharactersUpdated += SyncWorkers;
@@ -234,7 +294,7 @@ namespace GameIdle
             rt.sizeDelta = new Vector2(150f, 172f);
 
             // Start at exact spread position — no jitter to prevent overlap
-            rt.anchoredPosition = SpreadPositions[index % SpreadPositions.Length];
+            rt.anchoredPosition = OfficeToLocal(SpreadPositions[index % SpreadPositions.Length]);
 
             bool hasSpriteSheet = loaded.HasValue && loaded.Value.fullBody;
 
@@ -267,7 +327,7 @@ namespace GameIdle
                 bodyImg.preserveAspect = true;
 
                 var avatar = go.GetComponent<WorkerAvatar>();
-                avatar.InitSheet(rt, bodyRt2, bodyImg, frames, idleFrames, null, RoamBounds);
+                avatar.InitSheet(rt, bodyRt2, bodyImg, frames, idleFrames, null, OfficeFloorBoundsLocal());
             }
             else
             {
@@ -341,7 +401,7 @@ namespace GameIdle
                 }
 
                 var avatar = go.GetComponent<WorkerAvatar>();
-                avatar.InitProcedural(rt, bodyRt, legL, legR, footL, footR, srt, RoamBounds);
+                avatar.InitProcedural(rt, bodyRt, legL, legR, footL, footR, srt, OfficeFloorBoundsLocal());
             }
 
             var wa = go.GetComponent<WorkerAvatar>();
@@ -534,10 +594,12 @@ namespace GameIdle
             claimed.Add(idx);
             _seatedTarget = OfficeWorkerManager.IsSeat[idx];
 
-            // Cadeira: sem jitter (encaixa na cadeira); em pé: leve variação.
+            // Converte o spot normalizado para o espaço local e adiciona leve
+            // variação (em px locais) para os personagens não ficarem rígidos.
             var jitter = _seatedTarget ? Vector2.zero
                                        : new Vector2(Random.Range(-10f, 10f), Random.Range(-8f, 8f));
-            _target = positions[idx] + jitter;
+            _target  = OfficeWorkerManager.OfficeToLocal(positions[idx]) + jitter;
+            _bounds  = OfficeWorkerManager.OfficeFloorBoundsLocal(); // acompanha o aspecto atual
             _walkSpeed = Random.Range(55f, 85f);
             _walking = true;
         }
