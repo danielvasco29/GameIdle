@@ -62,7 +62,7 @@ namespace GameIdle
 
             _floatPhase += Time.deltaTime * FloatSpeed;
             float y = Mathf.Sin(_floatPhase) * FloatAmp;
-            _spriteImg.rectTransform.anchoredPosition = new Vector2(0f, 20f + y);
+            _spriteImg.rectTransform.anchoredPosition = new Vector2(0f, 10f + y);
         }
 
         // ── Build ─────────────────────────────────────────────────────────────
@@ -130,16 +130,16 @@ namespace GameIdle
                 _hpText.fontStyle = FontStyles.Bold;
             }
 
-            // Monster sprite image — fills the lower 72% of the container so it
-            // sits cleanly below the name+HP bar block.
+            // Monster sprite image — wide enough for horizontal creatures like the worm.
+            // Anchored to the bottom-center of the container, below the HP/name block.
             {
                 var go = new GameObject("MonsterSprite", typeof(RectTransform), typeof(Image));
                 go.transform.SetParent(transform, false);
                 var rt = go.GetComponent<RectTransform>();
                 rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
                 rt.pivot = new Vector2(0.5f, 0f);
-                rt.sizeDelta = new Vector2(420f, 420f);
-                rt.anchoredPosition = new Vector2(0f, 20f);
+                rt.sizeDelta = new Vector2(640f, 400f);
+                rt.anchoredPosition = new Vector2(0f, 10f);
                 _spriteImg = go.GetComponent<Image>();
                 _spriteImg.preserveAspect = true;
                 _spriteImg.raycastTarget = true;
@@ -157,8 +157,8 @@ namespace GameIdle
                 var rt = go.GetComponent<RectTransform>();
                 rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
                 rt.pivot = new Vector2(0.5f, 0.5f);
-                rt.sizeDelta = new Vector2(190f, 24f);
-                rt.anchoredPosition = new Vector2(0f, 44f);
+                rt.sizeDelta = new Vector2(280f, 28f);
+                rt.anchoredPosition = new Vector2(0f, 30f);
                 var img = go.GetComponent<Image>();
                 img.sprite = UiSpriteFactory.Circle();
                 img.color = new Color(0f, 0f, 0f, 0.3f);
@@ -218,7 +218,9 @@ namespace GameIdle
                     int frameCount = def.spritePath.Contains("worm") ? 4 : 8;
                     _idleFrames = SliceMovementRow(tex, frameCount);
                     _spriteImg.sprite = _idleFrames[0];
-                    _spriteImg.preserveAspect = true;
+                    // Worm is a horizontal continuous body — stretch to fill width.
+                    // Discrete-pose monsters (golem/ghost) keep correct proportions.
+                    _spriteImg.preserveAspect = frameCount != 4;
                 }
                 else
                 {
@@ -228,7 +230,7 @@ namespace GameIdle
                         100f, 0, SpriteMeshType.FullRect);
                 }
                 _spriteImg.color = Color.white;
-                _spriteImg.rectTransform.sizeDelta = isBoss ? new Vector2(460f, 460f) : new Vector2(420f, 420f);
+                _spriteImg.rectTransform.sizeDelta = isBoss ? new Vector2(680f, 460f) : new Vector2(640f, 400f);
             }
 
             // Reset death overlay
