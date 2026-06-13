@@ -178,6 +178,15 @@ namespace GameIdle
             var walk = SliceRowByContent(tex, rowFromTop: 0, rows: 2);
             var idle = SliceRowByContent(tex, rowFromTop: 1, rows: 2);
 
+            // O AI engineer tem um gráfico/quadro nas poses de trabalho (linha de
+            // baixo) que não tem como fatiar limpo. Como a linha de cima (andando)
+            // é toda de corpo inteiro, descartamos a linha de baixo só para ele —
+            // assim ele nunca mostra o quadro do gráfico.
+            string cid = (ci.data.characterId ?? "").Trim().ToLower();
+            string cnm = (ci.data.characterName ?? "").Trim().ToLower();
+            if (cid.Contains("ai_engineer") || cnm.Contains("ai engineer") || cnm.Contains("ai_engineer"))
+                idle = null;
+
             if (walk == null || walk.Length == 0)
             {
                 // Fallback: static top-left frame so the worker is never invisible.
