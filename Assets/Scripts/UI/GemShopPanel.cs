@@ -60,7 +60,7 @@ namespace GameIdle
             // Modal centralizado de largura fixa (antes era stretch quase full-width,
             // o que deixava a loja "comprida" com botões esticados)
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(760f, 640f);
+            rt.sizeDelta = new Vector2(874f, 736f);
             rt.anchoredPosition = Vector2.zero;
 
             var bg = gameObject.AddComponent<Image>();
@@ -86,7 +86,7 @@ namespace GameIdle
                 iImg.sprite = gemSp; iImg.preserveAspect = true; iImg.raycastTarget = false;
             }
 
-            var title = MakeText(transform, "Title", "LOJA DE GEMAS", 28, Gold, FontStyles.Bold,
+            var title = MakeText(transform, "Title", "LOJA DE GEMAS", 32, Gold, FontStyles.Bold,
                 TextAlignmentOptions.Center);
             var trt = title.rectTransform;
             trt.anchorMin = new Vector2(0f, 1f); trt.anchorMax = new Vector2(1f, 1f);
@@ -113,7 +113,7 @@ namespace GameIdle
                 pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
                 pImg.color = new Color(0.10f, 0.16f, 0.28f, 1f);
 
-                gemBalanceText = MakeText(pillGO.transform, "Balance", "", 18, GemCyan,
+                gemBalanceText = MakeText(pillGO.transform, "Balance", "", 21, GemCyan,
                     FontStyles.Bold, TextAlignmentOptions.Center);
                 var gbrt = gemBalanceText.rectTransform;
                 gbrt.anchorMin = Vector2.zero; gbrt.anchorMax = Vector2.one;
@@ -164,7 +164,7 @@ namespace GameIdle
             cImg.sprite = Rounded(); cImg.type = Image.Type.Sliced;
             cImg.color = new Color(0.10f, 0.16f, 0.28f, 1f);
             closeGO.GetComponent<Button>().onClick.AddListener(() => gameObject.SetActive(false));
-            var cl = MakeText(closeGO.transform, "L", "FECHAR", 18, Color.white, FontStyles.Bold,
+            var cl = MakeText(closeGO.transform, "L", "FECHAR", 21, Color.white, FontStyles.Bold,
                 TextAlignmentOptions.Center);
             var clr = cl.rectTransform; clr.anchorMin = Vector2.zero; clr.anchorMax = Vector2.one;
             clr.offsetMin = clr.offsetMax = Vector2.zero; cl.raycastTarget = false;
@@ -188,7 +188,7 @@ namespace GameIdle
             var card = new GameObject($"Up{index}", typeof(RectTransform), typeof(Image),
                 typeof(LayoutElement));
             card.transform.SetParent(container, false);
-            card.GetComponent<LayoutElement>().preferredHeight = 122f;
+            card.GetComponent<LayoutElement>().preferredHeight = 140f;
             var rt = card.GetComponent<RectTransform>();
             rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
             rt.offsetMin = rt.offsetMax = Vector2.zero;
@@ -213,10 +213,10 @@ namespace GameIdle
                     irt.anchorMin = new Vector2(0f, 0.5f); irt.anchorMax = new Vector2(0f, 0.5f);
                     irt.pivot = new Vector2(0f, 0.5f);
                     irt.anchoredPosition = new Vector2(14f, 0f);
-                    irt.sizeDelta = new Vector2(86f, 86f);
+                    irt.sizeDelta = new Vector2(99f, 99f);
                     var iImg = iconGO.GetComponent<Image>();
                     iImg.sprite = sp; iImg.preserveAspect = true; iImg.raycastTarget = false;
-                    iconW = 110f;
+                    iconW = 126f;
                 }
             }
 
@@ -224,14 +224,14 @@ namespace GameIdle
             float nameX = iconW + 14f;
 
             // Name
-            var name = MakeText(card.transform, "Name", u.name, 23, Color.white, FontStyles.Bold,
+            var name = MakeText(card.transform, "Name", u.name, 26, Color.white, FontStyles.Bold,
                 TextAlignmentOptions.TopLeft);
             var nrt = name.rectTransform;
             nrt.anchorMin = new Vector2(0f, 0.55f); nrt.anchorMax = new Vector2(0.66f, 1f);
             nrt.offsetMin = new Vector2(nameX, 0f); nrt.offsetMax = new Vector2(0f, -6f);
 
             // Description
-            var desc = MakeText(card.transform, "Desc", u.description, 16, TextSec, FontStyles.Normal,
+            var desc = MakeText(card.transform, "Desc", u.description, 18, TextSec, FontStyles.Normal,
                 TextAlignmentOptions.TopLeft);
             var drt = desc.rectTransform;
             drt.anchorMin = new Vector2(0f, 0.28f); drt.anchorMax = new Vector2(0.66f, 0.55f);
@@ -239,13 +239,13 @@ namespace GameIdle
             desc.textWrappingMode = TextWrappingModes.Normal;
 
             // Current effect + level
-            var effect = MakeText(card.transform, "Effect", "", 16, Green, FontStyles.Bold,
+            var effect = MakeText(card.transform, "Effect", "", 18, Green, FontStyles.Bold,
                 TextAlignmentOptions.BottomLeft);
             var ert = effect.rectTransform;
             ert.anchorMin = new Vector2(0f, 0f); ert.anchorMax = new Vector2(0.66f, 0.28f);
             ert.offsetMin = new Vector2(nameX, 4f); ert.offsetMax = Vector2.zero;
 
-            var level = MakeText(card.transform, "Lvl", "", 18, Gold, FontStyles.Bold,
+            var level = MakeText(card.transform, "Lvl", "", 21, Gold, FontStyles.Bold,
                 TextAlignmentOptions.TopRight);
             var lrt = level.rectTransform;
             lrt.anchorMin = new Vector2(0.66f, 0.55f); lrt.anchorMax = new Vector2(1f, 1f);
@@ -279,7 +279,7 @@ namespace GameIdle
             giImg.color = GemCyan;
             giImg.raycastTarget = false;
 
-            var costLabel = MakeText(buyGO.transform, "Cost", "", 20, Color.white, FontStyles.Bold,
+            var costLabel = MakeText(buyGO.transform, "Cost", "", 23, Color.white, FontStyles.Bold,
                 TextAlignmentOptions.Center);
             var costRT = costLabel.rectTransform;
             costRT.anchorMin = Vector2.zero; costRT.anchorMax = Vector2.one;
