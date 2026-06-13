@@ -255,7 +255,7 @@ namespace GameIdle
             var buyGO = new GameObject("Buy", typeof(RectTransform), typeof(Image), typeof(Button));
             buyGO.transform.SetParent(card.transform, false);
             var brt = buyGO.GetComponent<RectTransform>();
-            brt.anchorMin = new Vector2(0.66f, 0.12f); brt.anchorMax = new Vector2(1f, 0.5f);
+            brt.anchorMin = new Vector2(0.66f, 0.16f); brt.anchorMax = new Vector2(1f, 0.46f);
             brt.offsetMin = new Vector2(8f, 0f); brt.offsetMax = new Vector2(-14f, 0f);
             var buyBg = buyGO.GetComponent<Image>();
             buyBg.sprite = Rounded(); buyBg.type = Image.Type.Sliced;
@@ -266,25 +266,44 @@ namespace GameIdle
             var hold = buyGO.AddComponent<HoldButton>();
             hold.Init(() => OnBuy(captured));
 
-            // Small cyan diamond icon inside the button (drawn, not a glyph)
-            var gemIcon = new GameObject("Gem", typeof(RectTransform), typeof(Image));
-            gemIcon.transform.SetParent(buyGO.transform, false);
-            var girt = gemIcon.GetComponent<RectTransform>();
-            girt.anchorMin = girt.anchorMax = girt.pivot = new Vector2(0f, 0.5f);
-            girt.anchoredPosition = new Vector2(12f, 0f);
-            girt.sizeDelta = new Vector2(13f, 13f);
-            girt.localRotation = Quaternion.Euler(0f, 0f, 45f);
+            // Brilho superior sutil → dá relevo de botão (não fica chapado)
+            var shine = new GameObject("Shine", typeof(RectTransform), typeof(Image));
+            shine.transform.SetParent(buyGO.transform, false);
+            var shRT = shine.GetComponent<RectTransform>();
+            shRT.anchorMin = new Vector2(0f, 0.55f); shRT.anchorMax = new Vector2(1f, 1f);
+            shRT.offsetMin = new Vector2(6f, 0f); shRT.offsetMax = new Vector2(-6f, -3f);
+            var shImg = shine.GetComponent<Image>();
+            shImg.sprite = Rounded(); shImg.type = Image.Type.Sliced;
+            shImg.color = new Color(1f, 1f, 1f, 0.12f);
+            shImg.raycastTarget = false;
+
+            // Conteúdo centralizado: diamante + custo juntos como uma unidade
+            var contentGO = new GameObject("BuyContent", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            contentGO.transform.SetParent(buyGO.transform, false);
+            var coRT = contentGO.GetComponent<RectTransform>();
+            coRT.anchorMin = Vector2.zero; coRT.anchorMax = Vector2.one;
+            coRT.offsetMin = coRT.offsetMax = Vector2.zero;
+            var coHlg = contentGO.GetComponent<HorizontalLayoutGroup>();
+            coHlg.spacing = 8f; coHlg.childAlignment = TextAnchor.MiddleCenter;
+            coHlg.childControlWidth = true; coHlg.childControlHeight = true;
+            coHlg.childForceExpandWidth = false; coHlg.childForceExpandHeight = false;
+
+            // Diamante ciano (desenhado) à esquerda do custo
+            var gemIcon = new GameObject("Gem", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
+            gemIcon.transform.SetParent(contentGO.transform, false);
+            var gemLE = gemIcon.GetComponent<LayoutElement>();
+            gemLE.preferredWidth = 18f; gemLE.preferredHeight = 18f;
             var giImg = gemIcon.GetComponent<Image>();
             giImg.sprite = UiSpriteFactory.Box(); giImg.type = Image.Type.Simple;
             giImg.color = GemCyan;
             giImg.raycastTarget = false;
+            gemIcon.transform.localRotation = Quaternion.Euler(0f, 0f, 45f);
 
-            var costLabel = MakeText(buyGO.transform, "Cost", "", 23, Color.white, FontStyles.Bold,
-                TextAlignmentOptions.Center);
-            var costRT = costLabel.rectTransform;
-            costRT.anchorMin = Vector2.zero; costRT.anchorMax = Vector2.one;
-            costRT.offsetMin = new Vector2(10f, 0f); costRT.offsetMax = Vector2.zero;
+            var costLabel = MakeText(contentGO.transform, "Cost", "", 23, Color.white, FontStyles.Bold,
+                TextAlignmentOptions.MidlineLeft);
             costLabel.raycastTarget = false;
+            var costLE = costLabel.gameObject.AddComponent<LayoutElement>();
+            costLE.minWidth = 24f;
 
             rows.Add(new Row { index = index, effect = effect, level = level,
                                costLabel = costLabel, buyButton = buyBtn, buyBg = buyBg });
