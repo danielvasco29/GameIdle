@@ -1942,9 +1942,9 @@ namespace GameIdle
 
             TMP_FontAsset font = GetCachedFont();
 
-            // 4 pills horizontais de largura fixa, ancoradas ao topo-esquerdo do painel
-            // [+192B/s /s] [x32 mult] [$4,7M total] [x4 prest]
-            const float pillW = 200f, pillH = 62f, gap = 6f, topOff = -8f, leftOff = 10f;
+            // 4 pílulas EMPILHADAS NA VERTICAL, ancoradas no canto inferior-esquerdo
+            // do Panel_Main, logo acima do botão BATALHAR (que fica em y 30..190).
+            const float pillW = 184f, pillH = 54f, gap = 6f;
 
             // Unified navy background across all pills — only the accent bar and
             // label carry color, which reads far more polished than mixed tints.
@@ -1959,18 +1959,17 @@ namespace GameIdle
 
             var textRefs = new TextMeshProUGUI[4];
 
-            // Container único (barra glass) atrás das 4 pílulas. Antes cada pílula
-            // era uma caixa isolada e os vãos de 6px deixavam ver o fundo escuro do
-            // escritório (os "espaços pretos"). Agora as pílulas ficam transparentes
-            // sobre esta barra contínua, separadas apenas por divisórias sutis.
+            // Container único (barra glass) atrás das 4 pílulas, agora em coluna.
+            // As pílulas ficam transparentes sobre esta barra contínua, separadas
+            // por divisórias horizontais sutis.
             const float barPad = 8f;
-            float totalW = 4f * pillW + 3f * gap;
+            float totalH = 4f * pillH + 3f * gap;
             var barGO = new GameObject("StatBar", typeof(RectTransform), typeof(Image));
             barGO.transform.SetParent(panelMain, false);
             var barRT = barGO.GetComponent<RectTransform>();
-            barRT.anchorMin = barRT.anchorMax = barRT.pivot = new Vector2(0f, 1f);
-            barRT.anchoredPosition = new Vector2(leftOff - barPad, topOff + barPad);
-            barRT.sizeDelta = new Vector2(totalW + barPad * 2f, pillH + barPad * 2f);
+            barRT.anchorMin = barRT.anchorMax = barRT.pivot = new Vector2(0f, 0f);
+            barRT.anchoredPosition = new Vector2(18f, 208f); // acima do botão BATALHAR
+            barRT.sizeDelta = new Vector2(pillW + barPad * 2f, totalH + barPad * 2f);
             var barImg = barGO.GetComponent<Image>();
             barImg.sprite = Rounded(); barImg.type = Image.Type.Sliced;
             barImg.color = new Color(0.055f, 0.094f, 0.165f, 0.92f); // glass navy contínuo
@@ -1979,27 +1978,27 @@ namespace GameIdle
             for (int i = 0; i < 4; i++)
             {
                 var d = pillData[i];
-                float x = i * (pillW + gap);
+                float y = i * (pillH + gap); // empilha de cima para baixo
 
                 var pill = new GameObject($"StatPill{i}", typeof(RectTransform), typeof(Image));
                 pill.transform.SetParent(barGO.transform, false);
                 var prt = pill.GetComponent<RectTransform>();
                 prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(0f, 1f);
-                prt.anchoredPosition = new Vector2(barPad + x, -barPad);
+                prt.anchoredPosition = new Vector2(barPad, -barPad - y);
                 prt.sizeDelta = new Vector2(pillW, pillH);
                 var pImg = pill.GetComponent<Image>();
                 pImg.color = new Color(0f, 0f, 0f, 0f); // transparente: usa a barra contínua atrás
                 pImg.raycastTarget = false;
 
-                // Divisória vertical sutil entre as pílulas (exceto antes da 1ª)
+                // Divisória horizontal sutil entre as pílulas (exceto antes da 1ª)
                 if (i > 0)
                 {
                     var div = new GameObject("Div", typeof(RectTransform), typeof(Image));
                     div.transform.SetParent(barGO.transform, false);
                     var drt = div.GetComponent<RectTransform>();
                     drt.anchorMin = drt.anchorMax = drt.pivot = new Vector2(0f, 1f);
-                    drt.anchoredPosition = new Vector2(barPad + x - gap * 0.5f, -barPad - pillH * 0.2f);
-                    drt.sizeDelta = new Vector2(1f, pillH * 0.6f);
+                    drt.anchoredPosition = new Vector2(barPad + pillW * 0.05f, -barPad - y + gap * 0.5f);
+                    drt.sizeDelta = new Vector2(pillW * 0.9f, 1f);
                     var divImg = div.GetComponent<Image>();
                     divImg.color = new Color(1f, 1f, 1f, 0.08f);
                     divImg.raycastTarget = false;
@@ -2024,7 +2023,7 @@ namespace GameIdle
                 vrt.anchorMin = new Vector2(0f, 0.40f); vrt.anchorMax = Vector2.one;
                 vrt.offsetMin = new Vector2(16f, 2f); vrt.offsetMax = new Vector2(-6f, -4f);
                 var vtmp = valGO.GetComponent<TextMeshProUGUI>();
-                vtmp.fontSize = 21f; vtmp.fontStyle = FontStyles.Bold; vtmp.color = Color.white;
+                vtmp.fontSize = 19f; vtmp.fontStyle = FontStyles.Bold; vtmp.color = Color.white;
                 vtmp.alignment = TextAlignmentOptions.MidlineLeft;
                 vtmp.textWrappingMode = TextWrappingModes.NoWrap;
                 vtmp.overflowMode = TextOverflowModes.Ellipsis;
