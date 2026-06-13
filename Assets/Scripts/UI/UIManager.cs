@@ -793,14 +793,12 @@ namespace GameIdle
                 floorImg.transform.SetParent(bgPanel.transform, false);
                 var frt = floorImg.rectTransform;
                 frt.anchorMin = Vector2.zero; frt.anchorMax = Vector2.one;
-                // Expande e desloca o escritorio para a direita: o lado esquerdo fica
-                // atras da sidebar (~380px), entao centralizar na tela inteira deixava
-                // muito navy sobrando a direita. Os insets abaixo recortam o lado
-                // esquerdo (coberto pela sidebar), estendem a direita e ampliam a
-                // altura (~aumenta a imagem via preserveAspect), alinhando o cenario
-                // com a area dos personagens (Panel_Main, deslocado +190).
-                frt.offsetMin = new Vector2(360f, -90f); // esquerda recuada, base estendida
-                frt.offsetMax = new Vector2(40f,  90f);  // direita e topo estendidos
+                // Estica o escritorio para a esquerda (ate proximo da sidebar, com uma
+                // pequena folga navy) e o amplia: aumentando a altura via preserveAspect
+                // a imagem cresce em largura e preenche as laterais, eliminando o vao
+                // navy da esquerda. Pequeno deslocamento à direita para a folga.
+                frt.offsetMin = new Vector2(150f, -150f); // esquerda com folga, base estendida
+                frt.offsetMax = new Vector2(110f,  150f); // direita e topo estendidos
                 floorImg.transform.SetAsLastSibling(); // cobre o tom escuro do Panel_BG
 
                 // Fundo das laterais: gradiente navy combinando com o tema. O
@@ -1967,8 +1965,8 @@ namespace GameIdle
             var barGO = new GameObject("StatBar", typeof(RectTransform), typeof(Image));
             barGO.transform.SetParent(panelMain, false);
             var barRT = barGO.GetComponent<RectTransform>();
-            barRT.anchorMin = barRT.anchorMax = barRT.pivot = new Vector2(0f, 1f);
-            barRT.anchoredPosition = new Vector2(18f, -8f); // parte superior do Panel_Main
+            barRT.anchorMin = barRT.anchorMax = barRT.pivot = new Vector2(1f, 1f);
+            barRT.anchoredPosition = new Vector2(-18f, -8f); // canto superior-direito do Panel_Main
             barRT.sizeDelta = new Vector2(pillW + barPad * 2f, totalH + barPad * 2f);
             var barImg = barGO.GetComponent<Image>();
             barImg.sprite = Rounded(); barImg.type = Image.Type.Sliced;
