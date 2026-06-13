@@ -40,7 +40,7 @@ namespace GameIdle
             bg.type   = Image.Type.Sliced;
             bg.color  = NavyDark;
 
-            TMP_FontAsset font = UiFont.Get();
+            TMP_FontAsset font = TMP_Settings.defaultFontAsset;
 
             // Título
             var titleGO = new GameObject("Title", typeof(RectTransform), typeof(TextMeshProUGUI));

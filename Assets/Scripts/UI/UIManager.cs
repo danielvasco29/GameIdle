@@ -195,9 +195,6 @@ namespace GameIdle
         private TMP_FontAsset GetCachedFont()
         {
             if (cachedFont != null) return cachedFont;
-            // Fonte central do jogo (custom em Resources/Fonts/GameFont SDF, se houver)
-            cachedFont = UiFont.Get();
-            if (cachedFont != null) return cachedFont;
             var existing = Object.FindAnyObjectByType<TextMeshProUGUI>();
             if (existing != null && existing.font != null) cachedFont = existing.font;
             return cachedFont;

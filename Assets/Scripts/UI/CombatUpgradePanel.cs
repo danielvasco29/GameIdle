@@ -51,7 +51,7 @@ namespace GameIdle
 
         private void Awake()
         {
-            _font = UiFont.Get();
+            _font = TMP_Settings.defaultFontAsset;
             if (_font == null)
             {
                 var any = UnityEngine.Object.FindAnyObjectByType<TextMeshProUGUI>();

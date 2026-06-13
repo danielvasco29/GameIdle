@@ -32,7 +32,7 @@ namespace GameIdle
             var bg = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
             bg.sprite = UiSpriteFactory.RoundedBox(); bg.type = Image.Type.Sliced; bg.color = NavyDark;
 
-            TMP_FontAsset font = UiFont.Get();
+            TMP_FontAsset font = TMP_Settings.defaultFontAsset;
 
             // Faixa dourada no topo (destaque do evento) — recuada das bordas
             // arredondadas para não vazar nos cantos do painel
@@ -115,7 +115,7 @@ namespace GameIdle
             foreach (var go in _spawnedChoices) Destroy(go);
             _spawnedChoices.Clear();
 
-            TMP_FontAsset font = UiFont.Get();
+            TMP_FontAsset font = TMP_Settings.defaultFontAsset;
             for (int i = 0; i < eventData.choices.Length; i++)
             {
                 int idx = i;

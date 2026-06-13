@@ -106,7 +106,7 @@ namespace GameIdle
             bg.type   = Image.Type.Sliced;
             bg.color  = NavyDark;
 
-            TMP_FontAsset font = UiFont.Get();
+            TMP_FontAsset font = TMP_Settings.defaultFontAsset;
             const float sidePad = 14f;
             const float topPad  = 12f;
             const float titleH  = 36f;

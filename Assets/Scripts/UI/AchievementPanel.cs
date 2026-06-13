@@ -47,7 +47,7 @@ namespace GameIdle
             var bg = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
             bg.sprite = UiSpriteFactory.RoundedBox(); bg.type = Image.Type.Sliced; bg.color = NavyDark;
 
-            TMP_FontAsset font = UiFont.Get();
+            TMP_FontAsset font = TMP_Settings.defaultFontAsset;
 
             // ── Título ────────────────────────────────────────────────────────
             var titleGO = new GameObject("Title", typeof(RectTransform), typeof(TextMeshProUGUI));
