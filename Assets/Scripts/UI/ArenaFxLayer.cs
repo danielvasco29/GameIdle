@@ -246,7 +246,7 @@ namespace GameIdle
                 if (_torchGlows[i] == null) continue;
                 _torchGlowPhases[i] += dt * 1.8f;
                 float glowPulse = (Mathf.Sin(_torchGlowPhases[i]) + 1f) * 0.5f;
-                float glowAlpha = Mathf.Lerp(0.22f, 0.55f, glowPulse);
+                float glowAlpha = Mathf.Lerp(0.50f, 0.90f, glowPulse);
                 var glowColor = _torchGlows[i].color;
                 glowColor.a = glowAlpha;
                 _torchGlows[i].color = glowColor;

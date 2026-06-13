@@ -62,7 +62,7 @@ namespace GameIdle
 
             _floatPhase += Time.deltaTime * FloatSpeed;
             float y = Mathf.Sin(_floatPhase) * FloatAmp;
-            _spriteImg.rectTransform.anchoredPosition = new Vector2(0f, 130f + y);
+            _spriteImg.rectTransform.anchoredPosition = new Vector2(0f, 20f + y);
         }
 
         // ── Build ─────────────────────────────────────────────────────────────
@@ -83,12 +83,12 @@ namespace GameIdle
             // keep this one hidden to avoid duplication.
             _waveText.gameObject.SetActive(false);
 
-            // Monster name tag
+            // Monster name tag — anchored to the TOP of the container
             {
                 var go = new GameObject("NameBg", typeof(RectTransform), typeof(Image));
                 go.transform.SetParent(transform, false);
                 var rt = go.GetComponent<RectTransform>();
-                rt.anchorMin = new Vector2(0.1f, 0.72f); rt.anchorMax = new Vector2(0.9f, 0.88f);
+                rt.anchorMin = new Vector2(0.05f, 0.86f); rt.anchorMax = new Vector2(0.95f, 0.98f);
                 rt.offsetMin = rt.offsetMax = Vector2.zero;
                 var img = go.GetComponent<Image>();
                 img.sprite = UiSpriteFactory.RoundedBox(); img.type = Image.Type.Sliced;
@@ -96,16 +96,16 @@ namespace GameIdle
                 img.raycastTarget = false;
             }
             _nameText = MakeLabel("MonsterName", "BUG GIGANTE", 18f, Color.white,
-                new Vector2(0.1f, 0.72f), new Vector2(0.9f, 0.88f),
+                new Vector2(0.05f, 0.86f), new Vector2(0.95f, 0.98f),
                 Vector2.zero, Vector2.zero, font);
             _nameText.fontStyle = FontStyles.Bold;
 
-            // HP bar background
+            // HP bar background — just below the name tag
             {
                 var go = new GameObject("HpBg", typeof(RectTransform), typeof(Image));
                 go.transform.SetParent(transform, false);
                 var rt = go.GetComponent<RectTransform>();
-                rt.anchorMin = new Vector2(0.08f, 0.60f); rt.anchorMax = new Vector2(0.92f, 0.71f);
+                rt.anchorMin = new Vector2(0.05f, 0.75f); rt.anchorMax = new Vector2(0.95f, 0.85f);
                 rt.offsetMin = rt.offsetMax = Vector2.zero;
                 var img = go.GetComponent<Image>();
                 img.sprite = UiSpriteFactory.RoundedBox(); img.type = Image.Type.Sliced;
@@ -130,15 +130,16 @@ namespace GameIdle
                 _hpText.fontStyle = FontStyles.Bold;
             }
 
-            // Monster sprite image (centered, floats)
+            // Monster sprite image — fills the lower 72% of the container so it
+            // sits cleanly below the name+HP bar block.
             {
                 var go = new GameObject("MonsterSprite", typeof(RectTransform), typeof(Image));
                 go.transform.SetParent(transform, false);
                 var rt = go.GetComponent<RectTransform>();
                 rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
                 rt.pivot = new Vector2(0.5f, 0f);
-                rt.sizeDelta = new Vector2(460f, 460f);
-                rt.anchoredPosition = new Vector2(0f, 60f);
+                rt.sizeDelta = new Vector2(420f, 420f);
+                rt.anchoredPosition = new Vector2(0f, 20f);
                 _spriteImg = go.GetComponent<Image>();
                 _spriteImg.preserveAspect = true;
                 _spriteImg.raycastTarget = true;
@@ -157,7 +158,7 @@ namespace GameIdle
                 rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
                 rt.pivot = new Vector2(0.5f, 0.5f);
                 rt.sizeDelta = new Vector2(190f, 24f);
-                rt.anchoredPosition = new Vector2(0f, 84f);
+                rt.anchoredPosition = new Vector2(0f, 44f);
                 var img = go.GetComponent<Image>();
                 img.sprite = UiSpriteFactory.Circle();
                 img.color = new Color(0f, 0f, 0f, 0.3f);
@@ -208,18 +209,18 @@ namespace GameIdle
                 bool isSheet = def.spritePath.EndsWith("_sheet");
                 if (isSheet)
                 {
-                    // Sheet: 8 cols × 4 rows (1024×1024 → 128×256 per frame).
-                    // Animate all rows so the full walk/attack cycle plays regardless
-                    // of row ordering in the source file.
+                    // Auto-detect frame size: assume square frames with 4 rows.
+                    // cols = width / (height/4) handles both 4-col (256×256) and
+                    // 8-col (128×128) sheets without hardcoding per-monster.
                     var tex = SpriteBackgroundRemover.ProcessSheet(srcTex);
-                    int cols   = 8;
                     int rows   = 4;
-                    int frameW = tex.width  / cols;   // 128
-                    int frameH = tex.height / rows;   // 256
+                    int frameH = tex.height / rows;        // e.g. 256 for 1024-tall
+                    int cols   = tex.width  / frameH;      // square frames: 4 or 8
+                    int frameW = frameH;                   // always square
                     _idleFrames = new Sprite[rows * cols];
                     for (int row = 0; row < rows; row++)
                     {
-                        int y = tex.height - (row + 1) * frameH; // top row first
+                        int y = tex.height - (row + 1) * frameH;
                         for (int col = 0; col < cols; col++)
                         {
                             var r = new Rect(col * frameW, y, frameW, frameH);
@@ -228,8 +229,7 @@ namespace GameIdle
                         }
                     }
                     _spriteImg.sprite = _idleFrames[0];
-                    // Fill the display area so portrait frames cover the full monster slot
-                    _spriteImg.preserveAspect = false;
+                    _spriteImg.preserveAspect = true; // square frames fit naturally
                 }
                 else
                 {
@@ -239,7 +239,7 @@ namespace GameIdle
                         100f, 0, SpriteMeshType.FullRect);
                 }
                 _spriteImg.color = Color.white;
-                _spriteImg.rectTransform.sizeDelta = isBoss ? new Vector2(500f, 500f) : new Vector2(460f, 460f);
+                _spriteImg.rectTransform.sizeDelta = isBoss ? new Vector2(460f, 460f) : new Vector2(420f, 420f);
             }
 
             // Reset death overlay
