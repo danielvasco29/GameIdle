@@ -175,17 +175,18 @@ namespace GameIdle
             // detect each character by the transparent gaps between them and blit
             // it onto its own uniform canvas (same technique as the monster
             // sheets) — this auto-handles any frame count with no doubles.
-            // O AI engineer tem um gráfico/quadro nas poses de trabalho que o
-            // flood-fill não consegue limpar. Para ele usamos o fatiamento direto
-            // da textura CRUA (descarte de branco pixel a pixel), que separava os
-            // quadros dele perfeitamente. Os demais continuam no flood-fill.
+            // O AI engineer e a CEO têm poses (gráfico / aglomerado de figuras
+            // coladas) que o flood-fill não limpa direito. Para eles usamos o
+            // fatiamento direto da textura CRUA (descarte de branco pixel a
+            // pixel), que separa os quadros corretamente e descarta os blobs
+            // largos demais. Os demais personagens continuam no flood-fill.
             string cid = (ci.data.characterId ?? "").Trim().ToLower();
             string cnm = (ci.data.characterName ?? "").Trim().ToLower();
-            bool isAiEngineer = cid.Contains("ai_engineer")
-                || cnm.Contains("ai engineer") || cnm.Contains("ai_engineer");
+            bool useRaw = cid.Contains("ai_engineer") || cnm.Contains("ai engineer")
+                || cnm.Contains("ai_engineer") || cid == "ceo" || cnm == "ceo";
 
             Sprite[] walk, idle;
-            if (isAiEngineer)
+            if (useRaw)
             {
                 var raw = Resources.Load<Texture2D>($"Characters/Sprites/{ci.data.characterId}");
                 if (raw == null) raw = Resources.Load<Texture2D>($"Characters/Sprites/{ci.data.characterName}");
