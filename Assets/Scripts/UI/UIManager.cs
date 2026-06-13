@@ -843,6 +843,27 @@ namespace GameIdle
                     coverGO.transform.SetAsFirstSibling(); // atras do escritorio nitido
                 }
 
+                // Fade suave do escritorio -> navy no lado direito (suaviza o corte
+                // seco do recorte e da profundidade atras da coluna de stats).
+                {
+                    var staleFade = bgPanel.transform.Find("RightFade");
+                    if (staleFade != null) DestroyImmediate(staleFade.gameObject);
+
+                    var fadeGO = new GameObject("RightFade", typeof(RectTransform), typeof(Image));
+                    fadeGO.transform.SetParent(bgPanel.transform, false);
+                    var fadeRT = fadeGO.GetComponent<RectTransform>();
+                    fadeRT.anchorMin = new Vector2(1f, 0f); fadeRT.anchorMax = new Vector2(1f, 1f);
+                    fadeRT.pivot = new Vector2(1f, 0.5f);
+                    fadeRT.sizeDelta = new Vector2(statsInset + 180f, 0f); // cobre a coluna de stats + transicao
+                    fadeRT.anchoredPosition = Vector2.zero;
+                    var fadeImg = fadeGO.GetComponent<Image>();
+                    fadeImg.sprite = UiSpriteFactory.HorizontalGradient();
+                    fadeImg.type = Image.Type.Simple;
+                    fadeImg.color = new Color(0.07f, 0.11f, 0.20f, 0.95f); // navy, transparente à esquerda
+                    fadeImg.raycastTarget = false;
+                    fadeGO.transform.SetAsLastSibling(); // por cima do escritorio (suaviza a borda)
+                }
+
                 // Panel_Main fica transparente para revelar o escritorio atras dos
                 // workers / tap button / pills.
                 var pmImg = pmGO.GetComponent<Image>();

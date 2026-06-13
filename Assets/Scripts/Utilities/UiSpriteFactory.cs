@@ -13,6 +13,7 @@ namespace GameIdle
         private static Sprite roundedBox;
         private static Sprite star;
         private static Sprite vGradient;
+        private static Sprite hGradient;
         private static Material whiteDiscardMat;
 
         // Vertical white gradient: opaque white at the TOP fading to transparent
@@ -35,6 +36,27 @@ namespace GameIdle
             vGradient = Sprite.Create(tex, new Rect(0, 0, 4, h), new Vector2(0.5f, 0.5f), 100f);
             vGradient.name = "GenVGradient";
             return vGradient;
+        }
+
+        // Gradiente horizontal: transparente na ESQUERDA -> branco opaco na DIREITA.
+        // Tingir para fazer um fade suave do cenario para o navy nas laterais.
+        public static Sprite HorizontalGradient()
+        {
+            if (hGradient != null) return hGradient;
+            const int w = 64;
+            var tex = new Texture2D(w, 4, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            var px = new Color32[w * 4];
+            for (int x = 0; x < w; x++)
+            {
+                float a = Mathf.Pow(x / (float)(w - 1), 1.4f); // opaco à direita
+                var c = new Color32(255, 255, 255, (byte)(a * 255));
+                for (int y = 0; y < 4; y++) px[y * w + x] = c;
+            }
+            tex.SetPixels32(px);
+            tex.Apply();
+            hGradient = Sprite.Create(tex, new Rect(0, 0, w, 4), new Vector2(0.5f, 0.5f), 100f);
+            hGradient.name = "GenHGradient";
+            return hGradient;
         }
 
         // Material that discards near-white/background pixels from GPT-generated sprites.
