@@ -207,20 +207,27 @@ namespace GameIdle
             if (srcTex != null && _spriteImg != null)
             {
                 bool isSheet = def.spritePath.EndsWith("_sheet");
+                bool isWorm  = def.spritePath.Contains("worm");
                 if (isSheet)
                 {
                     // Sheets are 4 stacked rows of DIFFERENT animations (movement /
-                    // attack / hurt / death) with baked-in text labels. We only loop
+                    // attack / hurt / death) with baked-in text labels. We only use
                     // the TOP movement row so the monster never jumps between poses.
-                    // Frame count is fixed per sheet: the worm is drawn as one
-                    // continuous body (4 sliding chunks), golem/ghost pack 8 poses.
                     var tex = SpriteBackgroundRemover.ProcessSheet(srcTex);
-                    int frameCount = def.spritePath.Contains("worm") ? 4 : 8;
-                    _idleFrames = SliceMovementRow(tex, frameCount);
+                    if (isWorm)
+                    {
+                        // The worm is drawn as ONE long continuous body across the
+                        // whole row — chunking it just shows pieces. Crop the whole
+                        // worm into a single sprite so it's always complete.
+                        _idleFrames = new[] { CropMovementRowFull(tex) };
+                    }
+                    else
+                    {
+                        // Golem/ghost pack 8 discrete poses; tight-crop each.
+                        _idleFrames = SliceMovementRow(tex, 8);
+                    }
                     _spriteImg.sprite = _idleFrames[0];
-                    // Worm is a horizontal continuous body — stretch to fill width.
-                    // Discrete-pose monsters (golem/ghost) keep correct proportions.
-                    _spriteImg.preserveAspect = frameCount != 4;
+                    _spriteImg.preserveAspect = true; // keep correct proportions
                 }
                 else
                 {
@@ -228,9 +235,14 @@ namespace GameIdle
                     _spriteImg.sprite = Sprite.Create(tex,
                         new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f),
                         100f, 0, SpriteMeshType.FullRect);
+                    _spriteImg.preserveAspect = true;
                 }
                 _spriteImg.color = Color.white;
-                _spriteImg.rectTransform.sizeDelta = isBoss ? new Vector2(680f, 460f) : new Vector2(640f, 400f);
+                // Worm is a wide creature → give it a wide slot; others stay tall.
+                _spriteImg.rectTransform.sizeDelta =
+                    isBoss ? new Vector2(680f, 460f)
+                    : isWorm ? new Vector2(780f, 320f)
+                    : new Vector2(440f, 440f);
             }
 
             // Reset death overlay
@@ -432,6 +444,42 @@ namespace GameIdle
         }
 
         // ── Sheet slicing ─────────────────────────────────────────────────────
+
+        // Crops the entire monster in the top movement row into a single sprite,
+        // tight to its visible content within a label-free vertical band. Used for
+        // the worm, whose movement row is one long continuous body (no per-frame
+        // poses) — slicing it into cells would just show disconnected pieces.
+        private static Sprite CropMovementRowFull(Texture2D tex)
+        {
+            int w = tex.width;
+            int rowH = tex.height / 4;
+            int rowY0 = tex.height - rowH;
+            int bandY0 = rowY0 + Mathf.RoundToInt(rowH * 0.10f);
+            int bandY1 = rowY0 + Mathf.RoundToInt(rowH * 0.92f);
+
+            Color32[] px;
+            try { px = tex.GetPixels32(); }
+            catch
+            {
+                return Sprite.Create(tex, new Rect(0, rowY0, w, rowH),
+                    new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+            }
+
+            int minX = w, maxX = 0, minY = bandY1, maxY = bandY0;
+            for (int y = bandY0; y < bandY1; y++)
+            for (int x = 0; x < w; x++)
+                if (px[y * w + x].a > 40)
+                {
+                    if (x < minX) minX = x; if (x > maxX) maxX = x;
+                    if (y < minY) minY = y; if (y > maxY) maxY = y;
+                }
+
+            Rect r = (maxX <= minX || maxY <= minY)
+                ? new Rect(0, bandY0, w, bandY1 - bandY0)
+                : new Rect(minX, minY, maxX - minX, maxY - minY);
+            return Sprite.Create(tex, r, new Vector2(0.5f, 0.5f),
+                100f, 0, SpriteMeshType.FullRect);
+        }
 
         // Slices the top "movement" row of a monster sheet into `frameCount` even
         // cells, then tight-crops each cell to its visible content so the monster
