@@ -91,10 +91,18 @@ namespace GameIdle
             _panel = panelMain;
             _sPanel = panelMain;
 
-            // Localiza a arte do escritório (movida para o Panel_BG em tela cheia)
-            // para mapear coordenadas normalizadas sobre ela.
+            // Localiza a arte do escritório (movida para o Panel_BG em tela cheia,
+            // agora aninhada dentro de PlayArea) para mapear coordenadas normalizadas.
+            // Busca recursiva: o Find direto nao acha objetos aninhados.
             var bg = GameObject.Find("Panel_BG");
-            var floor = bg != null ? bg.transform.Find("BgFloor") as RectTransform : null;
+            RectTransform floor = null;
+            if (bg != null)
+            {
+                foreach (var rtChild in bg.GetComponentsInChildren<RectTransform>(true))
+                {
+                    if (rtChild.name == "BgFloor") { floor = rtChild; break; }
+                }
+            }
             if (floor != null)
             {
                 _sFloorRt = floor;
