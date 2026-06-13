@@ -255,6 +255,11 @@ namespace GameIdle
             if (single.Count == 0) single.AddRange(runs); // safety
             runs = single;
 
+            // Walk cycles never exceed 10 frames — crammed idle clusters that
+            // slip past the width filter (each figure is narrow) are at the
+            // end of the row, so truncating to 10 drops them cleanly.
+            if (runs.Count > 10) runs = runs.GetRange(0, 10);
+
             // Bbox of body pixels per character, scanned between gap-midpoints.
             var boxes = new RectInt[runs.Count];
             int maxW = 0, maxH = 0;
@@ -276,7 +281,7 @@ namespace GameIdle
                 maxH = Mathf.Max(maxH, boxes[i].height);
             }
 
-            int canvasW = maxW + 12, canvasH = maxH + 12;
+            int canvasW = maxW + 12, canvasH = Mathf.Max(maxH + 12, rowH);
             const int footMargin = 6;
             var frames = new Sprite[runs.Count];
             for (int i = 0; i < runs.Count; i++)
