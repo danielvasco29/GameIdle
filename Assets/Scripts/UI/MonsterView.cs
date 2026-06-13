@@ -82,7 +82,7 @@ namespace GameIdle
                             _fadeImg.sprite = _idleFrames[prev];
                             _fadeImg.color  = Color.white;
                             _fadeT   = 0f;
-                            _fadeDur = interval * 0.9f;
+                            _fadeDur = interval * 0.98f; // dissolve across almost the whole step
                         }
                         _spriteImg.sprite = _idleFrames[_animFrame];
                     }
@@ -274,7 +274,7 @@ namespace GameIdle
                         // Antecipação / Estocada / Recuperação. We animate those as
                         // a slow writhe so the worm stays whole AND moves.
                         _idleFrames = SliceAttackRow(tex);
-                        _animFps = 5f;
+                        _animFps = 2.6f; // slow, deliberate writhe
                         _pingPong = true; // anticip->strike->recover->strike (no hard jump)
                     }
                     else
@@ -513,8 +513,8 @@ namespace GameIdle
             int rowH = tex.height / 4;
             // Attack row is the 2nd from the visual top → Unity y in [2*rowH, 3*rowH].
             int rowBase = 2 * rowH;
-            int bandY0 = rowBase + Mathf.RoundToInt(rowH * 0.06f); // skip bottom labels
-            int bandY1 = rowBase + Mathf.RoundToInt(rowH * 0.86f); // skip top label/numbers
+            int bandY0 = rowBase + Mathf.RoundToInt(rowH * 0.03f); // skip bottom labels
+            int bandY1 = rowBase + Mathf.RoundToInt(rowH * 0.88f); // skip top label/numbers
             int bandH  = bandY1 - bandY0;
 
             Color32[] px;
@@ -546,15 +546,20 @@ namespace GameIdle
 
             if (runs.Count < 2) return new[] { CropMovementRowFull(tex) };
 
-            // Compute each pose's tight bounding box (its own columns only, so a
-            // neighbouring worm can never leak in).
+            // Compute each pose's bbox by scanning the whole region between the
+            // gap-midpoints around its run (not just the thresholded columns) so
+            // faint tail/leg tips are included — while the empty gaps guarantee no
+            // neighbouring worm can leak in.
             var boxes = new RectInt[runs.Count];
             int maxBoxW = 0, maxBoxH = 0;
             for (int i = 0; i < runs.Count; i++)
             {
-                int minX = runs[i].y, maxX = runs[i].x, minY = bandY1, maxY = bandY0;
+                int leftLimit  = (i == 0) ? 0 : (runs[i - 1].y + runs[i].x) / 2;
+                int rightLimit = (i == runs.Count - 1) ? w : (runs[i].y + runs[i + 1].x) / 2;
+
+                int minX = rightLimit, maxX = leftLimit, minY = bandY1, maxY = bandY0;
                 for (int y = bandY0; y < bandY1; y++)
-                for (int x = runs[i].x; x < runs[i].y; x++)
+                for (int x = leftLimit; x < rightLimit; x++)
                     if (px[y * w + x].a > 40)
                     {
                         if (x < minX) minX = x; if (x > maxX) maxX = x;
