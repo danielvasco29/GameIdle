@@ -28,11 +28,11 @@ namespace GameIdle
         private const float FloatAmp   = 8f;
         private const float FloatSpeed = 1.8f;
 
-        // Sprite sheet idle animation (8 frames, top row)
+        // Sprite sheet idle animation
         private Sprite[] _idleFrames;
         private float    _animTimer;
         private int      _animFrame;
-        private const float AnimFps = 10f; // frames per second
+        private float    _animFps = 10f; // frames per second (per-monster)
 
         // Damage flash
         private Coroutine _flashCo;
@@ -51,7 +51,7 @@ namespace GameIdle
             if (_idleFrames != null && _idleFrames.Length > 1)
             {
                 _animTimer += Time.deltaTime;
-                if (_animTimer >= 1f / AnimFps)
+                if (_animTimer >= 1f / _animFps)
                 {
                     _animTimer = 0f;
                     _animFrame = (_animFrame + 1) % _idleFrames.Length;
@@ -216,15 +216,18 @@ namespace GameIdle
                     var tex = SpriteBackgroundRemover.ProcessSheet(srcTex);
                     if (isWorm)
                     {
-                        // The worm is drawn as ONE long continuous body across the
-                        // whole row — chunking it just shows pieces. Crop the whole
-                        // worm into a single sprite so it's always complete.
-                        _idleFrames = new[] { CropMovementRowFull(tex) };
+                        // The worm's MOVEMENT row is one continuous body (can't be
+                        // framed), but its ATTACK row holds 3 complete poses —
+                        // Antecipação / Estocada / Recuperação. We animate those as
+                        // a slow writhe so the worm stays whole AND moves.
+                        _idleFrames = SliceAttackRow(tex);
+                        _animFps = 4.5f;
                     }
                     else
                     {
                         // Golem/ghost pack 8 discrete poses; tight-crop each.
                         _idleFrames = SliceMovementRow(tex, 8);
+                        _animFps = 10f;
                     }
                     _spriteImg.sprite = _idleFrames[0];
                     _spriteImg.preserveAspect = true; // keep correct proportions
@@ -444,6 +447,66 @@ namespace GameIdle
         }
 
         // ── Sheet slicing ─────────────────────────────────────────────────────
+
+        // Builds a worm animation from the ATTACK row, which holds discrete
+        // complete poses (Antecipação / Estocada / Recuperação) separated by wide
+        // gaps. Each pose is framed in a common-sized window centered on its body
+        // so the worm animates in place without jittering in scale. Falls back to a
+        // single static worm if the poses can't be detected.
+        private static Sprite[] SliceAttackRow(Texture2D tex)
+        {
+            int w = tex.width;
+            int rowH = tex.height / 4;
+            // Attack row is the 2nd from the visual top → Unity y in [2*rowH, 3*rowH].
+            int rowBase = 2 * rowH;
+            int bandY0 = rowBase + Mathf.RoundToInt(rowH * 0.06f); // skip bottom labels
+            int bandY1 = rowBase + Mathf.RoundToInt(rowH * 0.86f); // skip top label/numbers
+            int bandH  = bandY1 - bandY0;
+
+            Color32[] px;
+            try { px = tex.GetPixels32(); }
+            catch { return new[] { CropMovementRowFull(tex) }; }
+
+            // Per-column opacity within the band.
+            var colMass = new int[w];
+            for (int x = 0; x < w; x++)
+            {
+                int c = 0;
+                for (int y = bandY0; y < bandY1; y++)
+                    if (px[y * w + x].a > 40) c++;
+                colMass[x] = c;
+            }
+
+            // Find content runs separated by empty gaps (the 3 poses).
+            int threshold = Mathf.Max(2, bandH / 10);
+            var runs = new System.Collections.Generic.List<Vector2Int>();
+            int start = -1;
+            for (int x = 0; x < w; x++)
+            {
+                bool filled = colMass[x] > threshold;
+                if (filled && start < 0) start = x;
+                else if (!filled && start >= 0) { runs.Add(new Vector2Int(start, x)); start = -1; }
+            }
+            if (start >= 0) runs.Add(new Vector2Int(start, w));
+            runs.RemoveAll(r => (r.y - r.x) < w / 18); // drop label specks
+
+            if (runs.Count < 2) return new[] { CropMovementRowFull(tex) };
+
+            // Common window width = widest pose (+ pad) so all frames match scale.
+            int maxRunW = 0;
+            foreach (var r in runs) maxRunW = Mathf.Max(maxRunW, r.y - r.x);
+            int winW = Mathf.Min(w, maxRunW + Mathf.RoundToInt(maxRunW * 0.04f));
+
+            var frames = new Sprite[runs.Count];
+            for (int i = 0; i < runs.Count; i++)
+            {
+                int cx = (runs[i].x + runs[i].y) / 2;
+                int fx = Mathf.Clamp(cx - winW / 2, 0, w - winW);
+                frames[i] = Sprite.Create(tex, new Rect(fx, bandY0, winW, bandH),
+                    new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+            }
+            return frames;
+        }
 
         // Crops the entire monster in the top movement row into a single sprite,
         // tight to its visible content within a label-free vertical band. Used for
