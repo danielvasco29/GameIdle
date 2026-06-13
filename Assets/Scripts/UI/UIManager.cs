@@ -1944,7 +1944,7 @@ namespace GameIdle
 
             // 4 pílulas EMPILHADAS NA VERTICAL, ancoradas no canto inferior-esquerdo
             // do Panel_Main, logo acima do botão BATALHAR (que fica em y 30..190).
-            const float pillW = 184f, pillH = 54f, gap = 6f;
+            const float pillW = 212f, pillH = 62f, gap = 7f;
 
             // Unified navy background across all pills — only the accent bar and
             // label carry color, which reads far more polished than mixed tints.
@@ -1967,8 +1967,8 @@ namespace GameIdle
             var barGO = new GameObject("StatBar", typeof(RectTransform), typeof(Image));
             barGO.transform.SetParent(panelMain, false);
             var barRT = barGO.GetComponent<RectTransform>();
-            barRT.anchorMin = barRT.anchorMax = barRT.pivot = new Vector2(0f, 0f);
-            barRT.anchoredPosition = new Vector2(18f, 208f); // acima do botão BATALHAR
+            barRT.anchorMin = barRT.anchorMax = barRT.pivot = new Vector2(0f, 1f);
+            barRT.anchoredPosition = new Vector2(18f, -8f); // parte superior do Panel_Main
             barRT.sizeDelta = new Vector2(pillW + barPad * 2f, totalH + barPad * 2f);
             var barImg = barGO.GetComponent<Image>();
             barImg.sprite = Rounded(); barImg.type = Image.Type.Sliced;
@@ -2023,7 +2023,7 @@ namespace GameIdle
                 vrt.anchorMin = new Vector2(0f, 0.40f); vrt.anchorMax = Vector2.one;
                 vrt.offsetMin = new Vector2(16f, 2f); vrt.offsetMax = new Vector2(-6f, -4f);
                 var vtmp = valGO.GetComponent<TextMeshProUGUI>();
-                vtmp.fontSize = 19f; vtmp.fontStyle = FontStyles.Bold; vtmp.color = Color.white;
+                vtmp.fontSize = 22f; vtmp.fontStyle = FontStyles.Bold; vtmp.color = Color.white;
                 vtmp.alignment = TextAlignmentOptions.MidlineLeft;
                 vtmp.textWrappingMode = TextWrappingModes.NoWrap;
                 vtmp.overflowMode = TextOverflowModes.Ellipsis;
@@ -2038,7 +2038,7 @@ namespace GameIdle
                 lrt.anchorMin = Vector2.zero; lrt.anchorMax = new Vector2(1f, 0.42f);
                 lrt.offsetMin = new Vector2(16f, 4f); lrt.offsetMax = new Vector2(-6f, 0f);
                 var ltmp = lblGO.GetComponent<TextMeshProUGUI>();
-                ltmp.text = d.label; ltmp.fontSize = 10f; ltmp.fontStyle = FontStyles.Bold;
+                ltmp.text = d.label; ltmp.fontSize = 11.5f; ltmp.fontStyle = FontStyles.Bold;
                 ltmp.color = new Color(d.labelColor.r, d.labelColor.g, d.labelColor.b, 0.75f);
                 ltmp.alignment = TextAlignmentOptions.MidlineLeft;
                 ltmp.raycastTarget = false;
