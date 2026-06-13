@@ -797,8 +797,12 @@ namespace GameIdle
                 // pequena folga navy) e o amplia: aumentando a altura via preserveAspect
                 // a imagem cresce em largura e preenche as laterais, eliminando o vao
                 // navy da esquerda. Pequeno deslocamento à direita para a folga.
-                frt.offsetMin = new Vector2(150f, -150f); // esquerda com folga, base estendida
-                frt.offsetMax = new Vector2(-200f, 150f); // recua a direita: libera navy p/ a coluna de stats
+                // offsetMin.x e offsetMax.x somam ~250 -> mantem o MESMO centro
+                // horizontal (alinhado com os personagens); o offsetMax.x negativo
+                // apenas recua a borda direita, liberando navy para a coluna de stats
+                // sem deslocar o cenario para a esquerda dos personagens.
+                frt.offsetMin = new Vector2(360f, -150f); // esquerda recuada (mantem o centro)
+                frt.offsetMax = new Vector2(-110f, 150f); // recua a direita p/ a coluna de stats
                 floorImg.transform.SetAsLastSibling(); // cobre o tom escuro do Panel_BG
 
                 // Fundo das laterais: gradiente navy combinando com o tema. O
