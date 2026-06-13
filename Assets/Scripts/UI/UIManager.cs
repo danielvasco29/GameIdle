@@ -1930,21 +1930,51 @@ namespace GameIdle
 
             var textRefs = new TextMeshProUGUI[4];
 
+            // Container único (barra glass) atrás das 4 pílulas. Antes cada pílula
+            // era uma caixa isolada e os vãos de 6px deixavam ver o fundo escuro do
+            // escritório (os "espaços pretos"). Agora as pílulas ficam transparentes
+            // sobre esta barra contínua, separadas apenas por divisórias sutis.
+            const float barPad = 8f;
+            float totalW = 4f * pillW + 3f * gap;
+            var barGO = new GameObject("StatBar", typeof(RectTransform), typeof(Image));
+            barGO.transform.SetParent(panelMain, false);
+            var barRT = barGO.GetComponent<RectTransform>();
+            barRT.anchorMin = barRT.anchorMax = barRT.pivot = new Vector2(0f, 1f);
+            barRT.anchoredPosition = new Vector2(leftOff - barPad, topOff + barPad);
+            barRT.sizeDelta = new Vector2(totalW + barPad * 2f, pillH + barPad * 2f);
+            var barImg = barGO.GetComponent<Image>();
+            barImg.sprite = Rounded(); barImg.type = Image.Type.Sliced;
+            barImg.color = new Color(0.055f, 0.094f, 0.165f, 0.92f); // glass navy contínuo
+            barImg.raycastTarget = false;
+
             for (int i = 0; i < 4; i++)
             {
                 var d = pillData[i];
-                float x = leftOff + i * (pillW + gap);
+                float x = i * (pillW + gap);
 
                 var pill = new GameObject($"StatPill{i}", typeof(RectTransform), typeof(Image));
-                pill.transform.SetParent(panelMain, false);
+                pill.transform.SetParent(barGO.transform, false);
                 var prt = pill.GetComponent<RectTransform>();
                 prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(0f, 1f);
-                prt.anchoredPosition = new Vector2(x, topOff);
+                prt.anchoredPosition = new Vector2(barPad + x, -barPad);
                 prt.sizeDelta = new Vector2(pillW, pillH);
                 var pImg = pill.GetComponent<Image>();
-                pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
-                pImg.color = new Color(0.055f, 0.094f, 0.165f, 0.85f); // glass navy, welcome-panel hue
+                pImg.color = new Color(0f, 0f, 0f, 0f); // transparente: usa a barra contínua atrás
                 pImg.raycastTarget = false;
+
+                // Divisória vertical sutil entre as pílulas (exceto antes da 1ª)
+                if (i > 0)
+                {
+                    var div = new GameObject("Div", typeof(RectTransform), typeof(Image));
+                    div.transform.SetParent(barGO.transform, false);
+                    var drt = div.GetComponent<RectTransform>();
+                    drt.anchorMin = drt.anchorMax = drt.pivot = new Vector2(0f, 1f);
+                    drt.anchoredPosition = new Vector2(barPad + x - gap * 0.5f, -barPad - pillH * 0.2f);
+                    drt.sizeDelta = new Vector2(1f, pillH * 0.6f);
+                    var divImg = div.GetComponent<Image>();
+                    divImg.color = new Color(1f, 1f, 1f, 0.08f);
+                    divImg.raycastTarget = false;
+                }
 
                 // Acento colorido lateral — pílula arredondada inset (não flush na borda)
                 var acc = new GameObject("A", typeof(RectTransform), typeof(Image));
