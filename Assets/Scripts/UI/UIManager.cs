@@ -637,12 +637,12 @@ namespace GameIdle
             rankingPanel = panelGO.AddComponent<RankingPanel>();
             modalPanels.Add(panelGO);
 
-            // Ranking button — compact icon in top-right corner
+            // Ranking button — na barra de nav superior-esquerda, depois de STATS
             var btnGO = new GameObject("RankingButton", typeof(RectTransform), typeof(Image), typeof(Button));
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
-            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
-            brt.anchoredPosition = new Vector2(-8f, -10f);
+            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 1f);
+            brt.anchoredPosition = new Vector2(552f, -10f);
             brt.sizeDelta = new Vector2(80f, 50f);
             var bImg2 = btnGO.GetComponent<Image>();
             bImg2.sprite = Rounded(); bImg2.type = Image.Type.Sliced;
@@ -681,12 +681,12 @@ namespace GameIdle
             statsPanel = panelGO.AddComponent<StatsPanel>();
             modalPanels.Add(panelGO);
 
-            // STATS button — top-right, beside RANK button
+            // STATS button — na barra de nav superior-esquerda, depois de BONUS
             var btnGO = new GameObject("StatsButton", typeof(RectTransform), typeof(Image), typeof(Button));
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
-            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
-            brt.anchoredPosition = new Vector2(-96f, -10f);
+            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 1f);
+            brt.anchoredPosition = new Vector2(464f, -10f);
             brt.sizeDelta = new Vector2(80f, 50f);
             var bImg = btnGO.GetComponent<Image>();
             bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
@@ -798,7 +798,7 @@ namespace GameIdle
                 // a imagem cresce em largura e preenche as laterais, eliminando o vao
                 // navy da esquerda. Pequeno deslocamento à direita para a folga.
                 frt.offsetMin = new Vector2(150f, -150f); // esquerda com folga, base estendida
-                frt.offsetMax = new Vector2(110f,  150f); // direita e topo estendidos
+                frt.offsetMax = new Vector2(-200f, 150f); // recua a direita: libera navy p/ a coluna de stats
                 floorImg.transform.SetAsLastSibling(); // cobre o tom escuro do Panel_BG
 
                 // Fundo das laterais: gradiente navy combinando com o tema. O
@@ -1217,12 +1217,12 @@ namespace GameIdle
             }
             if (prestigeInfoText != null) prestigeInfoText.gameObject.SetActive(false);
 
-            // Gem pill, top-right (left of the ranking button) — opens the gem shop
+            // Gem pill — na barra de nav superior-esquerda, depois de RANK — abre a loja
             var pillGO = new GameObject("GemPill", typeof(RectTransform), typeof(Image), typeof(Button));
             pillGO.transform.SetParent(canvas.transform, false);
             var prt = pillGO.GetComponent<RectTransform>();
-            prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(1f, 1f);
-            prt.anchoredPosition = new Vector2(-184f, -10f);
+            prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(0f, 1f);
+            prt.anchoredPosition = new Vector2(640f, -10f);
             prt.sizeDelta = new Vector2(110f, 50f);
             var pImg = pillGO.GetComponent<Image>();
             pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
