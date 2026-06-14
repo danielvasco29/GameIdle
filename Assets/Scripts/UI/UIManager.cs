@@ -794,8 +794,8 @@ namespace GameIdle
                 // stats (direita, ~230px fixos). Como essas larguras sao fixas em px,
                 // ancoramos por insets — funciona em qualquer resolucao/janela. Uma
                 // mascara recorta o excesso do escritorio dentro dessa area.
-                const float sidebarInset = 388f; // logo apos a sidebar (menos navy sobrando)
-                const float statsInset   = 248f; // faixa navy a direita p/ a coluna de stats
+                const float sidebarInset = 427f; // sidebar +10% (menus laterais maiores)
+                const float statsInset   = 273f; // faixa navy a direita p/ a coluna de stats (+10%)
                 var staleArea = bgPanel.transform.Find("PlayArea");
                 if (staleArea != null) DestroyImmediate(staleArea.gameObject);
                 var areaGO = new GameObject("PlayArea", typeof(RectTransform), typeof(RectMask2D));
@@ -1241,7 +1241,7 @@ namespace GameIdle
             // The office art (Panel_Main) starts at x=380 in the 1920 reference,
             // so Panel_Left must stop there — anything wider slides under the
             // office and hides the right of each card (cost + level badge).
-            const float panelW = 380f;
+            const float panelW = 418f; // sidebar esquerda +10%
             rt.anchorMin        = new Vector2(0f, rt.anchorMin.y);
             rt.anchorMax        = new Vector2(0f, rt.anchorMax.y);
             rt.sizeDelta        = new Vector2(panelW, rt.sizeDelta.y);
@@ -2103,7 +2103,7 @@ namespace GameIdle
 
             // 4 pílulas EMPILHADAS NA VERTICAL, ancoradas no canto inferior-esquerdo
             // do Panel_Main, logo acima do botão BATALHAR (que fica em y 30..190).
-            const float pillW = 212f, pillH = 62f, gap = 7f;
+            const float pillW = 233f, pillH = 62f, gap = 7f; // coluna de stats +10%
 
             // Unified navy background across all pills — only the accent bar and
             // label carry color, which reads far more polished than mixed tints.
