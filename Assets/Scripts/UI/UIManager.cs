@@ -252,7 +252,10 @@ namespace GameIdle
 
                 var glg = contentGO.GetComponent<GridLayoutGroup>();
                 if (glg == null) glg = contentGO.AddComponent<GridLayoutGroup>();
-                glg.cellSize        = new Vector2(460f, 120f);
+                // Card mais estreito que a largura total e centralizado → navy
+                // equilibrado dos dois lados (antes 460 deixava tudo encostado e
+                // sobrava navy so a direita).
+                glg.cellSize        = new Vector2(340f, 120f);
                 glg.spacing         = new Vector2(0f, 12f);
                 glg.padding         = new RectOffset(10, 10, 10, 10);
                 glg.childAlignment  = TextAnchor.UpperCenter;
@@ -771,7 +774,7 @@ namespace GameIdle
                 // stats (direita, ~230px fixos). Como essas larguras sao fixas em px,
                 // ancoramos por insets — funciona em qualquer resolucao/janela. Uma
                 // mascara recorta o excesso do escritorio dentro dessa area.
-                const float sidebarInset = 400f; // alem da sidebar (linha de icones agora e compacta)
+                const float sidebarInset = 388f; // logo apos a sidebar (menos navy sobrando)
                 const float statsInset   = 230f; // espaco p/ a coluna de stats (botoes sairam daqui)
                 var staleArea = bgPanel.transform.Find("PlayArea");
                 if (staleArea != null) DestroyImmediate(staleArea.gameObject);
