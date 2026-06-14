@@ -1263,13 +1263,15 @@ namespace GameIdle
             pillGO.transform.SetParent(canvas.transform, false);
             var prt = pillGO.GetComponent<RectTransform>();
             prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(0f, 1f);
-            prt.anchoredPosition = new Vector2(640f, -15f);
-            prt.sizeDelta = new Vector2(82f, 40f);
+            prt.anchoredPosition = new Vector2(640f, -10f);
+            prt.sizeDelta = new Vector2(96f, 50f);
             var pImg = pillGO.GetComponent<Image>();
             pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
             pImg.color  = NavyCard;
             pImg.raycastTarget = true;
             pillGO.GetComponent<Button>().onClick.AddListener(() => { if (gemShopPanel != null) { CloseAllModals(); gemShopPanel.Open(); } });
+            // Mesmo padrao visual dos demais tabs (fundo TabBg + acento ciano)
+            StyleNavTab(pillGO, new Color(0.32f, 0.85f, 1f, 1f));
 
             // Gem icon: a cyan diamond (rounded square rotated 45°)
             var gemGO = new GameObject("GemIcon", typeof(RectTransform), typeof(Image));
