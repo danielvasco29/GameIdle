@@ -96,9 +96,11 @@ namespace GameIdle
         // Boost TURBO
         private Image _boostBtnImg;
         private TextMeshProUGUI _boostBtnText;
-        private static readonly Color BoostReady    = new(0.18f, 0.72f, 0.42f, 1f);
-        private static readonly Color BoostActive   = new(1f, 0.75f, 0.08f, 1f);
-        private static readonly Color BoostCooldown = new(0.25f, 0.28f, 0.38f, 1f);
+        // Botões no estilo navy (fundo navy + acento na cor original)
+        private static readonly Color NavyBtn       = new(0.10f, 0.17f, 0.28f, 1f);
+        private static readonly Color BoostReady    = new(0.10f, 0.17f, 0.28f, 1f); // navy
+        private static readonly Color BoostActive   = new(0.30f, 0.22f, 0.04f, 1f); // navy âmbar (ligado)
+        private static readonly Color BoostCooldown = new(0.13f, 0.15f, 0.21f, 1f); // navy apagado
 
         // Próximo desbloqueio — pulse
 
@@ -888,8 +890,8 @@ namespace GameIdle
             AddCircle("Border", new Vector2(-2f, -2f), new Vector2(2f, 2f),
                 new Color(0.10f, 0.38f, 0.18f, 1f), false);
 
-            // Face principal — verde chapado e limpo (mesma pegada do botao "Coletar")
-            tapFaceImg = AddCircle("Face", Vector2.zero, Vector2.zero, GreenBtn, true);
+            // Face principal — navy, com brilho/borda verde como acento
+            tapFaceImg = AddCircle("Face", Vector2.zero, Vector2.zero, NavyBtn, true);
             tapBtn.targetGraphic = tapFaceImg;
 
             // Label: ícone + texto
@@ -971,7 +973,7 @@ namespace GameIdle
             _boostBtnText.text = "TURBO  x5  30s";
             _boostBtnText.fontSize = 14; _boostBtnText.fontStyle = FontStyles.Bold;
             _boostBtnText.alignment = TextAlignmentOptions.Center;
-            _boostBtnText.color = Color.white; _boostBtnText.raycastTarget = false;
+            _boostBtnText.color = GoldColor; _boostBtnText.raycastTarget = false; // acento dourado (turbo)
             var btf = GetCachedFont(); if (btf != null) _boostBtnText.font = btf;
 
             // ── Office Props Layer (mesas, props animados) ────────────────
@@ -1106,8 +1108,8 @@ namespace GameIdle
         private IEnumerator PulseTapButton()
         {
             if (tapFaceImg == null) yield break;
-            var c1 = GreenBtn;
-            var c2 = new Color(0.33f, 0.88f, 0.46f, 1f);
+            var c1 = NavyBtn;
+            var c2 = new Color(0.14f, 0.23f, 0.36f, 1f); // navy levemente mais claro
             var g1 = new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.22f);
             var g2 = new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.48f);
             var r1 = new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.12f);
@@ -1613,7 +1615,7 @@ namespace GameIdle
             var img = prestigeButton?.GetComponent<Image>();
             if (img != null)
                 img.color = ready
-                    ? new Color(0.55f, 0.35f, 0.02f, 0.88f)   // glass amber when ready
+                    ? new Color(0.09f, 0.16f, 0.27f, 0.92f)    // navy realçado quando pronto (acentos dourados ficam)
                     : new Color(0.055f, 0.094f, 0.165f, 0.82f); // glass navy when inactive
 
             if (_prestigeSheen != null)

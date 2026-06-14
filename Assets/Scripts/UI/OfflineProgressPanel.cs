@@ -15,6 +15,7 @@ namespace GameIdle
         private static readonly Color NavyDark  = new(0.055f, 0.094f, 0.165f, 0.85f);
         private static readonly Color GoldColor = new(1f, 0.808f, 0.227f, 1f);
         private static readonly Color GreenColor= new(0.247f, 0.749f, 0.353f, 1f);
+        private static readonly Color NavyBtn   = new(0.10f, 0.17f, 0.28f, 1f);
 
         private void Awake() => BuildUI();
 
@@ -59,14 +60,15 @@ namespace GameIdle
             _earningsText = MakeLabel("Earnings", "", 24f, GreenColor,
                 new Vector2(0f, 0.26f), new Vector2(1f, 0.52f), new Vector2(12f, 0f), new Vector2(-12f, 0f));
 
+            // Navy com texto verde de acento (estilo navy do jogo)
             MakeButton("Coletar", new Vector2(0f, 0f), new Vector2(1f, 0.26f),
-                new Vector2(16f, 8f), new Vector2(-16f, -8f), GreenColor, OnCollect);
+                new Vector2(16f, 8f), new Vector2(-16f, -8f), NavyBtn, GreenColor, OnCollect);
 
             gameObject.SetActive(false);
         }
 
         private void MakeButton(string label, Vector2 aMin, Vector2 aMax,
-            Vector2 oMin, Vector2 oMax, Color color, UnityEngine.Events.UnityAction onClick)
+            Vector2 oMin, Vector2 oMax, Color color, Color textColor, UnityEngine.Events.UnityAction onClick)
         {
             var go = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(Button));
             go.transform.SetParent(transform, false);
@@ -84,7 +86,7 @@ namespace GameIdle
             trt.offsetMin = trt.offsetMax = Vector2.zero;
             var tmp = txtGO.GetComponent<TextMeshProUGUI>();
             tmp.text = label; tmp.fontSize = 16; tmp.fontStyle = FontStyles.Bold;
-            tmp.alignment = TextAlignmentOptions.Center; tmp.color = Color.white; tmp.raycastTarget = false;
+            tmp.alignment = TextAlignmentOptions.Center; tmp.color = textColor; tmp.raycastTarget = false;
             var f = TMP_Settings.defaultFontAsset; if (f != null) tmp.font = f;
         }
 
