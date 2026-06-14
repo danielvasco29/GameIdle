@@ -88,7 +88,7 @@ namespace GameIdle
         private Image tapFaceImg;
         private Image tapGlowImg;
         private Image _tapRingImg;
-        private bool _tapPunching;
+        private Coroutine _tapPunchCo;
         private Image _prestigeSheen;
         private Image _prestigeStarGlow;
         private RectTransform _prestigeStarRt;
@@ -1102,7 +1102,7 @@ namespace GameIdle
                 for (int i = 0; i < coins; i++) StartCoroutine(FlyCoin());
             }
 
-            if (tapButtonRT != null && !_tapPunching) StartCoroutine(PunchScale(tapButtonRT, 0.10f, 1.04f)); // punch sutil
+            if (tapButtonRT != null && _tapPunchCo == null) _tapPunchCo = StartCoroutine(PunchScaleTap());
         }
 
         // Mostra um único float somado de cima do botão TRABALHAR.
@@ -1200,10 +1200,10 @@ namespace GameIdle
             }
         }
 
+        // Punch genérico (one-shot) — captura a escala atual e restaura ao fim.
         private IEnumerator PunchScale(RectTransform rt, float duration, float scale = 1.12f)
         {
             if (rt == null) yield break;
-            _tapPunching = true;
             Vector3 orig = rt.localScale;
             Vector3 big  = orig * scale;
             float half   = duration * 0.5f;
@@ -1212,7 +1212,22 @@ namespace GameIdle
             e = 0f;
             while (e < half) { e += Time.deltaTime; rt.localScale = Vector3.Lerp(big, orig, e / half); yield return null; }
             rt.localScale = orig;
-            _tapPunching = false;
+        }
+
+        // Punch do botão TRABALHAR — sempre relativo à escala 1 (nunca acumula),
+        // protegido contra sobreposição por _tapPunchCo.
+        private IEnumerator PunchScaleTap()
+        {
+            var rt = tapButtonRT;
+            if (rt == null) { _tapPunchCo = null; yield break; }
+            Vector3 a = Vector3.one, b = Vector3.one * 1.04f;
+            const float half = 0.05f;
+            float e = 0f;
+            while (e < half) { e += Time.deltaTime; rt.localScale = Vector3.Lerp(a, b, e / half); yield return null; }
+            e = 0f;
+            while (e < half) { e += Time.deltaTime; rt.localScale = Vector3.Lerp(b, a, e / half); yield return null; }
+            rt.localScale = Vector3.one;
+            _tapPunchCo = null;
         }
 
         // ── Layout & Theme ────────────────────────────────────────────────────
