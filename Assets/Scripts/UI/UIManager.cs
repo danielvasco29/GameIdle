@@ -1364,8 +1364,8 @@ namespace GameIdle
             gemGO.transform.SetParent(pillGO.transform, false);
             var grt = gemGO.GetComponent<RectTransform>();
             grt.anchorMin = grt.anchorMax = grt.pivot = new Vector2(0f, 0.5f);
-            grt.anchoredPosition = new Vector2(15f, 0f);
-            grt.sizeDelta = new Vector2(20f, 20f);
+            grt.anchoredPosition = new Vector2(12f, 0f);
+            grt.sizeDelta = new Vector2(18f, 18f);
             grt.localRotation = Quaternion.Euler(0f, 0f, 45f);
             var gImg = gemGO.GetComponent<Image>();
             gImg.sprite = UiSpriteFactory.Box(); gImg.type = Image.Type.Simple;
@@ -1377,11 +1377,11 @@ namespace GameIdle
             gtGO.transform.SetParent(pillGO.transform, false);
             var gtrt = gtGO.GetComponent<RectTransform>();
             gtrt.anchorMin = new Vector2(0f, 0f); gtrt.anchorMax = new Vector2(1f, 1f);
-            gtrt.offsetMin = new Vector2(32f, 0f); gtrt.offsetMax = new Vector2(-6f, 0f);
+            gtrt.offsetMin = new Vector2(38f, 0f); gtrt.offsetMax = new Vector2(-8f, 0f);
             gemText = gtGO.GetComponent<TextMeshProUGUI>();
             gemText.fontSize = 16; gemText.fontStyle = FontStyles.Bold;
             gemText.color = new Color(0.72f, 0.93f, 1f, 1f);
-            gemText.alignment = TextAlignmentOptions.MidlineLeft;
+            gemText.alignment = TextAlignmentOptions.Center;
             gemText.raycastTarget = false;
             var gf = GetCachedFont(); if (gf != null) gemText.font = gf;
 
@@ -1401,7 +1401,10 @@ namespace GameIdle
         private void RefreshGemDisplay()
         {
             if (gemText != null && GameManager.Instance != null)
-                gemText.text = NumberFormatter.Format(GameManager.Instance.Gems);
+            {
+                long g = GameManager.Instance.Gems;
+                gemText.text = g < 100000 ? g.ToString() : NumberFormatter.Format(g);
+            }
         }
 
         private void ApplyNeonTheme()
