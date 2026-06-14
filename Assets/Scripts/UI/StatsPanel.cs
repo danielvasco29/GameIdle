@@ -104,7 +104,7 @@ namespace GameIdle
             var bg = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
             bg.sprite = UiSpriteFactory.RoundedBox();
             bg.type   = Image.Type.Sliced;
-            bg.color  = NavyDark;
+            bg.color  = new Color(0.086f, 0.137f, 0.220f, 0.85f);
 
             TMP_FontAsset font = TMP_Settings.defaultFontAsset;
             const float sidePad = 14f;

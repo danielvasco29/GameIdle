@@ -32,7 +32,7 @@ namespace GameIdle
             var bg = gameObject.AddComponent<Image>();
             bg.sprite = UiSpriteFactory.RoundedBox();
             bg.type = Image.Type.Sliced;
-            bg.color = new Color(0.05f, 0.08f, 0.16f, 0.85f);
+            bg.color = new Color(0.086f, 0.137f, 0.220f, 0.85f);
 
             // Title bar
             var titleGO = new GameObject("Title", typeof(RectTransform), typeof(TextMeshProUGUI));

@@ -103,7 +103,7 @@ namespace GameIdle
             var bg = gameObject.AddComponent<Image>();
             bg.sprite = Rounded();
             bg.type   = Image.Type.Sliced;
-            bg.color  = NavyPanel;
+            bg.color  = new Color(0.086f, 0.137f, 0.220f, 0.85f);
 
             // Title
             var title = MakeText(transform, "Title", "UPGRADES DE COMBATE",
