@@ -34,7 +34,7 @@ namespace GameIdle
             new(0.36f, 0.37f), // frente esquerda-centro
             new(0.48f, 0.30f), // frente centro
             new(0.60f, 0.40f), // direita (entre as mesas da direita e o sofá)
-            new(0.45f, 0.18f), // bem na frente (vão entre as duas ilhas de mesas)
+            new(0.45f, 0.30f), // frente (acima da barra de prestígio)
         };
 
         // Nenhum spot é cadeira — os workers só roam pelo chão aberto.
@@ -82,7 +82,7 @@ namespace GameIdle
         {
             // y inferior 0.10 -> 0.22: mantém os workers acima da barra de
             // prestígio (que fica rente ao fundo), pra ninguém pisar nela.
-            Vector2 lo = OfficeToLocal(new Vector2(0.15f, 0.22f));
+            Vector2 lo = OfficeToLocal(new Vector2(0.15f, 0.30f));
             Vector2 hi = OfficeToLocal(new Vector2(0.90f, 0.80f));
             return Rect.MinMaxRect(Mathf.Min(lo.x, hi.x), Mathf.Min(lo.y, hi.y),
                                    Mathf.Max(lo.x, hi.x), Mathf.Max(lo.y, hi.y));
