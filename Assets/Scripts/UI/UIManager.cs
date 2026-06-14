@@ -794,7 +794,7 @@ namespace GameIdle
                 // stats (direita, ~230px fixos). Como essas larguras sao fixas em px,
                 // ancoramos por insets — funciona em qualquer resolucao/janela. Uma
                 // mascara recorta o excesso do escritorio dentro dessa area.
-                const float sidebarInset = 360f; // logo apos a sidebar
+                const float sidebarInset = 400f; // alem da borda da sidebar (~380px) p/ nao ser coberto
                 const float statsInset   = 240f; // antes da coluna de stats à direita
                 var staleArea = bgPanel.transform.Find("PlayArea");
                 if (staleArea != null) DestroyImmediate(staleArea.gameObject);
