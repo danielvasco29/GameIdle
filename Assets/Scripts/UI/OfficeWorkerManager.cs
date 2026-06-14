@@ -80,7 +80,9 @@ namespace GameIdle
         // limitar o roam. Margens em normalizado evitam paredes/mesas/barra.
         public static Rect OfficeFloorBoundsLocal()
         {
-            Vector2 lo = OfficeToLocal(new Vector2(0.15f, 0.10f));
+            // y inferior 0.10 -> 0.22: mantém os workers acima da barra de
+            // prestígio (que fica rente ao fundo), pra ninguém pisar nela.
+            Vector2 lo = OfficeToLocal(new Vector2(0.15f, 0.22f));
             Vector2 hi = OfficeToLocal(new Vector2(0.90f, 0.80f));
             return Rect.MinMaxRect(Mathf.Min(lo.x, hi.x), Mathf.Min(lo.y, hi.y),
                                    Mathf.Max(lo.x, hi.x), Mathf.Max(lo.y, hi.y));
