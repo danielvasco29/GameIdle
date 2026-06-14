@@ -391,7 +391,7 @@ namespace GameIdle
             var bImg = badge.GetComponent<Image>();
             bImg.sprite = GetRoundedSprite();
             bImg.type   = Image.Type.Sliced;
-            bImg.color  = new Color(_rarity.r, _rarity.g, _rarity.b, 0.22f);
+            bImg.color  = new Color(_rarity.r, _rarity.g, _rarity.b, 0.34f);
             bImg.raycastTarget = false;
 
             if (levelText != null)
@@ -403,7 +403,7 @@ namespace GameIdle
                 levelText.fontSize  = 14;
                 levelText.fontStyle = FontStyles.Bold;
                 levelText.alignment = TextAlignmentOptions.Center;
-                levelText.color     = Color.Lerp(_rarity, Color.white, 0.55f);
+                levelText.color     = Color.Lerp(_rarity, Color.white, 0.8f);
                 levelText.raycastTarget = false;
                 levelText.textWrappingMode = TextWrappingModes.NoWrap;
             }

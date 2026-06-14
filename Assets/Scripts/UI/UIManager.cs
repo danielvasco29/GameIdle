@@ -245,7 +245,7 @@ namespace GameIdle
                 var glg = contentGO.GetComponent<GridLayoutGroup>();
                 if (glg == null) glg = contentGO.AddComponent<GridLayoutGroup>();
                 glg.cellSize        = new Vector2(460f, 120f);
-                glg.spacing         = new Vector2(0f, 9f);
+                glg.spacing         = new Vector2(0f, 12f);
                 glg.padding         = new RectOffset(10, 10, 10, 10);
                 glg.childAlignment  = TextAnchor.UpperCenter;
                 glg.constraint      = GridLayoutGroup.Constraint.FixedColumnCount;
@@ -1361,12 +1361,37 @@ namespace GameIdle
             labelGO.transform.SetParent(headerGO.transform, false);
             var lrt = labelGO.GetComponent<RectTransform>();
             lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
-            lrt.offsetMin = new Vector2(14f, 0f); lrt.offsetMax = Vector2.zero;
+            lrt.offsetMin = new Vector2(20f, 0f); lrt.offsetMax = Vector2.zero;
             var ltmp = labelGO.GetComponent<TextMeshProUGUI>();
-            ltmp.text = "FUNCIONARIOS"; ltmp.fontSize = 16; ltmp.fontStyle = FontStyles.Bold;
+            ltmp.text = "FUNCIONÁRIOS"; ltmp.fontSize = 17; ltmp.fontStyle = FontStyles.Bold;
+            ltmp.characterSpacing = 6f; // respiro entre letras → cara de cabeçalho
             ltmp.color = GoldColor; ltmp.alignment = TextAlignmentOptions.MidlineLeft;
             ltmp.raycastTarget = false;
             var lf = GetCachedFont(); if (lf != null) ltmp.font = lf;
+
+            // Acento dourado vertical à esquerda do título
+            var accGO = new GameObject("HeaderAccent", typeof(RectTransform), typeof(Image));
+            accGO.transform.SetParent(headerGO.transform, false);
+            var acrt = accGO.GetComponent<RectTransform>();
+            acrt.anchorMin = new Vector2(0f, 0.5f); acrt.anchorMax = new Vector2(0f, 0.5f);
+            acrt.pivot = new Vector2(0f, 0.5f);
+            acrt.anchoredPosition = new Vector2(10f, 0f);
+            acrt.sizeDelta = new Vector2(4f, 18f);
+            var accImg = accGO.GetComponent<Image>();
+            accImg.sprite = Rounded(); accImg.type = Image.Type.Sliced;
+            accImg.color = GoldColor; accImg.raycastTarget = false;
+
+            // Sublinhado dourado sutil na base do header
+            var ulGO = new GameObject("HeaderUnderline", typeof(RectTransform), typeof(Image));
+            ulGO.transform.SetParent(headerGO.transform, false);
+            var ulrt = ulGO.GetComponent<RectTransform>();
+            ulrt.anchorMin = new Vector2(0f, 0f); ulrt.anchorMax = new Vector2(1f, 0f);
+            ulrt.pivot = new Vector2(0.5f, 0f);
+            ulrt.offsetMin = new Vector2(10f, 0f); ulrt.offsetMax = new Vector2(-10f, 0f);
+            ulrt.sizeDelta = new Vector2(ulrt.sizeDelta.x, 2f);
+            var ulImg = ulGO.GetComponent<Image>();
+            ulImg.color = new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0.30f);
+            ulImg.raycastTarget = false;
         }
 
         // Dedicated bar (below the FUNCIONÁRIOS header) holding the x1/x10/Máx
@@ -2042,6 +2067,19 @@ namespace GameIdle
                     divImg.color = new Color(1f, 1f, 1f, 0.08f);
                     divImg.raycastTarget = false;
                 }
+
+                // Halo neon atras do acento (brilho sutil na cor do chip)
+                var accGlow = new GameObject("AGlow", typeof(RectTransform), typeof(Image));
+                accGlow.transform.SetParent(pill.transform, false);
+                var agrt = accGlow.GetComponent<RectTransform>();
+                agrt.anchorMin = new Vector2(0f, 0.5f); agrt.anchorMax = new Vector2(0f, 0.5f);
+                agrt.pivot = new Vector2(0f, 0.5f);
+                agrt.anchoredPosition = new Vector2(2f, 0f);
+                agrt.sizeDelta = new Vector2(28f, pillH * 0.9f);
+                var agImg = accGlow.GetComponent<Image>();
+                agImg.sprite = UiSpriteFactory.Glow(); agImg.type = Image.Type.Simple;
+                agImg.color = new Color(d.labelColor.r, d.labelColor.g, d.labelColor.b, 0.30f);
+                agImg.raycastTarget = false;
 
                 // Acento colorido lateral — pílula arredondada inset (não flush na borda)
                 var acc = new GameObject("A", typeof(RectTransform), typeof(Image));
