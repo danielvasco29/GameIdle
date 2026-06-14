@@ -860,8 +860,8 @@ namespace GameIdle
             tapGO.transform.SetParent(pmGO.transform, false);
             tapButtonRT = tapGO.GetComponent<RectTransform>();
             tapButtonRT.anchorMin = tapButtonRT.anchorMax = tapButtonRT.pivot = new Vector2(1f, 0f);
-            tapButtonRT.anchoredPosition = new Vector2(-30f, 86f); // sobe p/ abrir espaco da barra de turbo abaixo
-            tapButtonRT.sizeDelta = new Vector2(176f, 176f);       // menor p/ nao invadir o escritorio
+            tapButtonRT.anchoredPosition = new Vector2(-30f, 80f); // sobe p/ abrir espaco da barra de turbo abaixo
+            tapButtonRT.sizeDelta = new Vector2(188f, 188f);       // um pouco maior, sem invadir o escritorio
             var tapBtn = tapGO.GetComponent<Button>();
 
             Image AddCircle(string name, Vector2 offMin, Vector2 offMax, Color col, bool ray)
@@ -902,11 +902,12 @@ namespace GameIdle
             lRT.anchorMin = Vector2.zero; lRT.anchorMax = Vector2.one;
             lRT.offsetMin = new Vector2(8f, 8f); lRT.offsetMax = new Vector2(-8f, -8f);
             var lTMP = labelGO.GetComponent<TextMeshProUGUI>();
-            lTMP.text = "<size=28><b>TRABALHAR</b></size>\n<size=13><color=#a8ddb0>segure para auto</color></size>";
+            lTMP.text = "TRABALHAR";
+            lTMP.fontSize = 24;
             lTMP.fontStyle = FontStyles.Bold;
             lTMP.color = Color.white;
             lTMP.alignment = TextAlignmentOptions.Center;
-            lTMP.textWrappingMode = TextWrappingModes.Normal;
+            lTMP.textWrappingMode = TextWrappingModes.NoWrap;
             lTMP.raycastTarget = false;
             var lf = GetCachedFont(); if (lf != null) lTMP.font = lf;
 
