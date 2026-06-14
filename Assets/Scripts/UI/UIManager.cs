@@ -1276,8 +1276,8 @@ namespace GameIdle
             gemGO.transform.SetParent(pillGO.transform, false);
             var grt = gemGO.GetComponent<RectTransform>();
             grt.anchorMin = grt.anchorMax = grt.pivot = new Vector2(0f, 0.5f);
-            grt.anchoredPosition = new Vector2(9f, 0f);
-            grt.sizeDelta = new Vector2(14f, 14f);
+            grt.anchoredPosition = new Vector2(10f, 0f);
+            grt.sizeDelta = new Vector2(11f, 11f);
             grt.localRotation = Quaternion.Euler(0f, 0f, 45f);
             var gImg = gemGO.GetComponent<Image>();
             gImg.sprite = UiSpriteFactory.Box(); gImg.type = Image.Type.Simple;
@@ -1289,8 +1289,9 @@ namespace GameIdle
             gtGO.transform.SetParent(pillGO.transform, false);
             var gtrt = gtGO.GetComponent<RectTransform>();
             gtrt.anchorMin = new Vector2(0f, 0f); gtrt.anchorMax = new Vector2(1f, 1f);
-            gtrt.offsetMin = new Vector2(26f, 0f); gtrt.offsetMax = new Vector2(-6f, 0f);
+            gtrt.offsetMin = new Vector2(24f, 0f); gtrt.offsetMax = new Vector2(-6f, 0f);
             gemText = gtGO.GetComponent<TextMeshProUGUI>();
+            gemText.text = "Loja";
             gemText.fontSize = 15; gemText.fontStyle = FontStyles.Bold;
             gemText.color = new Color(0.7f, 0.93f, 1f, 1f);
             gemText.alignment = TextAlignmentOptions.MidlineLeft;
@@ -1312,9 +1313,8 @@ namespace GameIdle
 
         private void RefreshGemDisplay()
         {
-            if (gemText == null || GameManager.Instance == null) return;
-            int g = GameManager.Instance.Gems;
-            gemText.text = g < 100_000 ? g.ToString("N0") : NumberFormatter.Format(g);
+            // O pill agora e o botao "Loja" (a contagem de gemas aparece dentro da
+            // loja). Mantido como no-op para nao sobrescrever o rotulo.
         }
 
         private void ApplyNeonTheme()
