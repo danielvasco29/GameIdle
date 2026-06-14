@@ -1195,13 +1195,29 @@ namespace GameIdle
                 shImg.raycastTarget = false;
             }
 
-            // Fit the card to the visible width (minus the ~17px scrollbar and the
-            // grid's 10px side padding) so cost + level are never clipped.
+            // O viewport reservava ~17px a direita (espaco de scrollbar), o que
+            // empurrava os cards para a esquerda e deixava navy sobrando so a
+            // direita. Como nao ha scrollbar visivel, usamos a largura cheia e
+            // centralizamos o card → navy simetrico nos dois lados.
+            var viewportRT = panelLeft.transform.Find("ScrollView/Viewport") as RectTransform;
+            if (viewportRT != null)
+            {
+                viewportRT.anchorMin = new Vector2(0f, 0f);
+                viewportRT.anchorMax = new Vector2(1f, 1f);
+                viewportRT.pivot     = new Vector2(0.5f, 0.5f);
+                viewportRT.sizeDelta = new Vector2(0f, viewportRT.sizeDelta.y);
+                viewportRT.anchoredPosition = new Vector2(0f, viewportRT.anchoredPosition.y);
+            }
+
+            // Card centralizado com margem igual dos dois lados.
             if (charactersContent != null)
             {
                 var glg = charactersContent.GetComponent<GridLayoutGroup>();
                 if (glg != null)
-                    glg.cellSize = new Vector2(panelW - 38f, glg.cellSize.y);
+                {
+                    glg.cellSize       = new Vector2(panelW - 24f, glg.cellSize.y);
+                    glg.childAlignment = TextAnchor.UpperCenter;
+                }
             }
         }
 
