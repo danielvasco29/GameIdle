@@ -920,7 +920,7 @@ namespace GameIdle
             pillRT.sizeDelta = new Vector2(170f, 30f);
             var pillImg = pillGO.GetComponent<Image>();
             pillImg.sprite = Rounded(); pillImg.type = Image.Type.Sliced;
-            pillImg.color = new Color(0f, 0f, 0f, 0.28f);
+            pillImg.color = new Color(0f, 0f, 0f, 0f); // sem fundo — valor fica direto na tela
             pillImg.raycastTarget = false;
 
             var tvGO = new GameObject("TapValue", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -934,6 +934,8 @@ namespace GameIdle
             tapValueText.color = GoldColor;
             tapValueText.alignment = TextAlignmentOptions.Center;
             tapValueText.raycastTarget = false;
+            tapValueText.outlineWidth = 0.22f; // contorno p/ legibilidade sem fundo
+            tapValueText.outlineColor = new Color32(0, 0, 0, 200);
             var tf = GetCachedFont(); if (tf != null) tapValueText.font = tf;
             UpdateTapValueText();
 
@@ -1080,7 +1082,7 @@ namespace GameIdle
                 for (int i = 0; i < coins; i++) StartCoroutine(FlyCoin());
             }
 
-            if (tapButtonRT != null && !_tapPunching) StartCoroutine(PunchScale(tapButtonRT, 0.12f));
+            if (tapButtonRT != null && !_tapPunching) StartCoroutine(PunchScale(tapButtonRT, 0.10f, 1.04f)); // punch sutil
         }
 
         // Mostra um único float somado de cima do botão TRABALHAR.
@@ -1146,10 +1148,10 @@ namespace GameIdle
             var r1 = new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.12f);
             var r2 = new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 0.32f);
             var rs1 = Vector3.one;
-            var rs2 = Vector3.one * 1.06f;
+            var rs2 = Vector3.one * 1.02f;        // respiro bem sutil (evita vertigem)
             while (tapFaceImg != null)
             {
-                float e = 0f; const float dur = 1.1f;
+                float e = 0f; const float dur = 1.8f; // ciclo mais lento e suave
                 while (e < dur)
                 {
                     e += Time.deltaTime; float t = Mathf.SmoothStep(0f, 1f, e / dur);
@@ -1178,12 +1180,12 @@ namespace GameIdle
             }
         }
 
-        private IEnumerator PunchScale(RectTransform rt, float duration)
+        private IEnumerator PunchScale(RectTransform rt, float duration, float scale = 1.12f)
         {
             if (rt == null) yield break;
             _tapPunching = true;
             Vector3 orig = rt.localScale;
-            Vector3 big  = orig * 1.12f;
+            Vector3 big  = orig * scale;
             float half   = duration * 0.5f;
             float e = 0f;
             while (e < half) { e += Time.deltaTime; rt.localScale = Vector3.Lerp(orig, big, e / half); yield return null; }
