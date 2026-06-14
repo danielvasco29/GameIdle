@@ -104,7 +104,7 @@ namespace GameIdle
             nrt.anchorMin = new Vector2(0f, 0.55f); nrt.anchorMax = new Vector2(0.65f, 1f);
             nrt.offsetMin = new Vector2(10f, 0f); nrt.offsetMax = Vector2.zero;
             row.nameText = nameGO.GetComponent<TextMeshProUGUI>();
-            row.nameText.text = mission.name; row.nameText.fontSize = 21; row.nameText.fontStyle = FontStyles.Bold;
+            row.nameText.text = mission.name; row.nameText.fontSize = 24; row.nameText.fontStyle = FontStyles.Bold;
             row.nameText.color = Color.white; row.nameText.alignment = TextAlignmentOptions.MidlineLeft;
             row.nameText.raycastTarget = false; if (font != null) row.nameText.font = font;
 
@@ -115,7 +115,7 @@ namespace GameIdle
             prrt.anchorMin = new Vector2(0f, 0.05f); prrt.anchorMax = new Vector2(0.65f, 0.55f);
             prrt.offsetMin = new Vector2(10f, 0f); prrt.offsetMax = Vector2.zero;
             row.progressText = progGO.GetComponent<TextMeshProUGUI>();
-            row.progressText.fontSize = 17; row.progressText.color = new Color(0.82f, 0.89f, 1f);
+            row.progressText.fontSize = 19; row.progressText.color = new Color(0.82f, 0.89f, 1f);
             row.progressText.alignment = TextAlignmentOptions.MidlineLeft; row.progressText.raycastTarget = false;
             if (font != null) row.progressText.font = font;
 
@@ -150,7 +150,7 @@ namespace GameIdle
             var blrt = bLbl.GetComponent<RectTransform>();
             blrt.anchorMin = Vector2.zero; blrt.anchorMax = Vector2.one; blrt.offsetMin = blrt.offsetMax = Vector2.zero;
             row.claimBtnText = bLbl.GetComponent<TextMeshProUGUI>();
-            row.claimBtnText.fontSize = 18; row.claimBtnText.fontStyle = FontStyles.Bold;
+            row.claimBtnText.fontSize = 20; row.claimBtnText.fontStyle = FontStyles.Bold;
             row.claimBtnText.alignment = TextAlignmentOptions.Center; row.claimBtnText.raycastTarget = false;
             if (font != null) row.claimBtnText.font = font;
 
