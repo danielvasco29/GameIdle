@@ -610,33 +610,28 @@ namespace GameIdle
             rankingPanel = panelGO.AddComponent<RankingPanel>();
             modalPanels.Add(panelGO);
 
-            // Ranking button — grupo da direita (entre STATS e Loja)
+            // Ranking button — icone (estrela) na esquerda, depois de STATS
             var btnGO = new GameObject("RankingButton", typeof(RectTransform), typeof(Image), typeof(Button));
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
-            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
-            brt.anchoredPosition = new Vector2(-100f, -10f);
-            brt.sizeDelta = new Vector2(72f, 50f);
+            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 1f);
+            brt.anchoredPosition = new Vector2(324f, -10f);
+            brt.sizeDelta = new Vector2(48f, 50f);
             var bImg2 = btnGO.GetComponent<Image>();
-            bImg2.sprite = Rounded(); bImg2.type = Image.Type.Sliced;
-            bImg2.color = new Color(0.08f, 0.13f, 0.22f, 0.9f);
+            bImg2.sprite = Rounded(); bImg2.type = Image.Type.Sliced; bImg2.color = TabBg;
             btnGO.GetComponent<Button>().onClick.AddListener(OpenRanking);
-
-            var lblGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            lblGO.transform.SetParent(btnGO.transform, false);
-            var lrt = lblGO.GetComponent<RectTransform>();
-            lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
-            lrt.offsetMin = lrt.offsetMax = Vector2.zero;
-            var ltmp = lblGO.GetComponent<TextMeshProUGUI>();
-            ltmp.text = "RANK";
-            ltmp.fontSize = 16;
-            ltmp.fontStyle = FontStyles.Bold;
-            ltmp.color = new Color(0.6f, 0.7f, 0.85f, 0.85f);
-            ltmp.alignment = TextAlignmentOptions.Center;
-            ltmp.raycastTarget = false;
-            var ff = GetCachedFont();
-            if (ff != null) ltmp.font = ff;
-            StyleNavTab(btnGO, new Color(0.6f, 0.7f, 0.85f, 0.85f));
+            // Icone: estrela (ranking)
+            var rankColor = GoldColor;
+            var starGO = new GameObject("Star", typeof(RectTransform), typeof(Image));
+            starGO.transform.SetParent(btnGO.transform, false);
+            var starRT = starGO.GetComponent<RectTransform>();
+            starRT.anchorMin = starRT.anchorMax = starRT.pivot = new Vector2(0.5f, 0.5f);
+            starRT.anchoredPosition = Vector2.zero;
+            starRT.sizeDelta = new Vector2(30f, 30f);
+            var starImg = starGO.GetComponent<Image>();
+            starImg.sprite = UiSpriteFactory.Star();
+            starImg.color = rankColor; starImg.raycastTarget = false;
+            StyleNavTab(btnGO, rankColor);
         }
 
         private void OpenRanking()
@@ -654,29 +649,33 @@ namespace GameIdle
             statsPanel = panelGO.AddComponent<StatsPanel>();
             modalPanels.Add(panelGO);
 
-            // STATS button — grupo da direita (sobre o navy)
+            // STATS button — icone (grafico de barras) na esquerda, depois de BONUS
             var btnGO = new GameObject("StatsButton", typeof(RectTransform), typeof(Image), typeof(Button));
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
-            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
-            brt.anchoredPosition = new Vector2(-178f, -10f);
-            brt.sizeDelta = new Vector2(72f, 50f);
+            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 1f);
+            brt.anchoredPosition = new Vector2(270f, -10f);
+            brt.sizeDelta = new Vector2(48f, 50f);
             var bImg = btnGO.GetComponent<Image>();
-            bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
-            bImg.color = new Color(0.08f, 0.13f, 0.22f, 0.9f);
+            bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced; bImg.color = TabBg;
             btnGO.GetComponent<Button>().onClick.AddListener(() =>
             { if (statsPanel != null) { CloseAllModals(); statsPanel.Open(); } });
-            var lblGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            lblGO.transform.SetParent(btnGO.transform, false);
-            var lrt = lblGO.GetComponent<RectTransform>();
-            lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
-            lrt.offsetMin = lrt.offsetMax = Vector2.zero;
-            var ltmp = lblGO.GetComponent<TextMeshProUGUI>();
-            ltmp.text = "STATS"; ltmp.fontSize = 16; ltmp.fontStyle = FontStyles.Bold;
-            ltmp.color = new Color(0.6f, 0.7f, 0.85f, 0.85f);
-            ltmp.alignment = TextAlignmentOptions.Center; ltmp.raycastTarget = false;
-            var ff2 = GetCachedFont(); if (ff2 != null) ltmp.font = ff2;
-            StyleNavTab(btnGO, new Color(0.6f, 0.7f, 0.85f, 0.85f));
+            // Icone: 3 barras crescentes (alinhadas pela base)
+            var statColor = new Color(0.62f, 0.78f, 1f, 1f);
+            float[] barH = { 13f, 19f, 25f };
+            for (int b = 0; b < 3; b++)
+            {
+                var barGO = new GameObject("Bar", typeof(RectTransform), typeof(Image));
+                barGO.transform.SetParent(btnGO.transform, false);
+                var barRT = barGO.GetComponent<RectTransform>();
+                barRT.anchorMin = barRT.anchorMax = barRT.pivot = new Vector2(0.5f, 0.5f);
+                barRT.sizeDelta = new Vector2(7f, barH[b]);
+                barRT.anchoredPosition = new Vector2(-9f + b * 9f, -13f + barH[b] / 2f);
+                var barImg = barGO.GetComponent<Image>();
+                barImg.sprite = Rounded(); barImg.type = Image.Type.Sliced;
+                barImg.color = statColor; barImg.raycastTarget = false;
+            }
+            StyleNavTab(btnGO, statColor);
         }
 
         // ── Tap Button ────────────────────────────────────────────────────────
@@ -767,8 +766,8 @@ namespace GameIdle
                 // stats (direita, ~230px fixos). Como essas larguras sao fixas em px,
                 // ancoramos por insets — funciona em qualquer resolucao/janela. Uma
                 // mascara recorta o excesso do escritorio dentro dessa area.
-                const float sidebarInset = 400f; // alem da borda da sidebar (~380px) p/ nao ser coberto
-                const float statsInset   = 270f; // espaco p/ os botoes da direita (STATS/RANK/Loja) + coluna de stats
+                const float sidebarInset = 440f; // alem da sidebar + linha de icones (STATS/RANK/Loja)
+                const float statsInset   = 230f; // espaco p/ a coluna de stats (botoes sairam daqui)
                 var staleArea = bgPanel.transform.Find("PlayArea");
                 if (staleArea != null) DestroyImmediate(staleArea.gameObject);
                 var areaGO = new GameObject("PlayArea", typeof(RectTransform), typeof(RectMask2D));
@@ -1028,10 +1027,13 @@ namespace GameIdle
             if (panelMain != null)
             {
                 var go = new GameObject("FloatTap", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(FloatingText));
-                go.transform.SetParent(panelMain, false);
+                var fParent = tapButtonRT != null ? tapButtonRT : panelMain;
+                go.transform.SetParent(fParent, false);
                 var rt = go.GetComponent<RectTransform>();
+                rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
                 rt.sizeDelta = new Vector2(260f, 60f);
-                rt.anchoredPosition = new Vector2(Random.Range(-80f, 80f), Random.Range(30f, 100f));
+                // Sobem de cima do botao TRABALHAR
+                rt.anchoredPosition = new Vector2(Random.Range(-45f, 45f), Random.Range(120f, 160f));
                 // Turbo tap = gold, normal = green
                 Color tapColor = GameManager.Instance.TapBoostActive
                     ? new Color(1f, 0.85f, 0.1f) : NeonGreen;
@@ -1049,9 +1051,10 @@ namespace GameIdle
         // A small gold coin that pops out of the tap button and arcs upward.
         private IEnumerator FlyCoin()
         {
-            if (panelMain == null) yield break;
+            var coinParent = tapButtonRT != null ? tapButtonRT : panelMain;
+            if (coinParent == null) yield break;
             var go = new GameObject("Coin", typeof(RectTransform), typeof(Image));
-            go.transform.SetParent(panelMain, false);
+            go.transform.SetParent(coinParent, false);
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
             float size = Random.Range(16f, 26f);
@@ -1232,48 +1235,35 @@ namespace GameIdle
             if (prestigeInfoText != null) prestigeInfoText.gameObject.SetActive(false);
 
             // Gem pill — na barra de nav superior-esquerda, depois de RANK — abre a loja
+            // Loja — icone (diamante) na esquerda, depois de RANK
             var pillGO = new GameObject("GemPill", typeof(RectTransform), typeof(Image), typeof(Button));
             pillGO.transform.SetParent(canvas.transform, false);
             var prt = pillGO.GetComponent<RectTransform>();
-            prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(1f, 1f);
-            prt.anchoredPosition = new Vector2(-10f, -10f);
-            prt.sizeDelta = new Vector2(84f, 50f);
+            prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(0f, 1f);
+            prt.anchoredPosition = new Vector2(378f, -10f);
+            prt.sizeDelta = new Vector2(48f, 50f);
             var pImg = pillGO.GetComponent<Image>();
             pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
-            pImg.color  = NavyCard;
+            pImg.color  = TabBg;
             pImg.raycastTarget = true;
             pillGO.GetComponent<Button>().onClick.AddListener(() => { if (gemShopPanel != null) { CloseAllModals(); gemShopPanel.Open(); } });
-            // Mesmo padrao visual dos demais tabs (fundo TabBg + acento ciano)
-            StyleNavTab(pillGO, new Color(0.32f, 0.85f, 1f, 1f));
+            var gemCyan = new Color(0.32f, 0.85f, 1f, 1f);
+            StyleNavTab(pillGO, gemCyan);
 
-            // Gem icon: a cyan diamond (rounded square rotated 45°)
+            // Icone de gema: diamante ciano (quadrado arredondado rotacionado 45°)
             var gemGO = new GameObject("GemIcon", typeof(RectTransform), typeof(Image));
             gemGO.transform.SetParent(pillGO.transform, false);
             var grt = gemGO.GetComponent<RectTransform>();
-            grt.anchorMin = grt.anchorMax = grt.pivot = new Vector2(0f, 0.5f);
-            grt.anchoredPosition = new Vector2(10f, 0f);
-            grt.sizeDelta = new Vector2(11f, 11f);
+            grt.anchorMin = grt.anchorMax = grt.pivot = new Vector2(0.5f, 0.5f);
+            grt.anchoredPosition = Vector2.zero;
+            grt.sizeDelta = new Vector2(22f, 22f);
             grt.localRotation = Quaternion.Euler(0f, 0f, 45f);
             var gImg = gemGO.GetComponent<Image>();
             gImg.sprite = UiSpriteFactory.Box(); gImg.type = Image.Type.Simple;
-            gImg.color  = new Color(0.32f, 0.85f, 1f, 1f);
+            gImg.color  = gemCyan;
             gImg.raycastTarget = false;
 
-            // Gem count
-            var gtGO = new GameObject("GemCount", typeof(RectTransform), typeof(TextMeshProUGUI));
-            gtGO.transform.SetParent(pillGO.transform, false);
-            var gtrt = gtGO.GetComponent<RectTransform>();
-            gtrt.anchorMin = new Vector2(0f, 0f); gtrt.anchorMax = new Vector2(1f, 1f);
-            gtrt.offsetMin = new Vector2(24f, 0f); gtrt.offsetMax = new Vector2(-6f, 0f);
-            gemText = gtGO.GetComponent<TextMeshProUGUI>();
-            gemText.text = "Loja";
-            gemText.fontSize = 15; gemText.fontStyle = FontStyles.Bold;
-            gemText.color = new Color(0.7f, 0.93f, 1f, 1f);
-            gemText.alignment = TextAlignmentOptions.MidlineLeft;
-            gemText.raycastTarget = false;
-            var gf = GetCachedFont(); if (gf != null) gemText.font = gf;
-
-            RefreshGemDisplay();
+            gemText = null; // sem rotulo (so o icone)
         }
 
         private void SetupTopSeparator()
@@ -1815,11 +1805,12 @@ namespace GameIdle
         private void SpawnFloatingMoney()
         {
             var go = new GameObject("FloatMoney", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(FloatingText));
-            go.transform.SetParent(panelMain, false);
+            var mParent = tapButtonRT != null ? tapButtonRT : panelMain;
+            go.transform.SetParent(mParent, false);
             var rt = go.GetComponent<RectTransform>();
-            float halfW = panelMain.rect.width  * 0.35f;
-            float halfH = panelMain.rect.height * 0.35f;
-            rt.anchoredPosition = new Vector2(Random.Range(-halfW, halfW), -halfH);
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+            // Renda passiva tambem sobe de cima do botao TRABALHAR
+            rt.anchoredPosition = new Vector2(Random.Range(-45f, 45f), Random.Range(120f, 160f));
             rt.sizeDelta = new Vector2(220f, 50f);
             double amount = GameManager.Instance.MoneyPerSecond * FloatBurstInterval;
             go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(amount)}", NeonGreen, 26f);
@@ -1999,7 +1990,7 @@ namespace GameIdle
             barGO.transform.SetParent(panelMain, false);
             var barRT = barGO.GetComponent<RectTransform>();
             barRT.anchorMin = barRT.anchorMax = barRT.pivot = new Vector2(1f, 1f);
-            barRT.anchoredPosition = new Vector2(-18f, -66f); // abaixo da linha de botoes (STATS/RANK/Loja)
+            barRT.anchoredPosition = new Vector2(-18f, -12f); // topo direito (sem botoes acima agora)
             barRT.sizeDelta = new Vector2(pillW + barPad * 2f, totalH + barPad * 2f);
             var barImg = barGO.GetComponent<Image>();
             barImg.sprite = Rounded(); barImg.type = Image.Type.Sliced;
