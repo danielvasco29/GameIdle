@@ -860,8 +860,8 @@ namespace GameIdle
             tapGO.transform.SetParent(pmGO.transform, false);
             tapButtonRT = tapGO.GetComponent<RectTransform>();
             tapButtonRT.anchorMin = tapButtonRT.anchorMax = tapButtonRT.pivot = new Vector2(1f, 0f);
-            tapButtonRT.anchoredPosition = new Vector2(-30f, 30f);
-            tapButtonRT.sizeDelta = new Vector2(220f, 220f);
+            tapButtonRT.anchoredPosition = new Vector2(-30f, 86f); // sobe p/ abrir espaco da barra de turbo abaixo
+            tapButtonRT.sizeDelta = new Vector2(176f, 176f);       // menor p/ nao invadir o escritorio
             var tapBtn = tapGO.GetComponent<Button>();
 
             Image AddCircle(string name, Vector2 offMin, Vector2 offMax, Color col, bool ray)
@@ -951,8 +951,8 @@ namespace GameIdle
             boostGO.transform.SetParent(pmGO.transform, false);
             _boostBarRT = boostGO.GetComponent<RectTransform>();
             _boostBarRT.anchorMin = _boostBarRT.anchorMax = _boostBarRT.pivot = new Vector2(1f, 0f);
-            _boostBarRT.anchoredPosition = new Vector2(-30f, 258f);
-            _boostBarRT.sizeDelta = new Vector2(178f, 30f);
+            _boostBarRT.anchoredPosition = new Vector2(-30f, 46f); // logo abaixo do botao TRABALHAR
+            _boostBarRT.sizeDelta = new Vector2(176f, 28f);
             _boostBtnImg = boostGO.GetComponent<Image>();
             _boostBtnImg.sprite = Rounded(); _boostBtnImg.type = Image.Type.Sliced;
             _boostBtnImg.color = new Color(0.06f, 0.10f, 0.17f, 0.95f); // trilho navy
