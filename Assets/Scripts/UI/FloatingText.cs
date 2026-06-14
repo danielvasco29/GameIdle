@@ -28,7 +28,7 @@ namespace GameIdle
         private IEnumerator FloatRoutine(TextMeshProUGUI label)
         {
             var rt = GetComponent<RectTransform>();
-            const float duration = 2.0f;
+            const float duration = 1.7f;
             float elapsed = 0f;
             Vector2 startPos = rt.anchoredPosition;
             Color startColor = label.color;
@@ -62,7 +62,7 @@ namespace GameIdle
                 elapsed += Time.deltaTime;
                 float t = elapsed / duration;
                 // Rise fast then slow
-                float rise = Mathf.Sqrt(t) * 130f;
+                float rise = Mathf.Sqrt(t) * 100f;
                 rt.anchoredPosition = startPos + Vector2.up * rise;
                 // Slight horizontal drift
                 rt.anchoredPosition += new Vector2(Mathf.Sin(elapsed * 3f) * 6f, 0f);

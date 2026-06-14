@@ -200,7 +200,23 @@ namespace GameIdle
             RefreshAll();
             displayedMoney = GameManager.Instance.Money;
             PolishLayout();
+            AttachButtonFeedback();
             SoundManager.Get(); // ensure SFX system exists
+        }
+
+        // Aplica feedback de hover/clique em todos os botões (exceto o TRABALHAR,
+        // que já tem punch/pulse próprios e brigaria pelo localScale).
+        private void AttachButtonFeedback()
+        {
+            var canvas = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
+            if (canvas == null) return;
+            foreach (var btn in canvas.GetComponentsInChildren<Button>(true))
+            {
+                if (btn == null) continue;
+                if (btn.transform == tapButtonRT) continue;            // TRABALHAR
+                if (btn.GetComponent<ButtonFeedback>() == null)
+                    btn.gameObject.AddComponent<ButtonFeedback>();
+            }
         }
 
         private TMP_FontAsset GetCachedFont()
@@ -1099,7 +1115,7 @@ namespace GameIdle
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
             rt.sizeDelta = new Vector2(260f, 60f);
             // Pequena variação horizontal só para não nascerem exatamente no mesmo x
-            rt.anchoredPosition = new Vector2(Random.Range(-24f, 24f), 130f);
+            rt.anchoredPosition = new Vector2(Random.Range(-24f, 24f), 78f);
             Color tapColor = GameManager.Instance.TapBoostActive
                 ? new Color(1f, 0.85f, 0.1f) : NeonGreen;
             // Maior durante o turbo p/ dar ênfase ao bônus
@@ -1652,6 +1668,8 @@ namespace GameIdle
             prestigeButtonLabel.text = ready
                 ? $">> PRESTIGIAR  |  x{nextMult:F1}  +{gems} GEMAS <<"
                 : $"PRESTIGIO #{count + 1}  |  x{nextMult:F1}  +{previewGems} GEMAS  |  meta ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}";
+            // Texto dourado quando pronto (combina com a estrela/acentos), claro quando não
+            prestigeButtonLabel.color = ready ? GoldColor : new Color(0.78f, 0.85f, 0.95f, 1f);
 
             var img = prestigeButton?.GetComponent<Image>();
             if (img != null)
@@ -1889,7 +1907,7 @@ namespace GameIdle
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
             // Renda passiva tambem sobe de cima do botao TRABALHAR
-            rt.anchoredPosition = new Vector2(Random.Range(-45f, 45f), Random.Range(120f, 160f));
+            rt.anchoredPosition = new Vector2(Random.Range(-40f, 40f), Random.Range(70f, 100f));
             rt.sizeDelta = new Vector2(220f, 50f);
             double amount = GameManager.Instance.MoneyPerSecond * FloatBurstInterval;
             go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(amount)}", NeonGreen, 34f);
