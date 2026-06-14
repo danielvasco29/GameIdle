@@ -1354,11 +1354,11 @@ namespace GameIdle
             labelGO.transform.SetParent(headerGO.transform, false);
             var lrt = labelGO.GetComponent<RectTransform>();
             lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
-            lrt.offsetMin = new Vector2(20f, 0f); lrt.offsetMax = Vector2.zero;
+            lrt.offsetMin = Vector2.zero; lrt.offsetMax = Vector2.zero;
             var ltmp = labelGO.GetComponent<TextMeshProUGUI>();
             ltmp.text = "FUNCIONÁRIOS"; ltmp.fontSize = 17; ltmp.fontStyle = FontStyles.Bold;
             ltmp.characterSpacing = 6f; // respiro entre letras → cara de cabeçalho
-            ltmp.color = GoldColor; ltmp.alignment = TextAlignmentOptions.MidlineLeft;
+            ltmp.color = GoldColor; ltmp.alignment = TextAlignmentOptions.Center;
             ltmp.raycastTarget = false;
             var lf = GetCachedFont(); if (lf != null) ltmp.font = lf;
 
