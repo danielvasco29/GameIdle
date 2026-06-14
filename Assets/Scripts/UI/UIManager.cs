@@ -403,26 +403,17 @@ namespace GameIdle
             missionGO.SetActive(false);
             modalPanels.Add(missionGO);
 
-            // Botão Missões — ao lado do MENU
+            // Botão Missões — icone (check) ao lado da engrenagem
             var mBtnGO = new GameObject("MissionButton", typeof(RectTransform), typeof(Image), typeof(Button));
             mBtnGO.transform.SetParent(canvas.transform, false);
             var mbrt = mBtnGO.GetComponent<RectTransform>();
             mbrt.anchorMin = mbrt.anchorMax = mbrt.pivot = new Vector2(0f, 1f);
-            mbrt.anchoredPosition = new Vector2(66f, -10f);
-            mbrt.sizeDelta = new Vector2(100f, 50f);
+            mbrt.anchoredPosition = new Vector2(62f, -10f);
+            mbrt.sizeDelta = new Vector2(48f, 50f);
             var mbImg = mBtnGO.GetComponent<Image>();
-            mbImg.sprite = Rounded(); mbImg.type = Image.Type.Sliced;
-            mbImg.color = new Color(0.10f, 0.20f, 0.32f, 1f);
+            mbImg.sprite = Rounded(); mbImg.type = Image.Type.Sliced; mbImg.color = TabBg;
             mBtnGO.GetComponent<Button>().onClick.AddListener(() => { if (missionPanel != null) { CloseAllModals(); missionPanel.Open(); } });
-            var mbl = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
-            mbl.transform.SetParent(mBtnGO.transform, false);
-            var mblr = mbl.GetComponent<RectTransform>();
-            mblr.anchorMin = Vector2.zero; mblr.anchorMax = Vector2.one; mblr.offsetMin = mblr.offsetMax = Vector2.zero;
-            var mblt = mbl.GetComponent<TextMeshProUGUI>();
-            mblt.text = "MISSOES"; mblt.fontSize = 17; mblt.fontStyle = FontStyles.Bold;
-            mblt.color = NeonCyan; mblt.alignment = TextAlignmentOptions.Center; mblt.raycastTarget = false;
-            mblt.textWrappingMode = TextWrappingModes.NoWrap; mblt.overflowMode = TextOverflowModes.Ellipsis;
-            var mf = GetCachedFont(); if (mf != null) mblt.font = mf;
+            AddIcon(mBtnGO, UiSpriteFactory.Check(), NeonCyan, 28f);
             StyleNavTab(mBtnGO, NeonCyan);
             _missionDot = MakeNotifyDot(mBtnGO.transform);
 
@@ -450,29 +441,20 @@ namespace GameIdle
             aepGO.SetActive(false);
             modalPanels.Add(aepGO);
 
-            // Botão BÔNUS — ao lado de CONQUISTAS
+            // Botão BÔNUS — icone (raio) ao lado de MISSOES
             var bBtnGO = new GameObject("BonusButton", typeof(RectTransform), typeof(Image), typeof(Button));
             bBtnGO.transform.SetParent(canvas.transform, false);
             var bbrt = bBtnGO.GetComponent<RectTransform>();
             bbrt.anchorMin = bbrt.anchorMax = bbrt.pivot = new Vector2(0f, 1f);
-            bbrt.anchoredPosition = new Vector2(174f, -10f);
-            bbrt.sizeDelta = new Vector2(90f, 50f);
+            bbrt.anchoredPosition = new Vector2(114f, -10f);
+            bbrt.sizeDelta = new Vector2(48f, 50f);
             var bbImg = bBtnGO.GetComponent<Image>();
-            bbImg.sprite = Rounded(); bbImg.type = Image.Type.Sliced;
-            bbImg.color = new Color(0.18f, 0.14f, 0.06f, 1f);
+            bbImg.sprite = Rounded(); bbImg.type = Image.Type.Sliced; bbImg.color = TabBg;
             bBtnGO.GetComponent<Button>().onClick.AddListener(() =>
             {
                 if (activeEffectsPanel != null) { CloseAllModals(); activeEffectsPanel.Open(); }
             });
-            var bbl = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
-            bbl.transform.SetParent(bBtnGO.transform, false);
-            var bblr = bbl.GetComponent<RectTransform>();
-            bblr.anchorMin = Vector2.zero; bblr.anchorMax = Vector2.one; bblr.offsetMin = bblr.offsetMax = Vector2.zero;
-            var bblt = bbl.GetComponent<TextMeshProUGUI>();
-            bblt.text = "BONUS"; bblt.fontSize = 17; bblt.fontStyle = FontStyles.Bold;
-            bblt.color = GoldColor; bblt.alignment = TextAlignmentOptions.Center; bblt.raycastTarget = false;
-            bblt.textWrappingMode = TextWrappingModes.NoWrap; bblt.overflowMode = TextOverflowModes.Ellipsis;
-            var bf = GetCachedFont(); if (bf != null) bblt.font = bf;
+            AddIcon(bBtnGO, UiSpriteFactory.Bolt(), GoldColor, 30f);
             StyleNavTab(bBtnGO, GoldColor);
             _bonusDot = MakeNotifyDot(bBtnGO.transform);
         }
@@ -489,6 +471,20 @@ namespace GameIdle
                 bool show = GameManager.Instance != null && GameManager.Instance.GetActiveEffects().Count > 0;
                 if (_bonusDot.gameObject.activeSelf != show) _bonusDot.gameObject.SetActive(show);
             }
+        }
+
+        // Adiciona um icone centralizado dentro de um botão.
+        private void AddIcon(GameObject btn, Sprite sprite, Color color, float size)
+        {
+            var go = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(btn.transform, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = new Vector2(size, size);
+            var img = go.GetComponent<Image>();
+            img.sprite = sprite; img.color = color; img.raycastTarget = false;
+            img.preserveAspect = true;
         }
 
         // Pontinho vermelho de notificação no canto superior direito do botão.
@@ -615,7 +611,7 @@ namespace GameIdle
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
             brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 1f);
-            brt.anchoredPosition = new Vector2(324f, -10f);
+            brt.anchoredPosition = new Vector2(218f, -10f);
             brt.sizeDelta = new Vector2(48f, 50f);
             var bImg2 = btnGO.GetComponent<Image>();
             bImg2.sprite = Rounded(); bImg2.type = Image.Type.Sliced; bImg2.color = TabBg;
@@ -654,7 +650,7 @@ namespace GameIdle
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
             brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 1f);
-            brt.anchoredPosition = new Vector2(270f, -10f);
+            brt.anchoredPosition = new Vector2(166f, -10f);
             brt.sizeDelta = new Vector2(48f, 50f);
             var bImg = btnGO.GetComponent<Image>();
             bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced; bImg.color = TabBg;
@@ -766,7 +762,7 @@ namespace GameIdle
                 // stats (direita, ~230px fixos). Como essas larguras sao fixas em px,
                 // ancoramos por insets — funciona em qualquer resolucao/janela. Uma
                 // mascara recorta o excesso do escritorio dentro dessa area.
-                const float sidebarInset = 440f; // alem da sidebar + linha de icones (STATS/RANK/Loja)
+                const float sidebarInset = 400f; // alem da sidebar (linha de icones agora e compacta)
                 const float statsInset   = 230f; // espaco p/ a coluna de stats (botoes sairam daqui)
                 var staleArea = bgPanel.transform.Find("PlayArea");
                 if (staleArea != null) DestroyImmediate(staleArea.gameObject);
@@ -1017,6 +1013,12 @@ namespace GameIdle
             }
         }
 
+        // Acumula o valor dos cliques e mostra UM número somado a cada intervalo,
+        // em vez de dezenas de textos empilhados e ilegíveis (auto-tap rápido).
+        private double _tapFloatAccum;
+        private float  _lastTapFloatTime = -999f;
+        private const float TapFloatInterval = 0.32f;
+
         private void OnTapClicked()
         {
             double val = GameManager.Instance.GetTapValue();
@@ -1024,28 +1026,34 @@ namespace GameIdle
             UpdateTapValueText();
             if (SoundManager.Instance != null) SoundManager.Instance.PlayClick();
 
-            if (panelMain != null)
+            _tapFloatAccum += val;
+            float now = Time.unscaledTime;
+            if (panelMain != null && now - _lastTapFloatTime >= TapFloatInterval)
             {
-                var go = new GameObject("FloatTap", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(FloatingText));
-                var fParent = tapButtonRT != null ? tapButtonRT : panelMain;
-                go.transform.SetParent(fParent, false);
-                var rt = go.GetComponent<RectTransform>();
-                rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
-                rt.sizeDelta = new Vector2(260f, 60f);
-                // Sobem de cima do botao TRABALHAR
-                rt.anchoredPosition = new Vector2(Random.Range(-45f, 45f), Random.Range(120f, 160f));
-                // Turbo tap = gold, normal = green
-                Color tapColor = GameManager.Instance.TapBoostActive
-                    ? new Color(1f, 0.85f, 0.1f) : NeonGreen;
-                go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(val)}", tapColor, 32f);
-
-                // Coins flying up
-                int coins = Random.Range(3, 6);
-                for (int i = 0; i < coins; i++)
-                    StartCoroutine(FlyCoin());
+                SpawnTapFloat(_tapFloatAccum);
+                _tapFloatAccum = 0;
+                _lastTapFloatTime = now;
+                int coins = Random.Range(2, 4);
+                for (int i = 0; i < coins; i++) StartCoroutine(FlyCoin());
             }
 
             if (tapButtonRT != null && !_tapPunching) StartCoroutine(PunchScale(tapButtonRT, 0.12f));
+        }
+
+        // Mostra um único float somado de cima do botão TRABALHAR.
+        private void SpawnTapFloat(double amount)
+        {
+            var go = new GameObject("FloatTap", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(FloatingText));
+            var fParent = tapButtonRT != null ? tapButtonRT : panelMain;
+            go.transform.SetParent(fParent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(260f, 60f);
+            // Pequena variação horizontal só para não nascerem exatamente no mesmo x
+            rt.anchoredPosition = new Vector2(Random.Range(-24f, 24f), 130f);
+            Color tapColor = GameManager.Instance.TapBoostActive
+                ? new Color(1f, 0.85f, 0.1f) : NeonGreen;
+            go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(amount)}", tapColor, 34f);
         }
 
         // A small gold coin that pops out of the tap button and arcs upward.
@@ -1240,7 +1248,7 @@ namespace GameIdle
             pillGO.transform.SetParent(canvas.transform, false);
             var prt = pillGO.GetComponent<RectTransform>();
             prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(0f, 1f);
-            prt.anchoredPosition = new Vector2(378f, -10f);
+            prt.anchoredPosition = new Vector2(270f, -10f);
             prt.sizeDelta = new Vector2(48f, 50f);
             var pImg = pillGO.GetComponent<Image>();
             pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;

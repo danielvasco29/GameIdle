@@ -15,6 +15,8 @@ namespace GameIdle
         private static Sprite vGradient;
         private static Sprite hGradient;
         private static Sprite gear;
+        private static Sprite check;
+        private static Sprite bolt;
         private static Material whiteDiscardMat;
 
         // Vertical white gradient: opaque white at the TOP fading to transparent
@@ -91,6 +93,50 @@ namespace GameIdle
             gear.name = "GenGear";
             return gear;
         }
+
+        // Polilinha grossa desenhada em runtime (base para check, raio, etc.).
+        private static Sprite Polyline(Vector2[] pts, float thickness, ref Sprite cache, string name)
+        {
+            if (cache != null) return cache;
+            const int N = 64;
+            var tex = new Texture2D(N, N, TextureFormat.RGBA32, false)
+            { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            var px = new Color32[N * N];
+            float half = thickness * 0.5f;
+            for (int y = 0; y < N; y++)
+            for (int x = 0; x < N; x++)
+            {
+                var p = new Vector2(x + 0.5f, y + 0.5f);
+                float d = float.MaxValue;
+                for (int i = 0; i < pts.Length - 1; i++)
+                    d = Mathf.Min(d, DistToSegment(p, pts[i], pts[i + 1]));
+                float a = Mathf.Clamp01(half - d + 0.5f); // AA ~1px
+                px[y * N + x] = new Color32(255, 255, 255, (byte)(a * 255));
+            }
+            tex.SetPixels32(px);
+            tex.Apply();
+            cache = Sprite.Create(tex, new Rect(0, 0, N, N), new Vector2(0.5f, 0.5f), 100f);
+            cache.name = name;
+            return cache;
+        }
+
+        private static float DistToSegment(Vector2 p, Vector2 a, Vector2 b)
+        {
+            Vector2 ab = b - a;
+            float t = Vector2.Dot(p - a, ab) / Mathf.Max(1e-5f, ab.sqrMagnitude);
+            t = Mathf.Clamp01(t);
+            return Vector2.Distance(p, a + ab * t);
+        }
+
+        // Check (✓) — icone de missoes (coords y de baixo p/ cima).
+        public static Sprite Check() => Polyline(
+            new[] { new Vector2(14f, 34f), new Vector2(27f, 20f), new Vector2(51f, 48f) },
+            8f, ref check, "GenCheck");
+
+        // Raio (lightning) — icone de bonus.
+        public static Sprite Bolt() => Polyline(
+            new[] { new Vector2(40f, 58f), new Vector2(22f, 31f), new Vector2(34f, 31f), new Vector2(20f, 6f) },
+            7f, ref bolt, "GenBolt");
 
         // Material that discards near-white/background pixels from GPT-generated sprites.
         public static Material WhiteDiscardMaterial()
