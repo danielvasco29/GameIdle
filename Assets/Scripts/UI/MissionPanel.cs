@@ -49,7 +49,7 @@ namespace GameIdle
             trt.anchorMin = new Vector2(0f, 0.85f); trt.anchorMax = Vector2.one;
             trt.offsetMin = new Vector2(16f, 0f); trt.offsetMax = new Vector2(-16f, -8f);
             var ttmp = titleGO.GetComponent<TextMeshProUGUI>();
-            ttmp.text = "MISSÕES DIÁRIAS"; ttmp.fontSize = 27; ttmp.fontStyle = FontStyles.Bold;
+            ttmp.text = "MISSÕES"; ttmp.fontSize = 27; ttmp.fontStyle = FontStyles.Bold;
             ttmp.color = GoldColor; ttmp.alignment = TextAlignmentOptions.Center; ttmp.raycastTarget = false;
             if (font != null) ttmp.font = font;
 
@@ -170,9 +170,12 @@ namespace GameIdle
                 var r = _rows[i];
                 if (r == null) continue;
                 var m = DailyMissionSystem.All[i];
-                int prog = DailyMissionSystem.GetProgress(i);
+                long prog = DailyMissionSystem.GetProgress(i);
                 bool complete = DailyMissionSystem.IsComplete(i);
                 bool claimed  = DailyMissionSystem.IsClaimed(i);
+
+                // Nome/meta mudam a cada nivel (missoes infinitas) → atualiza sempre.
+                r.nameText.text = $"{m.name}  <size=70%><color=#9fb2c9>Nv.{m.tier}</color></size>";
 
                 r.progressText.text = m.target >= 10000
                     ? $"${NumberFormatter.Format(prog)} / ${NumberFormatter.Format(m.target)}"

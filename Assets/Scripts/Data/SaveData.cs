@@ -26,10 +26,11 @@ namespace GameIdle
         // Conquistas
         public List<string> unlockedAchievements = new();
 
-        // Missões diárias
+        // Missões (infinitas) — progresso, claims e nível/tier de cada slot
         public string lastMissionDate = "";
-        public List<int>  missionProgress = new();
+        public List<long> missionProgress = new();
         public List<bool> missionClaimed  = new();
+        public List<int>  missionTier     = new();
 
         // Contadores para conquistas/missões
         public int lifetimeTapCount;

@@ -306,7 +306,7 @@ namespace GameIdle
             _savedCombatCycle = data.combatCycle > 0 ? data.combatCycle : 1;
             _savedCombatWave  = data.combatWave  > 0 ? data.combatWave  : 1;
             AchievementManager.Load(data.unlockedAchievements);
-            DailyMissionSystem.Load(data.lastMissionDate, data.missionProgress, data.missionClaimed);
+            DailyMissionSystem.Load(data.lastMissionDate, data.missionProgress, data.missionClaimed, data.missionTier);
         }
 
         public SaveData GetSaveData()
@@ -326,6 +326,7 @@ namespace GameIdle
                 lastMissionDate  = DailyMissionSystem.LastMissionDate,
                 missionProgress  = DailyMissionSystem.GetProgressSave(),
                 missionClaimed   = DailyMissionSystem.GetClaimedSave(),
+                missionTier      = DailyMissionSystem.GetTierSave(),
                 lifetimeTapCount      = LifetimeTapCount,
                 lifetimePrestigeCount = LifetimePrestigeCount,
                 lifetimeHireCount     = LifetimeHireCount,

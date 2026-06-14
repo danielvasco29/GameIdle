@@ -4,32 +4,71 @@ using UnityEngine;
 
 namespace GameIdle
 {
-    // Cinco missões diárias que resetam à meia-noite. Progresso e claims persistidos no save.
+    // Missões INFINITAS: 5 slots que, ao serem coletados, regeneram com meta e
+    // recompensa maiores (sobem de nível). Assim sempre há algo para fazer.
     public static class DailyMissionSystem
     {
         public class Mission
         {
-            public string id, name;
-            public int target;
-            public int gemReward;
+            public string id;
+            public int    tier = 1;        // nível atual (cresce a cada coleta)
+            public long   target;          // meta calculada para o tier atual
+            public int    gemReward;       // recompensa calculada para o tier atual
+            public string name;            // texto exibido
+
+            public Func<int, long>  targetAt;   // meta em função do tier
+            public Func<int, int>   rewardAt;   // recompensa em função do tier
+            public Func<long, string> nameAt;   // nome em função da meta
+
+            // Recalcula meta/recompensa/nome a partir do tier atual.
+            public void Build()
+            {
+                target    = Math.Max(1, targetAt(tier));
+                gemReward = Math.Max(1, rewardAt(tier));
+                name      = nameAt(target);
+            }
         }
 
         public static readonly Mission[] All =
         {
-            new() { id = "taps",    name = "Trabalhar 50 vezes",      target = 50,  gemReward = 5  },
-            new() { id = "hires",   name = "Contratar 5 funcionários", target = 5,   gemReward = 8  },
-            new() { id = "prestige",name = "Realizar 1 prestígio",     target = 1,   gemReward = 20 },
-            new() { id = "kills", name = "Derrotar 10 monstros",  target = 10,        gemReward = 12 },
-            new() { id = "earn",  name = "Ganhar $1.000.000",    target = 1_000_000, gemReward = 7  },
+            new() { id = "taps",
+                    targetAt = t => (long)Math.Round(50 * Math.Pow(1.5, t - 1)),
+                    rewardAt = t => 5 + 3 * (t - 1),
+                    nameAt   = v => $"Trabalhar {v} vezes" },
+
+            new() { id = "hires",
+                    targetAt = t => (long)Math.Round(5 * Math.Pow(1.4, t - 1)),
+                    rewardAt = t => 8 + 4 * (t - 1),
+                    nameAt   = v => $"Contratar {v} funcionários" },
+
+            new() { id = "prestige",
+                    targetAt = t => t,                       // 1, 2, 3, ...
+                    rewardAt = t => 20 + 8 * (t - 1),
+                    nameAt   = v => v > 1 ? $"Realizar {v} prestígios" : "Realizar 1 prestígio" },
+
+            new() { id = "kills",
+                    targetAt = t => (long)Math.Round(10 * Math.Pow(1.6, t - 1)),
+                    rewardAt = t => 12 + 5 * (t - 1),
+                    nameAt   = v => $"Derrotar {v} monstros" },
+
+            new() { id = "earn",
+                    targetAt = t => (long)Math.Round(1_000_000 * Math.Pow(2.5, t - 1)),
+                    rewardAt = t => 7 + 4 * (t - 1),
+                    nameAt   = v => $"Ganhar ${NumberFormatter.Format(v)}" },
         };
 
-        private static readonly int[] _progress = new int[5];
+        private static readonly long[] _progress = new long[5];
         private static readonly bool[] _claimed  = new bool[5];
         private static string _lastDate = "";
 
+        static DailyMissionSystem()
+        {
+            foreach (var m in All) m.Build();
+        }
+
         public static string LastMissionDate => _lastDate;
 
-        public static int  GetProgress(int i) => _progress[i];
+        public static long GetProgress(int i) => _progress[i];
         public static bool IsClaimed(int i)   => _claimed[i];
         public static bool IsComplete(int i)  => _progress[i] >= All[i].target;
 
@@ -41,77 +80,90 @@ namespace GameIdle
             return false;
         }
 
-        // Called every game start — resets if date changed
+        // Missões agora são infinitas (não resetam por dia). Mantido por
+        // compatibilidade de save/registro de data.
         public static void CheckDailyReset()
         {
-            string today = DateTime.UtcNow.ToString("yyyy-MM-dd");
-            if (_lastDate == today) return;
-            _lastDate = today;
-            Array.Clear(_progress, 0, _progress.Length);
-            Array.Clear(_claimed,  0, _claimed.Length);
+            _lastDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
         }
 
         public static void RegisterTap()
         {
             if (_claimed[0]) return;
-            _progress[0] = Mathf.Min(_progress[0] + 1, All[0].target);
+            _progress[0] = Math.Min(_progress[0] + 1, All[0].target);
         }
 
         public static void RegisterHire()
         {
             if (_claimed[1]) return;
-            _progress[1] = Mathf.Min(_progress[1] + 1, All[1].target);
+            _progress[1] = Math.Min(_progress[1] + 1, All[1].target);
         }
 
         public static void RegisterPrestige()
         {
             if (_claimed[2]) return;
-            _progress[2] = Mathf.Min(_progress[2] + 1, All[2].target);
+            _progress[2] = Math.Min(_progress[2] + 1, All[2].target);
         }
 
         public static void RegisterKill()
         {
             if (_claimed[3]) return;
-            _progress[3] = Mathf.Min(_progress[3] + 1, All[3].target);
+            _progress[3] = Math.Min(_progress[3] + 1, All[3].target);
         }
 
         public static void RegisterEarn(double amount)
         {
             if (_claimed[4]) return;
-            int prev = _progress[4];
-            _progress[4] = (int)Math.Min(All[4].target, _progress[4] + amount);
-            // no-op if nothing changed
+            _progress[4] = (long)Math.Min(All[4].target, _progress[4] + amount);
         }
 
         public static bool TryClaim(int i)
         {
             if (_claimed[i] || !IsComplete(i)) return false;
-            _claimed[i] = true;
-            GameManager.Instance.AddGems(All[i].gemReward);
-            UIManager.Instance.ShowToast($"Missão concluída! +{All[i].gemReward} gemas", new UnityEngine.Color(0.4f, 0.9f, 1f));
 
-            // Check if all missions are now claimed → streak day
-            bool allDone = true;
-            for (int j = 0; j < All.Length; j++)
-                if (!_claimed[j]) { allDone = false; break; }
-            if (allDone) GameManager.Instance.RegisterMissionStreakDay();
+            int reward = All[i].gemReward;
+            GameManager.Instance.AddGems(reward);
+            UIManager.Instance.ShowToast($"Missão concluída! +{reward} gemas", new Color(0.4f, 0.9f, 1f));
+
+            // Avança o slot para o próximo nível: meta/recompensa maiores e
+            // progresso zerado → sempre há uma nova missão disponível.
+            Advance(i);
 
             SaveSystem.Save();
             return true;
         }
 
-        public static void Load(string lastDate, List<int> progress, List<bool> claimed)
+        // Sobe o nível do slot e regenera a missão.
+        private static void Advance(int i)
+        {
+            All[i].tier++;
+            All[i].Build();
+            _progress[i] = 0;
+            _claimed[i]  = false;
+        }
+
+        public static void Load(string lastDate, List<long> progress, List<bool> claimed, List<int> tiers)
         {
             _lastDate = lastDate ?? "";
-            for (int i = 0; i < _progress.Length; i++)
+            for (int i = 0; i < All.Length; i++)
             {
+                All[i].tier = (tiers != null && i < tiers.Count && tiers[i] >= 1) ? tiers[i] : 1;
+                All[i].Build();
                 _progress[i] = (progress != null && i < progress.Count) ? progress[i] : 0;
                 _claimed[i]  = (claimed  != null && i < claimed.Count)  ? claimed[i]  : false;
+                // Garante que um slot carregado já coletado nao fique travado.
+                if (_claimed[i]) Advance(i);
             }
             CheckDailyReset();
         }
 
-        public static List<int>  GetProgressSave() { var l = new List<int>(_progress);  return l; }
-        public static List<bool> GetClaimedSave()  { var l = new List<bool>(_claimed);  return l; }
+        public static List<long> GetProgressSave() => new(_progress);
+        public static List<bool> GetClaimedSave()  => new(_claimed);
+        public static List<int>  GetTierSave()
+        {
+            var l = new List<int>(All.Length);
+            foreach (var m in All) l.Add(m.tier);
+            return l;
+        }
     }
 }
