@@ -910,16 +910,16 @@ namespace GameIdle
             lTMP.raycastTarget = false;
             var lf = GetCachedFont(); if (lf != null) lTMP.font = lf;
 
-            // Pílula dourada com o valor por clique, logo abaixo do botão
+            // Pílula com o valor por clique — dentro do botão TRABALHAR (abaixo do rótulo)
             var pillGO = new GameObject("TapValuePill", typeof(RectTransform), typeof(Image));
-            pillGO.transform.SetParent(pmGO.transform, false);
+            pillGO.transform.SetParent(tapButtonRT, false);
             var pillRT = pillGO.GetComponent<RectTransform>();
-            pillRT.anchorMin = pillRT.anchorMax = pillRT.pivot = new Vector2(1f, 0f);
-            pillRT.anchoredPosition = new Vector2(-30f, 265f);
-            pillRT.sizeDelta = new Vector2(220f, 38f);
+            pillRT.anchorMin = pillRT.anchorMax = pillRT.pivot = new Vector2(0.5f, 0.5f);
+            pillRT.anchoredPosition = new Vector2(0f, -52f);
+            pillRT.sizeDelta = new Vector2(170f, 30f);
             var pillImg = pillGO.GetComponent<Image>();
             pillImg.sprite = Rounded(); pillImg.type = Image.Type.Sliced;
-            pillImg.color = new Color(0f, 0f, 0f, 0.45f);
+            pillImg.color = new Color(0f, 0f, 0f, 0.28f);
             pillImg.raycastTarget = false;
 
             var tvGO = new GameObject("TapValue", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -928,7 +928,7 @@ namespace GameIdle
             tvRT.anchorMin = Vector2.zero; tvRT.anchorMax = Vector2.one;
             tvRT.offsetMin = tvRT.offsetMax = Vector2.zero;
             tapValueText = tvGO.GetComponent<TextMeshProUGUI>();
-            tapValueText.fontSize = 22;
+            tapValueText.fontSize = 18;
             tapValueText.fontStyle = FontStyles.Bold;
             tapValueText.color = GoldColor;
             tapValueText.alignment = TextAlignmentOptions.Center;
