@@ -13,6 +13,7 @@ namespace GameIdle
 
         [Header("Display Principal")]
         [SerializeField] private TextMeshProUGUI moneyText;
+        private RectTransform _moneyBg;
         [SerializeField] private TextMeshProUGUI mpsText;
         [SerializeField] private TextMeshProUGUI prestigeInfoText;
 
@@ -1311,12 +1312,15 @@ namespace GameIdle
                 mbg.transform.SetParent(moneyParent, false);
                 mbg.transform.SetAsFirstSibling();
                 var mbgRT = mbg.GetComponent<RectTransform>();
-                mbgRT.anchorMin = new Vector2(0.17f, 0f); mbgRT.anchorMax = new Vector2(0.83f, 1f);
-                mbgRT.offsetMin = new Vector2(0f, 4f); mbgRT.offsetMax = new Vector2(0f, -4f);
+                mbgRT.anchorMin = new Vector2(0.5f, 0f); mbgRT.anchorMax = new Vector2(0.5f, 1f);
+                mbgRT.pivot = new Vector2(0.5f, 0.5f);
+                mbgRT.anchoredPosition = Vector2.zero;
+                mbgRT.sizeDelta = new Vector2(120f, -6f); // largura ajustada ao texto em Update
                 var mbgImg = mbg.GetComponent<Image>();
                 mbgImg.sprite = Rounded(); mbgImg.type = Image.Type.Sliced;
                 mbgImg.color = new Color(0.055f, 0.094f, 0.165f, 0.88f); // glass navy
                 mbgImg.raycastTarget = false;
+                _moneyBg = mbgRT;
             }
             if (moneyText != null)
             {
@@ -1937,6 +1941,14 @@ namespace GameIdle
                     : displayedMoney + (target - displayedMoney) * (double)Mathf.Min(1f, Time.deltaTime * 8f);
                 if (moneyText != null)
                     moneyText.text = $"${NumberFormatter.Format(displayedMoney)}";
+            }
+
+            // Fundo do dinheiro acompanha a largura dos números
+            if (_moneyBg != null && moneyText != null)
+            {
+                float w = moneyText.preferredWidth;
+                if (mpsText != null) w = Mathf.Max(w, mpsText.preferredWidth);
+                _moneyBg.sizeDelta = new Vector2(w + 28f, _moneyBg.sizeDelta.y);
             }
 
             uiRefreshTimer -= Time.deltaTime;
