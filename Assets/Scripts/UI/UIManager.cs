@@ -13,7 +13,6 @@ namespace GameIdle
 
         [Header("Display Principal")]
         [SerializeField] private TextMeshProUGUI moneyText;
-        private RectTransform _moneyBg;
         [SerializeField] private TextMeshProUGUI mpsText;
         [SerializeField] private TextMeshProUGUI prestigeInfoText;
 
@@ -116,6 +115,7 @@ namespace GameIdle
 
         // Stats do Panel_Main
         private TextMeshProUGUI statMpsText;
+        private TextMeshProUGUI statBalanceText;
         private TextMeshProUGUI statMultText;
         private TextMeshProUGUI statTotalText;
         private TextMeshProUGUI statPrestigeText;
@@ -1304,33 +1304,10 @@ namespace GameIdle
                 mpsText.alignment = TextAlignmentOptions.Center;
                 var mf2 = GetCachedFont(); if (mf2 != null) mpsText.font = mf2;
             }
-            // Fundo navy atrás do dinheiro central — legibilidade sobre o escritório
-            var moneyParent = moneyText != null ? moneyText.rectTransform.parent : null;
-            if (moneyParent != null && moneyParent.Find("MoneyBg") == null)
-            {
-                var mbg = new GameObject("MoneyBg", typeof(RectTransform), typeof(Image));
-                mbg.transform.SetParent(moneyParent, false);
-                mbg.transform.SetAsFirstSibling();
-                var mbgRT = mbg.GetComponent<RectTransform>();
-                mbgRT.anchorMin = new Vector2(0.5f, 0f); mbgRT.anchorMax = new Vector2(0.5f, 1f);
-                mbgRT.pivot = new Vector2(0.5f, 0.5f);
-                mbgRT.anchoredPosition = Vector2.zero;
-                mbgRT.sizeDelta = new Vector2(120f, -6f); // largura ajustada ao texto em Update
-                var mbgImg = mbg.GetComponent<Image>();
-                mbgImg.sprite = Rounded(); mbgImg.type = Image.Type.Sliced;
-                mbgImg.color = new Color(0.055f, 0.094f, 0.165f, 0.88f); // glass navy
-                mbgImg.raycastTarget = false;
-                _moneyBg = mbgRT;
-            }
-            if (moneyText != null)
-            {
-                moneyText.outlineWidth = 0.2f; moneyText.outlineColor = new Color32(0, 0, 0, 210);
-            }
-            if (mpsText != null)
-            {
-                mpsText.color = new Color(0.78f, 0.9f, 1f, 1f);
-                mpsText.outlineWidth = 0.18f; mpsText.outlineColor = new Color32(0, 0, 0, 190);
-            }
+            // Dinheiro/segundo central removidos — o saldo agora é o 1º item da
+            // coluna de stats à direita (POR SEGUNDO já existe lá também).
+            if (moneyText != null) moneyText.gameObject.SetActive(false);
+            if (mpsText != null)   mpsText.gameObject.SetActive(false);
             if (prestigeInfoText != null) prestigeInfoText.gameObject.SetActive(false);
 
             // Gem pill — na barra de nav superior-esquerda, depois de RANK — abre a loja
@@ -1939,16 +1916,8 @@ namespace GameIdle
                 displayedMoney = target < displayedMoney
                     ? target
                     : displayedMoney + (target - displayedMoney) * (double)Mathf.Min(1f, Time.deltaTime * 8f);
-                if (moneyText != null)
-                    moneyText.text = $"${NumberFormatter.Format(displayedMoney)}";
-            }
-
-            // Fundo do dinheiro acompanha a largura dos números
-            if (_moneyBg != null && moneyText != null)
-            {
-                float w = moneyText.preferredWidth;
-                if (mpsText != null) w = Mathf.Max(w, mpsText.preferredWidth);
-                _moneyBg.sizeDelta = new Vector2(w + 28f, _moneyBg.sizeDelta.y);
+                if (statBalanceText != null)
+                    statBalanceText.text = $"${NumberFormatter.Format(displayedMoney)}";
             }
 
             uiRefreshTimer -= Time.deltaTime;
@@ -2089,19 +2058,20 @@ namespace GameIdle
             var pillBg = new Color(0.075f, 0.122f, 0.200f, 0.96f);
             var pillData = new (string label, Color labelColor, Color bgColor)[]
             {
+                ("SALDO",         GoldColor,                         pillBg),
                 ("POR SEGUNDO",   NeonCyan,                          pillBg),
                 ("MULTIPLICADOR", new Color(1f, 0.85f, 0.32f, 1f),   pillBg),
                 ("TOTAL GANHO",   new Color(0.55f, 0.78f, 1f, 1f),   pillBg),
                 ("PRESTIGIO",     NeonOrange,                        pillBg),
             };
 
-            var textRefs = new TextMeshProUGUI[4];
+            var textRefs = new TextMeshProUGUI[5];
 
             // Container único (barra glass) atrás das 4 pílulas, agora em coluna.
             // As pílulas ficam transparentes sobre esta barra contínua, separadas
             // por divisórias horizontais sutis.
             const float barPad = 8f;
-            float totalH = 4f * pillH + 3f * gap;
+            float totalH = 5f * pillH + 4f * gap;
             var barGO = new GameObject("StatBar", typeof(RectTransform), typeof(Image));
             // Ancorada no canto superior-direito do CANVAS (dentro da faixa navy),
             // no topo — antes ficava presa ao Panel_Main e caía sobre o escritório.
@@ -2116,7 +2086,7 @@ namespace GameIdle
             barImg.color = new Color(0.055f, 0.094f, 0.165f, 0.92f); // glass navy contínuo
             barImg.raycastTarget = false;
 
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 5; i++)
             {
                 var d = pillData[i];
                 float y = i * (pillH + gap); // empilha de cima para baixo
@@ -2186,10 +2156,11 @@ namespace GameIdle
                 if (font != null) ltmp.font = font;
             }
 
-            statMpsText      = textRefs[0];
-            statMultText     = textRefs[1];
-            statTotalText    = textRefs[2];
-            statPrestigeText = textRefs[3];
+            statBalanceText  = textRefs[0];
+            statMpsText      = textRefs[1];
+            statMultText     = textRefs[2];
+            statTotalText    = textRefs[3];
+            statPrestigeText = textRefs[4];
 
             RefreshMainStats();
         }
