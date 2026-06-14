@@ -12,10 +12,10 @@ namespace GameIdle
         private static readonly Color NavyPanel  = new(0.055f, 0.094f, 0.165f, 0.92f);
         private static readonly Color NavyCard   = new(0.106f, 0.169f, 0.275f, 1f);
         private static readonly Color GoldColor  = new(1f, 0.808f, 0.227f, 1f);
-        private static readonly Color GreenBtn   = new(0.247f, 0.749f, 0.353f, 1f);
+        private static readonly Color GreenBtn   = new(0.10f, 0.17f, 0.28f, 1f); // navy (era verde)
         private static readonly Color TextPrimary= new(0.933f, 0.953f, 0.980f, 1f);
         private static readonly Color TextSec    = new(0.624f, 0.698f, 0.788f, 1f);
-        private static readonly Color GrayBtn    = new(0.25f,  0.28f,  0.38f,  1f);
+        private static readonly Color GrayBtn    = new(0.09f,  0.12f,  0.18f,  1f); // navy apagado
         private static readonly Color RedAccent  = new(0.85f,  0.22f,  0.22f,  1f);
 
         private static Sprite Circle()  => UiSpriteFactory.Circle();
@@ -122,10 +122,10 @@ namespace GameIdle
             crt.sizeDelta = new Vector2(36f, 36f);
             var cImg = closeGO.GetComponent<Image>();
             cImg.sprite = Circle(); cImg.type = Image.Type.Simple;
-            cImg.color = new Color(0.70f, 0.12f, 0.12f, 1f);
+            cImg.color = new Color(0.10f, 0.16f, 0.28f, 1f); // navy
             closeGO.GetComponent<Button>().onClick.AddListener(() => gameObject.SetActive(false));
             var cLabel = MakeText(closeGO.transform, "X", "X",
-                18, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
+                18, new Color(1f, 0.45f, 0.45f, 1f), FontStyles.Bold, TextAlignmentOptions.Center); // X vermelho
             var clrt = cLabel.rectTransform;
             clrt.anchorMin = Vector2.zero; clrt.anchorMax = Vector2.one;
             clrt.offsetMin = clrt.offsetMax = Vector2.zero;

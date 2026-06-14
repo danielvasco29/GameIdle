@@ -188,18 +188,19 @@ namespace GameIdle
             _atkBtnFace = atkGO.AddComponent<Image>();
             _atkBtnFace.sprite = UiSpriteFactory.RoundedBox();
             _atkBtnFace.type = Image.Type.Sliced;
-            _atkBtnFace.color = RedMain;
+            _atkBtnFace.color = new Color(0.10f, 0.17f, 0.28f, 1f); // navy
             var atkBtn = atkGO.GetComponent<Button>();
             atkBtn.targetGraphic = _atkBtnFace;
             atkBtn.onClick.AddListener(() => CombatManager.Instance?.PlayerAttack());
             var atkHold = atkGO.AddComponent<HoldButton>();
             atkHold.Init(() => CombatManager.Instance?.PlayerAttack());
-            MakeLabel(atkGO, "ATACAR!", 22f, Color.white);
+            MakeLabel(atkGO, "ATACAR!", 22f, new Color(1f, 0.45f, 0.45f, 1f)); // acento vermelho
 
             // UPGRADES (right of attack) — opens upgrade panel without closing the arena
-            MakeBottomBtn("UPGRADES", new Vector2(140f, 56f), new Vector2(170f, 56f),
-                new Color(0.35f, 0.18f, 0.02f, 0.90f), 15f,
+            var upBtn = MakeBottomBtn("UPGRADES", new Vector2(140f, 56f), new Vector2(170f, 56f),
+                new Color(0.10f, 0.17f, 0.28f, 1f), 15f,
                 () => UIManager.Instance?.OpenCombatUpgrades());
+            upBtn.GetComponentInChildren<TextMeshProUGUI>().color = GoldColor; // acento dourado
         }
 
         // pos.x = offset from screen center; size = fixed button size

@@ -70,7 +70,7 @@ namespace GameIdle
             crt.offsetMin = new Vector2(16f, 8f); crt.offsetMax = new Vector2(-16f, -4f);
             closeGO.GetComponent<Image>().sprite = UiSpriteFactory.RoundedBox();
             closeGO.GetComponent<Image>().type   = Image.Type.Sliced;
-            closeGO.GetComponent<Image>().color  = GrayColor;
+            closeGO.GetComponent<Image>().color  = new Color(0.10f, 0.16f, 0.28f, 1f); // navy
             closeGO.GetComponent<Button>().onClick.AddListener(() => gameObject.SetActive(false));
             var cLbl = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
             cLbl.transform.SetParent(closeGO.transform, false);
@@ -184,24 +184,24 @@ namespace GameIdle
 
                 if (claimed)
                 {
-                    r.claimBtnImg.color = GrayColor;
+                    r.claimBtnImg.color = new Color(0.09f, 0.13f, 0.20f, 1f); // navy apagado
                     r.claimBtnText.text = "Coletado";
-                    r.claimBtnText.color = new Color(0.85f, 0.88f, 0.94f, 1f);
+                    r.claimBtnText.color = new Color(0.55f, 0.6f, 0.7f, 1f);
                     r.claimBtn.interactable = false;
                 }
                 else if (complete)
                 {
-                    r.claimBtnImg.color = GoldColor;
+                    // Navy + texto dourado (acento) quando pronto para coletar
+                    r.claimBtnImg.color = new Color(0.10f, 0.16f, 0.28f, 1f);
                     r.claimBtnText.text = $"+{m.gemReward} gemas";
-                    // Texto escuro sobre o dourado → contraste alto e legível
-                    r.claimBtnText.color = new Color(0.10f, 0.08f, 0.02f, 1f);
+                    r.claimBtnText.color = GoldColor;
                     r.claimBtn.interactable = true;
                 }
                 else
                 {
-                    r.claimBtnImg.color = new Color(0.18f, 0.22f, 0.34f, 1f);
+                    r.claimBtnImg.color = new Color(0.10f, 0.16f, 0.28f, 1f); // navy
                     r.claimBtnText.text = $"+{m.gemReward}";
-                    r.claimBtnText.color = Color.white;
+                    r.claimBtnText.color = new Color(0.6f, 0.65f, 0.75f, 1f);
                     r.claimBtn.interactable = false;
                 }
             }

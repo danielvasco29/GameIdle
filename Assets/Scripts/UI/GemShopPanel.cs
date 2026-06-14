@@ -259,7 +259,7 @@ namespace GameIdle
             brt.offsetMin = new Vector2(8f, 0f); brt.offsetMax = new Vector2(-14f, 0f);
             var buyBg = buyGO.GetComponent<Image>();
             buyBg.sprite = Rounded(); buyBg.type = Image.Type.Sliced;
-            buyBg.color = Green;
+            buyBg.color = new Color(0.10f, 0.16f, 0.28f, 1f); // navy (acento verde no custo)
             var buyBtn = buyGO.GetComponent<Button>();
             int captured = index;
             buyBtn.onClick.AddListener(() => OnBuy(captured));
@@ -348,14 +348,17 @@ namespace GameIdle
                 {
                     r.costLabel.text = "MÁX";
                     r.buyButton.interactable = false;
-                    r.buyBg.color = new Color(0.3f, 0.34f, 0.4f, 1f);
+                    r.buyBg.color = new Color(0.09f, 0.13f, 0.20f, 1f);   // navy apagado
+                    r.costLabel.color = new Color(0.55f, 0.6f, 0.7f, 1f);
                 }
                 else
                 {
                     bool can = GemShop.CanBuy(r.index);
                     r.costLabel.text = $"{GemShop.GetCost(r.index)}";
                     r.buyButton.interactable = can;
-                    r.buyBg.color = can ? Green : new Color(0.3f, 0.34f, 0.4f, 1f);
+                    r.buyBg.color = new Color(0.10f, 0.16f, 0.28f, 1f);   // navy
+                    // Custo verde quando dá pra comprar, cinza quando não
+                    r.costLabel.color = can ? Green : new Color(0.5f, 0.55f, 0.65f, 1f);
                 }
             }
         }

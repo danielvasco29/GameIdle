@@ -93,7 +93,7 @@ namespace GameIdle
             clrt.anchoredPosition = new Vector2(0f, 12f);
             closeGO.GetComponent<Image>().sprite = UiSpriteFactory.RoundedBox();
             closeGO.GetComponent<Image>().type = Image.Type.Sliced;
-            closeGO.GetComponent<Image>().color = GrayColor;
+            closeGO.GetComponent<Image>().color = new Color(0.10f, 0.16f, 0.28f, 1f); // navy
             closeGO.GetComponent<Button>().onClick.AddListener(() => gameObject.SetActive(false));
             var cl = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
             cl.transform.SetParent(closeGO.transform, false);

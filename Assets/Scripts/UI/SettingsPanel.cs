@@ -51,8 +51,9 @@ namespace GameIdle
             MakeToggle("SfxBtn", "SOM", new Vector2(0.1f, 0.64f), new Vector2(0.9f, 0.76f),
                 () => !SoundManager.Muted, SoundManager.ToggleMute);
 
-            MakeButton("ResetBtn", "RESETAR JOGO", Red, new Vector2(0.1f, 0.46f), new Vector2(0.9f, 0.58f),
+            var resetBtn = MakeButton("ResetBtn", "RESETAR JOGO", NavyCard, new Vector2(0.1f, 0.46f), new Vector2(0.9f, 0.58f),
                 ShowResetConfirm);
+            resetBtn.GetComponentInChildren<TextMeshProUGUI>().color = Red; // acento vermelho (perigo)
             MakeButton("QuitBtn", "SAIR DO JOGO", NavyCard, new Vector2(0.1f, 0.32f), new Vector2(0.9f, 0.44f),
                 QuitGame);
             MakeButton("CloseBtn", "FECHAR", NavyCard, new Vector2(0.1f, 0.06f), new Vector2(0.9f, 0.18f),
@@ -64,18 +65,20 @@ namespace GameIdle
                                 System.Func<bool> isOn, System.Action onToggle)
         {
             var green = new Color(0.247f, 0.749f, 0.353f, 1f);
-            var gray  = new Color(0.30f, 0.34f, 0.42f, 1f);
+            var gray  = new Color(0.5f, 0.55f, 0.65f, 1f);
+            var navy  = new Color(0.10f, 0.16f, 0.28f, 1f);
 
             Button btn = null;
             TextMeshProUGUI lbl = null;
             void Apply()
             {
                 bool on = isOn();
-                if (btn != null) btn.GetComponent<Image>().color = on ? green : gray;
-                if (lbl != null) lbl.text = $"{label}: {(on ? "ON" : "OFF")}";
+                // Navy sempre; estado sinalizado pela cor do texto (verde ON / cinza OFF)
+                if (btn != null) btn.GetComponent<Image>().color = navy;
+                if (lbl != null) { lbl.text = $"{label}: {(on ? "ON" : "OFF")}"; lbl.color = on ? green : gray; }
             }
 
-            btn = MakeButton(goName, label, gray, aMin, aMax, () => { onToggle(); Apply(); });
+            btn = MakeButton(goName, label, navy, aMin, aMax, () => { onToggle(); Apply(); });
             lbl = btn.GetComponentInChildren<TextMeshProUGUI>();
             Apply();
         }
@@ -101,13 +104,14 @@ namespace GameIdle
             mrt.offsetMin = mrt.offsetMax = Vector2.zero;
             msg.textWrappingMode = TextWrappingModes.Normal;
 
-            MakeButton("Yes", "APAGAR TUDO", Red, new Vector2(0.1f, 0.18f), new Vector2(0.9f, 0.36f),
+            var yesBtn = MakeButton("Yes", "APAGAR TUDO", NavyCard, new Vector2(0.1f, 0.18f), new Vector2(0.9f, 0.36f),
                 () =>
                 {
                     GameManager.Instance.HardReset();
                     if (confirmOverlay != null) Destroy(confirmOverlay);
                     gameObject.SetActive(false);
                 }, confirmOverlay.transform);
+            yesBtn.GetComponentInChildren<TextMeshProUGUI>().color = Red; // acento vermelho (perigo)
 
             MakeButton("No", "CANCELAR", NavyCard, new Vector2(0.1f, 0.02f), new Vector2(0.9f, 0.16f),
                 () => { if (confirmOverlay != null) Destroy(confirmOverlay); }, confirmOverlay.transform);

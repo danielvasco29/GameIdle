@@ -581,7 +581,7 @@ namespace GameIdle
             AddBatCircle("Ring",   new Vector2(-40f,-40f), new Vector2(40f,40f),  new Color(0.95f,0.22f,0.22f,0.26f), false).sprite = Glow();
             AddBatCircle("Glow",   new Vector2(-22f,-22f), new Vector2(22f,22f),  new Color(0.95f,0.22f,0.22f,0.34f), false).sprite = Glow();
             AddBatCircle("Border", new Vector2( -2f, -2f), new Vector2( 2f, 2f),  new Color(0.40f,0.05f,0.05f,1f),   false);
-            _attackBtnImg = AddBatCircle("Face", Vector2.zero, Vector2.zero, new Color(0.80f,0.12f,0.12f,1f), true);
+            _attackBtnImg = AddBatCircle("Face", Vector2.zero, Vector2.zero, NavyBtn, true); // navy + brilho/borda vermelha de acento
             batGO.GetComponent<Button>().targetGraphic = _attackBtnImg;
 
             var lblGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
