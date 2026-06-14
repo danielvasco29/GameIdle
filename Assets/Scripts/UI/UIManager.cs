@@ -1587,7 +1587,7 @@ namespace GameIdle
             if (prestigeProgressBar == null) return;
             bool ready = GameManager.Instance.CanPrestige();
             float fill = Mathf.Clamp01(
-                (float)(GameManager.Instance.TotalEarned / GameManager.Instance.GetPrestigeRequirement()));
+                (float)(GameManager.Instance.Money / GameManager.Instance.GetPrestigeRequirement()));
             prestigeProgressBar.fillAmount = fill;
             prestigeProgressBar.color = ready
                 ? new Color(1f, 0.84f, 0f, 1f)

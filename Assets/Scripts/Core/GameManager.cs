@@ -148,12 +148,13 @@ namespace GameIdle
             prestigeBaseRequirement * Math.Pow(prestigeRequirementGrowth, PrestigeCount);
 
         public double GetPrestigeBaseRequirement() => prestigeBaseRequirement;
-        public bool CanPrestige() => TotalEarned >= GetPrestigeRequirement();
+        // A meta é comparada com o SALDO atual (bate com o que o jogador vê).
+        public bool CanPrestige() => Money >= GetPrestigeRequirement();
 
         // Gems awarded on prestige, scaling with how much was earned this run.
         public int GetPrestigeGemReward()
         {
-            if (TotalEarned < GetPrestigeRequirement()) return 0;
+            if (Money < GetPrestigeRequirement()) return 0;
             // Fixed reward based on prestige tier requirement, not live TotalEarned
             double base_ = 5.0 * Math.Sqrt(GetPrestigeRequirement() / prestigeBaseRequirement);
             return Math.Max(1, (int)Math.Floor(base_ * GemShop.GetGemBonus()));
