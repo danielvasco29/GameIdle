@@ -38,8 +38,8 @@ namespace GameIdle
             new() { id = "start",      name = "Capital Inicial",      description = "Comeca com mais dinheiro apos cada prestigio.",
                     baseCost = 4, costGrowth = 1.70, bonusPerLevel = 1.0,  maxLevel = 12, effectSuffix = "capital" },
             // turbo: total≈96 gems to max5 — fully unlockable around P#4-5
-            new() { id = "turbo_cd",   name = "Turbo Acelerado",      description = "Reduz o cooldown do Turbo em 20s por nivel.",
-                    baseCost = 5, costGrowth = 1.70, bonusPerLevel = 20.0, maxLevel = 5,  effectSuffix = "s cooldown" },
+            new() { id = "turbo_cd",   name = "Turbo Acelerado",      description = "Enche a barra do Turbo mais rapido (-3s por nivel).",
+                    baseCost = 5, costGrowth = 1.70, bonusPerLevel = 3.0, maxLevel = 5,  effectSuffix = "s p/ encher" },
             // offline: total≈236 gems to max8
             new() { id = "offline",    name = "Rendimento Offline",   description = "Aumenta os ganhos enquanto offline.",
                     baseCost = 4, costGrowth = 1.55, bonusPerLevel = 0.40, maxLevel = 8,  effectSuffix = "ganho offline" },
@@ -85,7 +85,7 @@ namespace GameIdle
         public static double GetTapMult()               => 1.0 + levels[1] * Upgrades[1].bonusPerLevel;
         public static double GetPrestigeBonus()         => 1.0 + levels[2] * Upgrades[2].bonusPerLevel;
         public static double GetStartMoney()            => 10.0 * Math.Pow(10.0, levels[3] * Upgrades[3].bonusPerLevel);
-        public static float  GetTurboCooldownReduction()=> (float)(levels[4] * Upgrades[4].bonusPerLevel);
+        public static float  GetTurboChargeReduction() => (float)(levels[4] * Upgrades[4].bonusPerLevel);
         public static double GetOfflineMult()           => 1.0 + levels[5] * Upgrades[5].bonusPerLevel;
         public static double GetGemBonus()              => 1.0 + levels[6] * Upgrades[6].bonusPerLevel;
         public static double GetCombatShieldMult()      => 1.0 + levels[7] * Upgrades[7].bonusPerLevel;

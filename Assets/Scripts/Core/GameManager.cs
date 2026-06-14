@@ -59,6 +59,7 @@ namespace GameIdle
         private void Update()
         {
             TickEffects(Time.deltaTime);
+            UpdateTapBoostCharge(Time.deltaTime);
             if (MoneyPerSecond > 0)
                 AddMoney(MoneyPerSecond * Time.deltaTime);
 
@@ -189,25 +190,41 @@ namespace GameIdle
             OnStatsUpdated?.Invoke();
         }
 
-        // ── Tap Boost ────────────────────────────────────────────────────────
-        private float _tapBoostEnd      = -1f;
-        private float _tapBoostCoolEnd  = -1f;
-        private const float BoostDuration  = 30f;
-        private const float BoostCooldown  = 120f;
-        private const double BoostMult     = 5.0;
+        // ── Tap Boost (carga automatica enquanto clica) ──────────────────────
+        public event Action OnTapBoostActivated;        // disparado ao encher a barra
+        private float _tapBoostEnd  = -1f;
+        private float _tapCharge    = 0f;               // segundos de clique acumulados
+        private float _lastTapTime  = -10f;
+        private const float  BoostDuration   = 30f;
+        private const double BoostMult       = 5.0;
+        private const float  BaseChargeTime  = 30f;     // ~30s clicando para encher
+        private const float  TapActiveWindow = 0.6f;    // considera "clicando" se tap < 0.6s atras
 
-        public bool  TapBoostActive             => Time.time < _tapBoostEnd;
-        public float TapBoostRemaining          => Mathf.Max(0f, _tapBoostEnd - Time.time);
-        public float TapBoostCooldownRemaining  => Mathf.Max(0f, _tapBoostCoolEnd - Time.time);
-        public bool  TapBoostOnCooldown         => !TapBoostActive && Time.time < _tapBoostCoolEnd;
+        public bool  TapBoostActive      => Time.time < _tapBoostEnd;
+        public float TapBoostRemaining   => Mathf.Max(0f, _tapBoostEnd - Time.time);
+        private float ChargeRequired     => Mathf.Max(8f, BaseChargeTime - GemShop.GetTurboChargeReduction());
+        public float TapChargeNormalized => TapBoostActive ? 1f : Mathf.Clamp01(_tapCharge / ChargeRequired);
+        public bool  TapCharging         => !TapBoostActive && Time.time - _lastTapTime <= TapActiveWindow;
 
-        public void ActivateTapBoost()
+        // Acumula carga enquanto o jogador esta clicando; ativa o turbo ao encher.
+        private void UpdateTapBoostCharge(float dt)
         {
-            if (TapBoostActive || TapBoostOnCooldown) return;
-            float cd = Mathf.Max(20f, BoostCooldown - GemShop.GetTurboCooldownReduction());
-            _tapBoostEnd     = Time.time + BoostDuration;
-            _tapBoostCoolEnd = Time.time + BoostDuration + cd;
-            OnStatsUpdated?.Invoke();
+            if (TapBoostActive) { _tapCharge = 0f; return; }
+            if (Time.time - _lastTapTime <= TapActiveWindow)
+            {
+                _tapCharge += dt;
+                if (_tapCharge >= ChargeRequired)
+                {
+                    _tapCharge = 0f;
+                    _tapBoostEnd = Time.time + BoostDuration;
+                    OnTapBoostActivated?.Invoke();
+                    OnStatsUpdated?.Invoke();
+                }
+            }
+            else
+            {
+                _tapCharge = Mathf.Max(0f, _tapCharge - dt * 0.4f); // decai devagar se parar
+            }
         }
 
         public double GetTapValue()
@@ -216,7 +233,7 @@ namespace GameIdle
             return TapBoostActive ? base_ * BoostMult : base_;
         }
 
-        public void Tap() { AddMoney(GetTapValue()); IncrementTapCount(); }
+        public void Tap() { AddMoney(GetTapValue()); IncrementTapCount(); _lastTapTime = Time.time; }
 
         public void Prestige()
         {

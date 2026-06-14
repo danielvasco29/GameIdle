@@ -94,13 +94,12 @@ namespace GameIdle
         private RectTransform _prestigeStarRt;
 
         // Boost TURBO
-        private Image _boostBtnImg;
+        private Image _boostBtnImg;      // trilho da barra de turbo
+        private Image _boostFillImg;     // preenchimento da carga
+        private RectTransform _boostBarRT;
         private TextMeshProUGUI _boostBtnText;
         // Botões no estilo navy (fundo navy + acento na cor original)
         private static readonly Color NavyBtn       = new(0.10f, 0.17f, 0.28f, 1f);
-        private static readonly Color BoostReady    = new(0.10f, 0.17f, 0.28f, 1f); // navy
-        private static readonly Color BoostActive   = new(0.30f, 0.22f, 0.04f, 1f); // navy âmbar (ligado)
-        private static readonly Color BoostCooldown = new(0.13f, 0.15f, 0.21f, 1f); // navy apagado
 
         // Próximo desbloqueio — pulse
 
@@ -188,6 +187,7 @@ namespace GameIdle
             AutoFindComponents();
 
             GameManager.Instance.OnStatsUpdated += UpdateStatsDisplay;
+            GameManager.Instance.OnTapBoostActivated += PlayTurboActivation;
             CharacterManager.Instance.OnCharactersUpdated += RebuildCharacterButtons;
             GameEventSystem.Instance.OnEventTriggered += ShowEventPanel;
             if (prestigeButton != null)
@@ -943,26 +943,33 @@ namespace GameIdle
 
             StartCoroutine(PulseTapButton());
 
-            // ── Botão TURBO ────────────────────────────────────────────────
-            var boostGO = new GameObject("TurboButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            // ── Barra de TURBO ─────────────────────────────────────────────
+            // Não é mais clicável: enche sozinha enquanto o jogador clica e
+            // ativa o bônus x5 ao encher.
+            var boostGO = new GameObject("TurboBar", typeof(RectTransform), typeof(Image));
             boostGO.transform.SetParent(pmGO.transform, false);
-            var brt2 = boostGO.GetComponent<RectTransform>();
-            brt2.anchorMin = brt2.anchorMax = brt2.pivot = new Vector2(1f, 0f);
-            brt2.anchoredPosition = new Vector2(-30f, 258f);
-            brt2.sizeDelta = new Vector2(178f, 46f);
+            _boostBarRT = boostGO.GetComponent<RectTransform>();
+            _boostBarRT.anchorMin = _boostBarRT.anchorMax = _boostBarRT.pivot = new Vector2(1f, 0f);
+            _boostBarRT.anchoredPosition = new Vector2(-30f, 258f);
+            _boostBarRT.sizeDelta = new Vector2(178f, 30f);
             _boostBtnImg = boostGO.GetComponent<Image>();
             _boostBtnImg.sprite = Rounded(); _boostBtnImg.type = Image.Type.Sliced;
-            _boostBtnImg.color = BoostReady;
-            boostGO.GetComponent<Button>().onClick.AddListener(OnTurboClicked);
-            // Sheen layer
-            var bSheen = new GameObject("Sheen", typeof(RectTransform), typeof(Image));
-            bSheen.transform.SetParent(boostGO.transform, false);
-            var bSrt = bSheen.GetComponent<RectTransform>();
-            bSrt.anchorMin = new Vector2(0f, 0.5f); bSrt.anchorMax = Vector2.one;
-            bSrt.offsetMin = new Vector2(4f, 0f); bSrt.offsetMax = new Vector2(-4f, -3f);
-            var bSImg = bSheen.GetComponent<Image>();
-            bSImg.sprite = Rounded(); bSImg.type = Image.Type.Sliced;
-            bSImg.color = new Color(1f, 1f, 1f, 0.10f); bSImg.raycastTarget = false;
+            _boostBtnImg.color = new Color(0.06f, 0.10f, 0.17f, 0.95f); // trilho navy
+            _boostBtnImg.raycastTarget = false;
+
+            // Preenchimento dourado (carga)
+            var fillGO = new GameObject("Fill", typeof(RectTransform), typeof(Image));
+            fillGO.transform.SetParent(boostGO.transform, false);
+            var fillRT = fillGO.GetComponent<RectTransform>();
+            fillRT.anchorMin = Vector2.zero; fillRT.anchorMax = Vector2.one;
+            fillRT.offsetMin = new Vector2(3f, 3f); fillRT.offsetMax = new Vector2(-3f, -3f);
+            _boostFillImg = fillGO.GetComponent<Image>();
+            _boostFillImg.sprite = Rounded(); _boostFillImg.type = Image.Type.Filled;
+            _boostFillImg.fillMethod = Image.FillMethod.Horizontal;
+            _boostFillImg.fillOrigin = (int)Image.OriginHorizontal.Left;
+            _boostFillImg.fillAmount = 0f;
+            _boostFillImg.color = GoldColor;
+            _boostFillImg.raycastTarget = false;
 
             var btLabel = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
             btLabel.transform.SetParent(boostGO.transform, false);
@@ -970,11 +977,13 @@ namespace GameIdle
             btlRT.anchorMin = Vector2.zero; btlRT.anchorMax = Vector2.one;
             btlRT.offsetMin = btlRT.offsetMax = Vector2.zero;
             _boostBtnText = btLabel.GetComponent<TextMeshProUGUI>();
-            _boostBtnText.text = "TURBO  x5  30s";
+            _boostBtnText.text = "TURBO";
             _boostBtnText.fontSize = 14; _boostBtnText.fontStyle = FontStyles.Bold;
             _boostBtnText.alignment = TextAlignmentOptions.Center;
-            _boostBtnText.color = GoldColor; _boostBtnText.raycastTarget = false; // acento dourado (turbo)
+            _boostBtnText.color = Color.white; _boostBtnText.raycastTarget = false;
+            _boostBtnText.outlineWidth = 0.2f; _boostBtnText.outlineColor = new Color32(0, 0, 0, 180);
             var btf = GetCachedFont(); if (btf != null) _boostBtnText.font = btf;
+            UpdateBoostButton();
 
             // ── Office Props Layer (mesas, props animados) ────────────────
             var propsGO = new GameObject("OfficePropsLayer", typeof(OfficePropsLayer));
@@ -997,34 +1006,52 @@ namespace GameIdle
             tapValueText.text = $"+${NumberFormatter.Format(GameManager.Instance.GetTapValue())} / tap";
         }
 
-        private void OnTurboClicked()
-        {
-            GameManager.Instance.ActivateTapBoost();
-            AchievementManager.RegisterTurboUse();
-            UpdateBoostButton();
-            UpdateTapValueText();
-        }
-
         private void UpdateBoostButton()
         {
-            if (_boostBtnImg == null || _boostBtnText == null) return;
+            if (_boostFillImg == null || _boostBtnText == null) return;
             var gm = GameManager.Instance;
             if (gm.TapBoostActive)
             {
-                _boostBtnImg.color  = BoostActive;
-                _boostBtnText.text  = $"TURBO  x5  {Mathf.CeilToInt(gm.TapBoostRemaining)}s";
-            }
-            else if (gm.TapBoostOnCooldown)
-            {
-                _boostBtnImg.color = BoostCooldown;
-                int rem = Mathf.CeilToInt(gm.TapBoostCooldownRemaining);
-                _boostBtnText.text = $"TURBO  {rem / 60}:{(rem % 60):D2}";
+                // Bônus ativo: barra cheia, dourado vivo, contagem regressiva
+                _boostFillImg.fillAmount = 1f;
+                _boostFillImg.color = new Color(1f, 0.85f, 0.15f, 1f);
+                _boostBtnText.text  = $"TURBO x5  •  {Mathf.CeilToInt(gm.TapBoostRemaining)}s";
+                _boostBtnText.color = new Color(0.12f, 0.09f, 0.0f, 1f);
             }
             else
             {
-                _boostBtnImg.color = BoostReady;
-                _boostBtnText.text = "TURBO  x5  30s";
+                float charge = gm.TapChargeNormalized;
+                _boostFillImg.fillAmount = charge;
+                // Dourado quando carregando, mais apagado quando parado
+                _boostFillImg.color = gm.TapCharging
+                    ? GoldColor
+                    : new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0.55f);
+                _boostBtnText.text  = charge >= 0.999f
+                    ? "TURBO PRONTO!"
+                    : $"TURBO  {Mathf.RoundToInt(charge * 100f)}%";
+                _boostBtnText.color = Color.white;
             }
+        }
+
+        // Efeito ao ativar o turbo automaticamente (barra cheia).
+        private void PlayTurboActivation()
+        {
+            AchievementManager.RegisterTurboUse();
+            if (SoundManager.Instance != null) SoundManager.Instance.PlayClick();
+            UpdateBoostButton();
+            UpdateTapValueText();
+            if (_boostBarRT != null) StartCoroutine(PunchScale(_boostBarRT, 0.22f));
+
+            // Texto comemorativo subindo de cima do botão TRABALHAR
+            var parent = tapButtonRT != null ? tapButtonRT : panelMain;
+            if (parent == null) return;
+            var go = new GameObject("TurboPop", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(FloatingText));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(320f, 70f);
+            rt.anchoredPosition = new Vector2(0f, 175f);
+            go.GetComponent<FloatingText>().Init("TURBO x5 ATIVADO!", new Color(1f, 0.85f, 0.15f), 40f);
         }
 
         // Acumula o valor dos cliques e mostra UM número somado a cada intervalo,
@@ -1047,7 +1074,7 @@ namespace GameIdle
                 SpawnTapFloat(_tapFloatAccum);
                 _tapFloatAccum = 0;
                 _lastTapFloatTime = now;
-                int coins = Random.Range(2, 4);
+                int coins = Random.Range(5, 8);
                 for (int i = 0; i < coins; i++) StartCoroutine(FlyCoin());
             }
 
@@ -1067,7 +1094,9 @@ namespace GameIdle
             rt.anchoredPosition = new Vector2(Random.Range(-24f, 24f), 130f);
             Color tapColor = GameManager.Instance.TapBoostActive
                 ? new Color(1f, 0.85f, 0.1f) : NeonGreen;
-            go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(amount)}", tapColor, 34f);
+            // Maior durante o turbo p/ dar ênfase ao bônus
+            float fs = GameManager.Instance.TapBoostActive ? 52f : 44f;
+            go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(amount)}", tapColor, fs);
         }
 
         // A small gold coin that pops out of the tap button and arcs upward.
@@ -1079,7 +1108,7 @@ namespace GameIdle
             go.transform.SetParent(coinParent, false);
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
-            float size = Random.Range(16f, 26f);
+            float size = Random.Range(22f, 36f);
             rt.sizeDelta = new Vector2(size, size);
             var img = go.GetComponent<Image>();
             img.sprite = Circle();
@@ -1851,7 +1880,7 @@ namespace GameIdle
             rt.anchoredPosition = new Vector2(Random.Range(-45f, 45f), Random.Range(120f, 160f));
             rt.sizeDelta = new Vector2(220f, 50f);
             double amount = GameManager.Instance.MoneyPerSecond * FloatBurstInterval;
-            go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(amount)}", NeonGreen, 26f);
+            go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(amount)}", NeonGreen, 34f);
         }
 
         // ── Core UI Update ────────────────────────────────────────────────────
@@ -1859,7 +1888,10 @@ namespace GameIdle
         private void OnDestroy()
         {
             if (GameManager.Instance != null)
+            {
                 GameManager.Instance.OnStatsUpdated -= UpdateStatsDisplay;
+                GameManager.Instance.OnTapBoostActivated -= PlayTurboActivation;
+            }
             if (CharacterManager.Instance != null)
                 CharacterManager.Instance.OnCharactersUpdated -= RebuildCharacterButtons;
             if (GameEventSystem.Instance != null)
