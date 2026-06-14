@@ -916,7 +916,7 @@ namespace GameIdle
             pillGO.transform.SetParent(tapButtonRT, false);
             var pillRT = pillGO.GetComponent<RectTransform>();
             pillRT.anchorMin = pillRT.anchorMax = pillRT.pivot = new Vector2(0.5f, 0.5f);
-            pillRT.anchoredPosition = new Vector2(0f, -52f);
+            pillRT.anchoredPosition = new Vector2(0f, -34f);
             pillRT.sizeDelta = new Vector2(170f, 30f);
             var pillImg = pillGO.GetComponent<Image>();
             pillImg.sprite = Rounded(); pillImg.type = Image.Type.Sliced;
