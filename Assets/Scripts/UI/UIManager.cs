@@ -1303,6 +1303,30 @@ namespace GameIdle
                 mpsText.alignment = TextAlignmentOptions.Center;
                 var mf2 = GetCachedFont(); if (mf2 != null) mpsText.font = mf2;
             }
+            // Fundo navy atrás do dinheiro central — legibilidade sobre o escritório
+            var moneyParent = moneyText != null ? moneyText.rectTransform.parent : null;
+            if (moneyParent != null && moneyParent.Find("MoneyBg") == null)
+            {
+                var mbg = new GameObject("MoneyBg", typeof(RectTransform), typeof(Image));
+                mbg.transform.SetParent(moneyParent, false);
+                mbg.transform.SetAsFirstSibling();
+                var mbgRT = mbg.GetComponent<RectTransform>();
+                mbgRT.anchorMin = new Vector2(0.17f, 0f); mbgRT.anchorMax = new Vector2(0.83f, 1f);
+                mbgRT.offsetMin = new Vector2(0f, 4f); mbgRT.offsetMax = new Vector2(0f, -4f);
+                var mbgImg = mbg.GetComponent<Image>();
+                mbgImg.sprite = Rounded(); mbgImg.type = Image.Type.Sliced;
+                mbgImg.color = new Color(0.055f, 0.094f, 0.165f, 0.88f); // glass navy
+                mbgImg.raycastTarget = false;
+            }
+            if (moneyText != null)
+            {
+                moneyText.outlineWidth = 0.2f; moneyText.outlineColor = new Color32(0, 0, 0, 210);
+            }
+            if (mpsText != null)
+            {
+                mpsText.color = new Color(0.78f, 0.9f, 1f, 1f);
+                mpsText.outlineWidth = 0.18f; mpsText.outlineColor = new Color32(0, 0, 0, 190);
+            }
             if (prestigeInfoText != null) prestigeInfoText.gameObject.SetActive(false);
 
             // Gem pill — na barra de nav superior-esquerda, depois de RANK — abre a loja
