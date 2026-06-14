@@ -34,7 +34,6 @@ namespace GameIdle
 
         // Indicadores "pronto" (pontinho vermelho)
         private Image _missionDot;
-        private Image _achievementDot;
 
         // Painéis modais — só um aberto por vez
         private readonly List<GameObject> modalPanels = new();
@@ -369,29 +368,28 @@ namespace GameIdle
             setGO.SetActive(false);
             modalPanels.Add(setGO);
 
-            // Settings (menu) button — top-left corner
+            // Settings button — engrenagem compacta no canto superior-esquerdo
             var btnGO = new GameObject("MenuButton", typeof(RectTransform), typeof(Image), typeof(Button));
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
             brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 1f);
             brt.anchoredPosition = new Vector2(8f, -10f);
-            brt.sizeDelta = new Vector2(96f, 50f);
+            brt.sizeDelta = new Vector2(50f, 50f);
             var bImg = btnGO.GetComponent<Image>();
             bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
-            bImg.color = new Color(0.10f, 0.16f, 0.26f, 1f);
+            bImg.color = TabBg;
             btnGO.GetComponent<Button>().onClick.AddListener(() => { if (settingsPanel != null) { CloseAllModals(); settingsPanel.Open(); } });
-            var ml = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
-            ml.transform.SetParent(btnGO.transform, false);
-            var mlr = ml.GetComponent<RectTransform>();
-            mlr.anchorMin = Vector2.zero; mlr.anchorMax = Vector2.one;
-            mlr.offsetMin = mlr.offsetMax = Vector2.zero;
-            var mlt = ml.GetComponent<TextMeshProUGUI>();
-            mlt.text = "MENU"; mlt.fontSize = 18; mlt.fontStyle = FontStyles.Bold;
-            mlt.color = TextSec; mlt.alignment = TextAlignmentOptions.Center;
-            mlt.textWrappingMode = TextWrappingModes.NoWrap; mlt.overflowMode = TextOverflowModes.Ellipsis;
-            mlt.raycastTarget = false;
-            var f = GetCachedFont(); if (f != null) mlt.font = f;
-            StyleNavTab(btnGO, TextSec);
+            // Icone de engrenagem (configuracoes)
+            var gearGO = new GameObject("Gear", typeof(RectTransform), typeof(Image));
+            gearGO.transform.SetParent(btnGO.transform, false);
+            var gearRT = gearGO.GetComponent<RectTransform>();
+            gearRT.anchorMin = gearRT.anchorMax = gearRT.pivot = new Vector2(0.5f, 0.5f);
+            gearRT.anchoredPosition = Vector2.zero;
+            gearRT.sizeDelta = new Vector2(28f, 28f);
+            var gearImg = gearGO.GetComponent<Image>();
+            gearImg.sprite = UiSpriteFactory.Gear();
+            gearImg.color = new Color(0.72f, 0.80f, 0.90f, 1f);
+            gearImg.raycastTarget = false;
 
             // ── Offline Progress Panel ─────────────────────────────────────
             var offlineGO = new GameObject("OfflineProgressPanel", typeof(RectTransform));
@@ -410,7 +408,7 @@ namespace GameIdle
             mBtnGO.transform.SetParent(canvas.transform, false);
             var mbrt = mBtnGO.GetComponent<RectTransform>();
             mbrt.anchorMin = mbrt.anchorMax = mbrt.pivot = new Vector2(0f, 1f);
-            mbrt.anchoredPosition = new Vector2(112f, -10f);
+            mbrt.anchoredPosition = new Vector2(66f, -10f);
             mbrt.sizeDelta = new Vector2(100f, 50f);
             var mbImg = mBtnGO.GetComponent<Image>();
             mbImg.sprite = Rounded(); mbImg.type = Image.Type.Sliced;
@@ -442,28 +440,8 @@ namespace GameIdle
             eventGO.SetActive(false);
             modalPanels.Add(eventGO);
 
-            // Botão Conquistas — ao lado de MISSOES
-            var aBtnGO = new GameObject("AchievementButton", typeof(RectTransform), typeof(Image), typeof(Button));
-            aBtnGO.transform.SetParent(canvas.transform, false);
-            var abrt = aBtnGO.GetComponent<RectTransform>();
-            abrt.anchorMin = abrt.anchorMax = abrt.pivot = new Vector2(0f, 1f);
-            abrt.anchoredPosition = new Vector2(220f, -10f);
-            abrt.sizeDelta = new Vector2(138f, 50f);
-            var abImg = aBtnGO.GetComponent<Image>();
-            abImg.sprite = Rounded(); abImg.type = Image.Type.Sliced;
-            abImg.color = new Color(0.16f, 0.14f, 0.08f, 1f);
-            aBtnGO.GetComponent<Button>().onClick.AddListener(() => { if (achievementPanel != null) { CloseAllModals(); achievementPanel.Open(); } });
-            var abl = new GameObject("L", typeof(RectTransform), typeof(TextMeshProUGUI));
-            abl.transform.SetParent(aBtnGO.transform, false);
-            var ablr = abl.GetComponent<RectTransform>();
-            ablr.anchorMin = Vector2.zero; ablr.anchorMax = Vector2.one; ablr.offsetMin = ablr.offsetMax = Vector2.zero;
-            var ablt = abl.GetComponent<TextMeshProUGUI>();
-            ablt.text = "CONQUISTAS"; ablt.fontSize = 17; ablt.fontStyle = FontStyles.Bold;
-            ablt.color = GoldColor; ablt.alignment = TextAlignmentOptions.Center; ablt.raycastTarget = false;
-            ablt.textWrappingMode = TextWrappingModes.NoWrap; ablt.overflowMode = TextOverflowModes.Ellipsis;
-            var af = GetCachedFont(); if (af != null) ablt.font = af;
-            StyleNavTab(aBtnGO, GoldColor);
-            _achievementDot = MakeNotifyDot(aBtnGO.transform);
+            // Botão CONQUISTAS removido a pedido — o painel continua existindo
+            // (achievementPanel) mas sem botão no topo.
 
             // ── Active Effects Panel ───────────────────────────────────────
             var aepGO = new GameObject("ActiveEffectsPanel", typeof(RectTransform));
@@ -477,7 +455,7 @@ namespace GameIdle
             bBtnGO.transform.SetParent(canvas.transform, false);
             var bbrt = bBtnGO.GetComponent<RectTransform>();
             bbrt.anchorMin = bbrt.anchorMax = bbrt.pivot = new Vector2(0f, 1f);
-            bbrt.anchoredPosition = new Vector2(366f, -10f);
+            bbrt.anchoredPosition = new Vector2(174f, -10f);
             bbrt.sizeDelta = new Vector2(90f, 50f);
             var bbImg = bBtnGO.GetComponent<Image>();
             bbImg.sprite = Rounded(); bbImg.type = Image.Type.Sliced;
@@ -505,11 +483,6 @@ namespace GameIdle
             {
                 bool show = DailyMissionSystem.HasClaimable();
                 if (_missionDot.gameObject.activeSelf != show) _missionDot.gameObject.SetActive(show);
-            }
-            if (_achievementDot != null)
-            {
-                bool show = AchievementManager.HasUnseen;
-                if (_achievementDot.gameObject.activeSelf != show) _achievementDot.gameObject.SetActive(show);
             }
             if (_bonusDot != null)
             {
@@ -637,13 +610,13 @@ namespace GameIdle
             rankingPanel = panelGO.AddComponent<RankingPanel>();
             modalPanels.Add(panelGO);
 
-            // Ranking button — na barra de nav superior-esquerda, depois de STATS
+            // Ranking button — grupo da direita (entre STATS e Loja)
             var btnGO = new GameObject("RankingButton", typeof(RectTransform), typeof(Image), typeof(Button));
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
-            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 1f);
-            brt.anchoredPosition = new Vector2(552f, -10f);
-            brt.sizeDelta = new Vector2(80f, 50f);
+            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
+            brt.anchoredPosition = new Vector2(-100f, -10f);
+            brt.sizeDelta = new Vector2(72f, 50f);
             var bImg2 = btnGO.GetComponent<Image>();
             bImg2.sprite = Rounded(); bImg2.type = Image.Type.Sliced;
             bImg2.color = new Color(0.08f, 0.13f, 0.22f, 0.9f);
@@ -681,13 +654,13 @@ namespace GameIdle
             statsPanel = panelGO.AddComponent<StatsPanel>();
             modalPanels.Add(panelGO);
 
-            // STATS button — na barra de nav superior-esquerda, depois de BONUS
+            // STATS button — grupo da direita (sobre o navy)
             var btnGO = new GameObject("StatsButton", typeof(RectTransform), typeof(Image), typeof(Button));
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
-            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 1f);
-            brt.anchoredPosition = new Vector2(464f, -10f);
-            brt.sizeDelta = new Vector2(80f, 50f);
+            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
+            brt.anchoredPosition = new Vector2(-178f, -10f);
+            brt.sizeDelta = new Vector2(72f, 50f);
             var bImg = btnGO.GetComponent<Image>();
             bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
             bImg.color = new Color(0.08f, 0.13f, 0.22f, 0.9f);
@@ -795,7 +768,7 @@ namespace GameIdle
                 // ancoramos por insets — funciona em qualquer resolucao/janela. Uma
                 // mascara recorta o excesso do escritorio dentro dessa area.
                 const float sidebarInset = 400f; // alem da borda da sidebar (~380px) p/ nao ser coberto
-                const float statsInset   = 240f; // antes da coluna de stats à direita
+                const float statsInset   = 270f; // espaco p/ os botoes da direita (STATS/RANK/Loja) + coluna de stats
                 var staleArea = bgPanel.transform.Find("PlayArea");
                 if (staleArea != null) DestroyImmediate(staleArea.gameObject);
                 var areaGO = new GameObject("PlayArea", typeof(RectTransform), typeof(RectMask2D));
@@ -1262,9 +1235,9 @@ namespace GameIdle
             var pillGO = new GameObject("GemPill", typeof(RectTransform), typeof(Image), typeof(Button));
             pillGO.transform.SetParent(canvas.transform, false);
             var prt = pillGO.GetComponent<RectTransform>();
-            prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(0f, 1f);
-            prt.anchoredPosition = new Vector2(640f, -10f);
-            prt.sizeDelta = new Vector2(96f, 50f);
+            prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(1f, 1f);
+            prt.anchoredPosition = new Vector2(-10f, -10f);
+            prt.sizeDelta = new Vector2(84f, 50f);
             var pImg = pillGO.GetComponent<Image>();
             pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
             pImg.color  = NavyCard;
@@ -2026,7 +1999,7 @@ namespace GameIdle
             barGO.transform.SetParent(panelMain, false);
             var barRT = barGO.GetComponent<RectTransform>();
             barRT.anchorMin = barRT.anchorMax = barRT.pivot = new Vector2(1f, 1f);
-            barRT.anchoredPosition = new Vector2(-18f, -8f); // canto superior-direito do Panel_Main
+            barRT.anchoredPosition = new Vector2(-18f, -66f); // abaixo da linha de botoes (STATS/RANK/Loja)
             barRT.sizeDelta = new Vector2(pillW + barPad * 2f, totalH + barPad * 2f);
             var barImg = barGO.GetComponent<Image>();
             barImg.sprite = Rounded(); barImg.type = Image.Type.Sliced;

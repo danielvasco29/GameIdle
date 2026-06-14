@@ -14,6 +14,7 @@ namespace GameIdle
         private static Sprite star;
         private static Sprite vGradient;
         private static Sprite hGradient;
+        private static Sprite gear;
         private static Material whiteDiscardMat;
 
         // Vertical white gradient: opaque white at the TOP fading to transparent
@@ -57,6 +58,38 @@ namespace GameIdle
             hGradient = Sprite.Create(tex, new Rect(0, 0, w, 4), new Vector2(0.5f, 0.5f), 100f);
             hGradient.name = "GenHGradient";
             return hGradient;
+        }
+
+        // Engrenagem (cog) desenhada em runtime — usada como icone de configuracoes.
+        public static Sprite Gear()
+        {
+            if (gear != null) return gear;
+            const int N = 64;
+            float c = (N - 1) / 2f;
+            const int teeth = 8;
+            const float hole = 9f, baseR = 19f, toothR = 28f;
+            var tex = new Texture2D(N, N, TextureFormat.RGBA32, false)
+            { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            var px = new Color32[N * N];
+            for (int y = 0; y < N; y++)
+            for (int x = 0; x < N; x++)
+            {
+                float dx = x - c, dy = y - c;
+                float r = Mathf.Sqrt(dx * dx + dy * dy);
+                float ang = Mathf.Atan2(dy, dx);
+                float tw = Mathf.Cos(ang * teeth);          // -1..1 (cria os dentes)
+                float t  = Mathf.SmoothStep(0f, 1f, (tw + 0.25f) / 0.5f);
+                float outer = Mathf.Lerp(baseR, toothR, t);
+                float a = 0f;
+                if (r <= outer && r >= hole)
+                    a = Mathf.Clamp01(Mathf.Min(outer - r, r - hole)); // AA ~1px nas bordas
+                px[y * N + x] = new Color32(255, 255, 255, (byte)(a * 255));
+            }
+            tex.SetPixels32(px);
+            tex.Apply();
+            gear = Sprite.Create(tex, new Rect(0, 0, N, N), new Vector2(0.5f, 0.5f), 100f);
+            gear.name = "GenGear";
+            return gear;
         }
 
         // Material that discards near-white/background pixels from GPT-generated sprites.
