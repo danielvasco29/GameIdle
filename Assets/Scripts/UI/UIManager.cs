@@ -778,7 +778,7 @@ namespace GameIdle
                 // ancoramos por insets — funciona em qualquer resolucao/janela. Uma
                 // mascara recorta o excesso do escritorio dentro dessa area.
                 const float sidebarInset = 388f; // logo apos a sidebar (menos navy sobrando)
-                const float statsInset   = 230f; // espaco p/ a coluna de stats (botoes sairam daqui)
+                const float statsInset   = 248f; // faixa navy a direita p/ a coluna de stats
                 var staleArea = bgPanel.transform.Find("PlayArea");
                 if (staleArea != null) DestroyImmediate(staleArea.gameObject);
                 var areaGO = new GameObject("PlayArea", typeof(RectTransform), typeof(RectMask2D));
@@ -2035,6 +2035,12 @@ namespace GameIdle
 
             var stale = panelMain.Find("StatsCard");
             if (stale != null) DestroyImmediate(stale.gameObject);
+            // Remove StatBar remanescente (agora vive no canvas, nao no Panel_Main)
+            var canvasForClean = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
+            var staleBar = canvasForClean != null ? canvasForClean.transform.Find("StatBar") : null;
+            if (staleBar != null) DestroyImmediate(staleBar.gameObject);
+            var staleBarPM = panelMain.Find("StatBar");
+            if (staleBarPM != null) DestroyImmediate(staleBarPM.gameObject);
 
             TMP_FontAsset font = GetCachedFont();
 
@@ -2061,10 +2067,13 @@ namespace GameIdle
             const float barPad = 8f;
             float totalH = 4f * pillH + 3f * gap;
             var barGO = new GameObject("StatBar", typeof(RectTransform), typeof(Image));
-            barGO.transform.SetParent(panelMain, false);
+            // Ancorada no canto superior-direito do CANVAS (dentro da faixa navy),
+            // no topo — antes ficava presa ao Panel_Main e caía sobre o escritório.
+            var canvasT = (GetComponentInParent<Canvas>() ?? GetComponent<Canvas>())?.transform ?? panelMain;
+            barGO.transform.SetParent(canvasT, false);
             var barRT = barGO.GetComponent<RectTransform>();
             barRT.anchorMin = barRT.anchorMax = barRT.pivot = new Vector2(1f, 1f);
-            barRT.anchoredPosition = new Vector2(-18f, -12f); // topo direito (sem botoes acima agora)
+            barRT.anchoredPosition = new Vector2(-10f, -10f); // topo direito, na faixa navy
             barRT.sizeDelta = new Vector2(pillW + barPad * 2f, totalH + barPad * 2f);
             var barImg = barGO.GetComponent<Image>();
             barImg.sprite = Rounded(); barImg.type = Image.Type.Sliced;
