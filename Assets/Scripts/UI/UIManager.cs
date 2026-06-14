@@ -702,6 +702,7 @@ namespace GameIdle
                 string n = pmGO.transform.GetChild(i).name;
                 if (n == "PanelBG" || n == "BgFloor" || n == "BgFurniture" || n == "BgPlants" || n == "BgWindows"
                     || n == "TapButton" || n == "TapValue" || n == "TapValuePill"
+                    || n == "TurboButton" || n == "TurboBar"
                     || n == "MonsterView" || n == "AttackButton" || n == "BattleButton" || n == "CombatUpgradeButton")
                     DestroyImmediate(pmGO.transform.GetChild(i).gameObject);
             }
