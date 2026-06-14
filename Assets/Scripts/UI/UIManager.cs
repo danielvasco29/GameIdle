@@ -2109,19 +2109,6 @@ namespace GameIdle
                     divImg.raycastTarget = false;
                 }
 
-                // Halo neon atras do acento (brilho sutil na cor do chip)
-                var accGlow = new GameObject("AGlow", typeof(RectTransform), typeof(Image));
-                accGlow.transform.SetParent(pill.transform, false);
-                var agrt = accGlow.GetComponent<RectTransform>();
-                agrt.anchorMin = new Vector2(0f, 0.5f); agrt.anchorMax = new Vector2(0f, 0.5f);
-                agrt.pivot = new Vector2(0f, 0.5f);
-                agrt.anchoredPosition = new Vector2(2f, 0f);
-                agrt.sizeDelta = new Vector2(28f, pillH * 0.9f);
-                var agImg = accGlow.GetComponent<Image>();
-                agImg.sprite = UiSpriteFactory.Glow(); agImg.type = Image.Type.Simple;
-                agImg.color = new Color(d.labelColor.r, d.labelColor.g, d.labelColor.b, 0.30f);
-                agImg.raycastTarget = false;
-
                 // Acento colorido lateral — pílula arredondada inset (não flush na borda)
                 var acc = new GameObject("A", typeof(RectTransform), typeof(Image));
                 acc.transform.SetParent(pill.transform, false);
