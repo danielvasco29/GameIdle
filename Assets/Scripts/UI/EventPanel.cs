@@ -69,7 +69,7 @@ namespace GameIdle
             // Descrição do evento (região abaixo do separador, texto centralizado).
             // Os offsets definem a região completa — não sobrescrever com sizeDelta,
             // senão a label vai parar na borda superior e fica cortada.
-            _descText = MakeLabel("Desc", 23f, TextMain, FontStyles.Normal, TextAlignmentOptions.Top,
+            _descText = MakeLabel("Desc", 27f, TextMain, FontStyles.Normal, TextAlignmentOptions.Top,
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
                 new Vector2(30f, -236f), new Vector2(-30f, -114f), font);
             _descText.textWrappingMode = TextWrappingModes.Normal;
