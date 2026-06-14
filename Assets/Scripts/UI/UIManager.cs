@@ -1263,8 +1263,8 @@ namespace GameIdle
             pillGO.transform.SetParent(canvas.transform, false);
             var prt = pillGO.GetComponent<RectTransform>();
             prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(0f, 1f);
-            prt.anchoredPosition = new Vector2(640f, -10f);
-            prt.sizeDelta = new Vector2(110f, 50f);
+            prt.anchoredPosition = new Vector2(640f, -15f);
+            prt.sizeDelta = new Vector2(82f, 40f);
             var pImg = pillGO.GetComponent<Image>();
             pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
             pImg.color  = NavyCard;
@@ -1276,8 +1276,8 @@ namespace GameIdle
             gemGO.transform.SetParent(pillGO.transform, false);
             var grt = gemGO.GetComponent<RectTransform>();
             grt.anchorMin = grt.anchorMax = grt.pivot = new Vector2(0f, 0.5f);
-            grt.anchoredPosition = new Vector2(12f, 0f);
-            grt.sizeDelta = new Vector2(18f, 18f);
+            grt.anchoredPosition = new Vector2(9f, 0f);
+            grt.sizeDelta = new Vector2(14f, 14f);
             grt.localRotation = Quaternion.Euler(0f, 0f, 45f);
             var gImg = gemGO.GetComponent<Image>();
             gImg.sprite = UiSpriteFactory.Box(); gImg.type = Image.Type.Simple;
@@ -1289,9 +1289,9 @@ namespace GameIdle
             gtGO.transform.SetParent(pillGO.transform, false);
             var gtrt = gtGO.GetComponent<RectTransform>();
             gtrt.anchorMin = new Vector2(0f, 0f); gtrt.anchorMax = new Vector2(1f, 1f);
-            gtrt.offsetMin = new Vector2(34f, 0f); gtrt.offsetMax = new Vector2(-8f, 0f);
+            gtrt.offsetMin = new Vector2(26f, 0f); gtrt.offsetMax = new Vector2(-6f, 0f);
             gemText = gtGO.GetComponent<TextMeshProUGUI>();
-            gemText.fontSize = 17; gemText.fontStyle = FontStyles.Bold;
+            gemText.fontSize = 15; gemText.fontStyle = FontStyles.Bold;
             gemText.color = new Color(0.7f, 0.93f, 1f, 1f);
             gemText.alignment = TextAlignmentOptions.MidlineLeft;
             gemText.raycastTarget = false;
@@ -1302,20 +1302,12 @@ namespace GameIdle
 
         private void SetupTopSeparator()
         {
+            // Linha azul abaixo da barra de nav removida a pedido — deixava o topo
+            // poluido. Remove tambem qualquer separador remanescente de sessao antiga.
             var canvas = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
             if (canvas == null) return;
-
-            // Faixa escura logo abaixo dos botões de nav (separa HUD do campo de jogo)
-            var sepGO = new GameObject("TopSeparator", typeof(RectTransform), typeof(Image));
-            sepGO.transform.SetParent(canvas.transform, false);
-            var rt = sepGO.GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0f, 1f); rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, -54f);
-            rt.sizeDelta = new Vector2(0f, 3f);
-            var img = sepGO.GetComponent<Image>();
-            img.color = new Color(BlueAccent.r, BlueAccent.g, BlueAccent.b, 0.55f);
-            img.raycastTarget = false;
+            var stale = canvas.transform.Find("TopSeparator");
+            if (stale != null) DestroyImmediate(stale.gameObject);
         }
 
         private void RefreshGemDisplay()

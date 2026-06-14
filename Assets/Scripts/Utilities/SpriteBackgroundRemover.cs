@@ -72,9 +72,16 @@ namespace GameIdle
                 }
             }
 
-            var dst = new Texture2D(w, h, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            // mipChain=true + filtro trilinear/anisotropico → personagens ficam bem
+            // mais limpos quando renderizados em escala menor (menos serrilhado).
+            var dst = new Texture2D(w, h, TextureFormat.RGBA32, true)
+            {
+                wrapMode = TextureWrapMode.Clamp,
+                filterMode = FilterMode.Trilinear,
+                anisoLevel = 4
+            };
             dst.SetPixels32(px);
-            dst.Apply();
+            dst.Apply(true);
             _cache[src] = dst;
             return dst;
         }
@@ -123,9 +130,16 @@ namespace GameIdle
                 }
             }
 
-            var dst = new Texture2D(w, h, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            // mipChain=true + filtro trilinear/anisotropico → personagens ficam bem
+            // mais limpos quando renderizados em escala menor (menos serrilhado).
+            var dst = new Texture2D(w, h, TextureFormat.RGBA32, true)
+            {
+                wrapMode = TextureWrapMode.Clamp,
+                filterMode = FilterMode.Trilinear,
+                anisoLevel = 4
+            };
             dst.SetPixels32(px);
-            dst.Apply();
+            dst.Apply(true);
             _cacheDark[src] = dst;
             return dst;
         }
