@@ -385,7 +385,7 @@ namespace GameIdle
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
             brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 1f);
-            brt.anchoredPosition = new Vector2(8f, -10f);
+            brt.anchoredPosition = new Vector2(35f, -10f);
             brt.sizeDelta = new Vector2(50f, 50f);
             var bImg = btnGO.GetComponent<Image>();
             bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
@@ -420,7 +420,7 @@ namespace GameIdle
             mBtnGO.transform.SetParent(canvas.transform, false);
             var mbrt = mBtnGO.GetComponent<RectTransform>();
             mbrt.anchorMin = mbrt.anchorMax = mbrt.pivot = new Vector2(0f, 1f);
-            mbrt.anchoredPosition = new Vector2(62f, -10f);
+            mbrt.anchoredPosition = new Vector2(89f, -10f);
             mbrt.sizeDelta = new Vector2(48f, 50f);
             var mbImg = mBtnGO.GetComponent<Image>();
             mbImg.sprite = Rounded(); mbImg.type = Image.Type.Sliced; mbImg.color = TabBg;
@@ -458,7 +458,7 @@ namespace GameIdle
             bBtnGO.transform.SetParent(canvas.transform, false);
             var bbrt = bBtnGO.GetComponent<RectTransform>();
             bbrt.anchorMin = bbrt.anchorMax = bbrt.pivot = new Vector2(0f, 1f);
-            bbrt.anchoredPosition = new Vector2(114f, -10f);
+            bbrt.anchoredPosition = new Vector2(141f, -10f);
             bbrt.sizeDelta = new Vector2(48f, 50f);
             var bbImg = bBtnGO.GetComponent<Image>();
             bbImg.sprite = Rounded(); bbImg.type = Image.Type.Sliced; bbImg.color = TabBg;
@@ -623,7 +623,7 @@ namespace GameIdle
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
             brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 1f);
-            brt.anchoredPosition = new Vector2(218f, -10f);
+            brt.anchoredPosition = new Vector2(245f, -10f);
             brt.sizeDelta = new Vector2(48f, 50f);
             var bImg2 = btnGO.GetComponent<Image>();
             bImg2.sprite = Rounded(); bImg2.type = Image.Type.Sliced; bImg2.color = TabBg;
@@ -662,7 +662,7 @@ namespace GameIdle
             btnGO.transform.SetParent(canvas.transform, false);
             var brt = btnGO.GetComponent<RectTransform>();
             brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(0f, 1f);
-            brt.anchoredPosition = new Vector2(166f, -10f);
+            brt.anchoredPosition = new Vector2(193f, -10f);
             brt.sizeDelta = new Vector2(48f, 50f);
             var bImg = btnGO.GetComponent<Image>();
             bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced; bImg.color = TabBg;
@@ -1276,7 +1276,7 @@ namespace GameIdle
             pillGO.transform.SetParent(canvas.transform, false);
             var prt = pillGO.GetComponent<RectTransform>();
             prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(0f, 1f);
-            prt.anchoredPosition = new Vector2(270f, -10f);
+            prt.anchoredPosition = new Vector2(297f, -10f);
             prt.sizeDelta = new Vector2(48f, 50f);
             var pImg = pillGO.GetComponent<Image>();
             pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
