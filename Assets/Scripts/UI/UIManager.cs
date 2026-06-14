@@ -794,9 +794,10 @@ namespace GameIdle
                 // excesso) mantendo o aspecto, centralizado, em qualquer tamanho.
                 floorImg.transform.SetParent(areaGO.transform, false);
                 var frt = floorImg.rectTransform;
-                // Alinhado ao TOPO: o recorte do EnvelopeParent acontece no chão
-                // (menos crítico) e preserva o topo do cenário (porta, foguete).
-                frt.anchorMin = frt.anchorMax = frt.pivot = new Vector2(0.5f, 1f);
+                // Meio-termo: EnvelopeParent (preenche a área, sem faixas navy) com
+                // o alinhamento vertical puxado p/ cima (~72%), cortando pouco de
+                // cada lado — preserva o topo (porta/foguete) e quase todo o chão.
+                frt.anchorMin = frt.anchorMax = frt.pivot = new Vector2(0.5f, 0.72f);
                 frt.anchoredPosition = Vector2.zero;
                 frt.offsetMin = frt.offsetMax = Vector2.zero;
                 floorImg.preserveAspect = false; // o AspectRatioFitter controla o aspecto
