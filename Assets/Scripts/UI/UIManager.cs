@@ -43,6 +43,15 @@ namespace GameIdle
                 if (p != null) p.SetActive(false);
         }
 
+        // Alterna um painel: se já está aberto, fecha; senão fecha os outros e abre.
+        // Permite clicar de novo no mesmo ícone para fechar o menu.
+        private void ToggleModal(GameObject panelGO, System.Action open)
+        {
+            bool wasOpen = panelGO != null && panelGO.activeSelf;
+            CloseAllModals();
+            if (!wasOpen) open?.Invoke();
+        }
+
         [Header("Toast")]
         [SerializeField] private ToastMessage toast;
 
@@ -378,7 +387,7 @@ namespace GameIdle
             var bImg = btnGO.GetComponent<Image>();
             bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced;
             bImg.color = TabBg;
-            btnGO.GetComponent<Button>().onClick.AddListener(() => { if (settingsPanel != null) { CloseAllModals(); settingsPanel.Open(); } });
+            btnGO.GetComponent<Button>().onClick.AddListener(() => { if (settingsPanel != null) ToggleModal(settingsPanel.gameObject, settingsPanel.Open); });
             // Icone de engrenagem (configuracoes)
             var gearGO = new GameObject("Gear", typeof(RectTransform), typeof(Image));
             gearGO.transform.SetParent(btnGO.transform, false);
@@ -412,7 +421,7 @@ namespace GameIdle
             mbrt.sizeDelta = new Vector2(48f, 50f);
             var mbImg = mBtnGO.GetComponent<Image>();
             mbImg.sprite = Rounded(); mbImg.type = Image.Type.Sliced; mbImg.color = TabBg;
-            mBtnGO.GetComponent<Button>().onClick.AddListener(() => { if (missionPanel != null) { CloseAllModals(); missionPanel.Open(); } });
+            mBtnGO.GetComponent<Button>().onClick.AddListener(() => { if (missionPanel != null) ToggleModal(missionPanel.gameObject, missionPanel.Open); });
             AddIcon(mBtnGO, UiSpriteFactory.Check(), NeonCyan, 28f);
             StyleNavTab(mBtnGO, NeonCyan);
             _missionDot = MakeNotifyDot(mBtnGO.transform);
@@ -452,7 +461,7 @@ namespace GameIdle
             bbImg.sprite = Rounded(); bbImg.type = Image.Type.Sliced; bbImg.color = TabBg;
             bBtnGO.GetComponent<Button>().onClick.AddListener(() =>
             {
-                if (activeEffectsPanel != null) { CloseAllModals(); activeEffectsPanel.Open(); }
+                if (activeEffectsPanel != null) ToggleModal(activeEffectsPanel.gameObject, activeEffectsPanel.Open);
             });
             AddIcon(bBtnGO, UiSpriteFactory.Bolt(), GoldColor, 30f);
             StyleNavTab(bBtnGO, GoldColor);
@@ -632,7 +641,7 @@ namespace GameIdle
 
         private void OpenRanking()
         {
-            if (rankingPanel != null) { CloseAllModals(); rankingPanel.Open(); }
+            if (rankingPanel != null) ToggleModal(rankingPanel.gameObject, rankingPanel.Open);
         }
 
         private void SetupStatsPanel()
@@ -655,7 +664,7 @@ namespace GameIdle
             var bImg = btnGO.GetComponent<Image>();
             bImg.sprite = Rounded(); bImg.type = Image.Type.Sliced; bImg.color = TabBg;
             btnGO.GetComponent<Button>().onClick.AddListener(() =>
-            { if (statsPanel != null) { CloseAllModals(); statsPanel.Open(); } });
+            { if (statsPanel != null) ToggleModal(statsPanel.gameObject, statsPanel.Open); });
             // Icone: 3 barras crescentes (alinhadas pela base)
             var statColor = new Color(0.62f, 0.78f, 1f, 1f);
             float[] barH = { 13f, 19f, 25f };
@@ -1254,7 +1263,7 @@ namespace GameIdle
             pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
             pImg.color  = TabBg;
             pImg.raycastTarget = true;
-            pillGO.GetComponent<Button>().onClick.AddListener(() => { if (gemShopPanel != null) { CloseAllModals(); gemShopPanel.Open(); } });
+            pillGO.GetComponent<Button>().onClick.AddListener(() => { if (gemShopPanel != null) ToggleModal(gemShopPanel.gameObject, gemShopPanel.Open); });
             var gemCyan = new Color(0.32f, 0.85f, 1f, 1f);
             StyleNavTab(pillGO, gemCyan);
 
