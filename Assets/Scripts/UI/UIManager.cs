@@ -189,6 +189,7 @@ namespace GameIdle
 
             GameManager.Instance.OnStatsUpdated += UpdateStatsDisplay;
             GameManager.Instance.OnTapBoostActivated += PlayTurboActivation;
+            GameManager.Instance.OnPrestige += PlayPrestigeCelebration;
             CharacterManager.Instance.OnCharactersUpdated += RebuildCharacterButtons;
             GameEventSystem.Instance.OnEventTriggered += ShowEventPanel;
             if (prestigeButton != null)
@@ -595,9 +596,9 @@ namespace GameIdle
                 return im;
             }
 
-            AddBatCircle("Ring",   new Vector2(-40f,-40f), new Vector2(40f,40f),  new Color(0.95f,0.22f,0.22f,0.26f), false).sprite = Glow();
-            AddBatCircle("Glow",   new Vector2(-22f,-22f), new Vector2(22f,22f),  new Color(0.95f,0.22f,0.22f,0.34f), false).sprite = Glow();
-            AddBatCircle("Border", new Vector2( -2f, -2f), new Vector2( 2f, 2f),  new Color(0.40f,0.05f,0.05f,1f),   false);
+            AddBatCircle("Ring",   new Vector2(-40f,-40f), new Vector2(40f,40f),  new Color(0.95f,0.30f,0.30f,0.16f), false).sprite = Glow();
+            AddBatCircle("Glow",   new Vector2(-22f,-22f), new Vector2(22f,22f),  new Color(0.95f,0.30f,0.30f,0.22f), false).sprite = Glow();
+            AddBatCircle("Border", new Vector2( -2f, -2f), new Vector2( 2f, 2f),  new Color(0.85f,0.30f,0.30f,0.9f),  false);
             _attackBtnImg = AddBatCircle("Face", Vector2.zero, Vector2.zero, NavyBtn, true); // navy + brilho/borda vermelha de acento
             batGO.GetComponent<Button>().targetGraphic = _attackBtnImg;
 
@@ -1073,6 +1074,81 @@ namespace GameIdle
             }
         }
 
+        // ── Celebração de prestígio ───────────────────────────────────────────
+        private void PlayPrestigeCelebration()
+        {
+            var canvas = GetComponentInParent<Canvas>() ?? GetComponent<Canvas>();
+            if (canvas == null) return;
+
+            StartCoroutine(PrestigeFlash(canvas.transform));
+            for (int i = 0; i < 18; i++) StartCoroutine(PrestigeParticle(canvas.transform, i, 18));
+
+            var go = new GameObject("PrestigePop", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(FloatingText));
+            go.transform.SetParent(canvas.transform, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(640f, 100f);
+            rt.anchoredPosition = new Vector2(0f, 40f);
+            int n = GameManager.Instance != null ? GameManager.Instance.PrestigeCount : 0;
+            go.GetComponent<FloatingText>().Init($"PRESTÍGIO #{n}!", GoldColor, 60f);
+        }
+
+        private IEnumerator PrestigeFlash(Transform parent)
+        {
+            var go = new GameObject("PrestigeFlash", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+            var img = go.GetComponent<Image>();
+            img.color = new Color(1f, 0.85f, 0.3f, 0.0f);
+            img.raycastTarget = false;
+            float t = 0f, dur = 0.5f;
+            while (t < dur && go != null)
+            {
+                t += Time.deltaTime;
+                float a = (t < 0.12f) ? Mathf.Lerp(0f, 0.45f, t / 0.12f)
+                                      : Mathf.Lerp(0.45f, 0f, (t - 0.12f) / (dur - 0.12f));
+                var c = img.color; c.a = a; img.color = c;
+                yield return null;
+            }
+            if (go != null) Destroy(go);
+        }
+
+        private IEnumerator PrestigeParticle(Transform parent, int i, int total)
+        {
+            var go = new GameObject("PrestigeStar", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+            float size = Random.Range(16f, 30f);
+            rt.sizeDelta = new Vector2(size, size);
+            rt.anchoredPosition = new Vector2(0f, 20f);
+            var img = go.GetComponent<Image>();
+            img.sprite = UiSpriteFactory.Star();
+            img.color = new Color(1f, Random.Range(0.78f, 0.92f), 0.2f, 1f);
+            img.raycastTarget = false;
+
+            float ang = (i / (float)total) * Mathf.PI * 2f + Random.Range(-0.2f, 0.2f);
+            Vector2 dir = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang));
+            Vector2 vel = dir * Random.Range(320f, 640f);
+            Vector2 pos = rt.anchoredPosition;
+            const float gravity = -520f, life = 1.1f;
+            float t = 0f;
+            while (t < life && go != null)
+            {
+                float dt = Time.deltaTime; t += dt;
+                vel.y += gravity * dt;
+                pos += vel * dt;
+                rt.anchoredPosition = pos;
+                rt.localRotation = Quaternion.Euler(0, 0, t * 240f);
+                var c = img.color; c.a = Mathf.Clamp01(1f - t / life); img.color = c;
+                rt.localScale = Vector3.one * Mathf.Lerp(1f, 0.4f, t / life);
+                yield return null;
+            }
+            if (go != null) Destroy(go);
+        }
+
         // Efeito ao ativar o turbo automaticamente (barra cheia).
         private void PlayTurboActivation()
         {
@@ -1098,7 +1174,8 @@ namespace GameIdle
         // em vez de dezenas de textos empilhados e ilegíveis (auto-tap rápido).
         private double _tapFloatAccum;
         private float  _lastTapFloatTime = -999f;
-        private const float TapFloatInterval = 0.32f;
+        private const float TapFloatInterval = 0.45f;
+        private readonly List<GameObject> _tapFloats = new(); // limita quantos ficam na tela
 
         private void OnTapClicked()
         {
@@ -1124,7 +1201,16 @@ namespace GameIdle
         // Mostra um único float somado de cima do botão TRABALHAR.
         private void SpawnTapFloat(double amount)
         {
+            // Mantém no máximo 3 floats de clique na tela (remove o mais antigo)
+            _tapFloats.RemoveAll(f => f == null);
+            while (_tapFloats.Count >= 3)
+            {
+                if (_tapFloats[0] != null) Destroy(_tapFloats[0]);
+                _tapFloats.RemoveAt(0);
+            }
+
             var go = new GameObject("FloatTap", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(FloatingText));
+            _tapFloats.Add(go);
             var fParent = tapButtonRT != null ? tapButtonRT : panelMain;
             go.transform.SetParent(fParent, false);
             var rt = go.GetComponent<RectTransform>();
@@ -1969,6 +2055,7 @@ namespace GameIdle
             {
                 GameManager.Instance.OnStatsUpdated -= UpdateStatsDisplay;
                 GameManager.Instance.OnTapBoostActivated -= PlayTurboActivation;
+                GameManager.Instance.OnPrestige -= PlayPrestigeCelebration;
             }
             if (CharacterManager.Instance != null)
                 CharacterManager.Instance.OnCharactersUpdated -= RebuildCharacterButtons;
