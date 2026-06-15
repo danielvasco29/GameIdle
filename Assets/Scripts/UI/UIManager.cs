@@ -1153,7 +1153,7 @@ namespace GameIdle
         private void PlayTurboActivation()
         {
             AchievementManager.RegisterTurboUse();
-            if (SoundManager.Instance != null) SoundManager.Instance.PlayClick();
+            if (SoundManager.Instance != null) SoundManager.Instance.PlayTurbo();
             UpdateBoostButton();
             UpdateTapValueText();
             if (_boostBarRT != null) StartCoroutine(PunchScale(_boostBarRT, 0.22f));

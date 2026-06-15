@@ -508,7 +508,12 @@ namespace GameIdle
             bool success = CharacterManager.Instance.TryUpgrade(characterIndex);
             if (success)
             {
-                if (SoundManager.Instance != null) SoundManager.Instance.PlayBuy();
+                // Som de contratação (1ª vez) ou de upgrade (níveis seguintes)
+                if (SoundManager.Instance != null)
+                {
+                    if (prevLevel == 0) SoundManager.Instance.PlayHire();
+                    else                SoundManager.Instance.PlayBuy();
+                }
                 GameManager.Instance.IncrementHireCount();
                 StartCoroutine(UpgradeEffect());
                 if (prevLevel == 0)

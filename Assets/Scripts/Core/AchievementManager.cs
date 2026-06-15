@@ -43,6 +43,16 @@ namespace GameIdle
             // Combo achievements
             new() { id = "combo_5",    name = "Combo Feroz",        description = "Atingiu combo de 5 no combate.", gemReward = 8  },
             new() { id = "combo_10",   name = "COMBO MÁXIMO!",      description = "Atingiu combo máximo de 10!",    gemReward = 20 },
+            // Novos marcos de longo prazo
+            new() { id = "tap_25000",     name = "Máquina de Trabalho", description = "Clicou TRABALHAR 25.000 vezes.",      gemReward = 60 },
+            new() { id = "quadrillionaire",name = "Quatrilionário",     description = "Acumulou $1.000.000.000.000.000.",    gemReward = 100},
+            new() { id = "prestige_25",   name = "Imortal",             description = "Realizou 25 prestígios.",             gemReward = 200},
+            new() { id = "hire_200",      name = "Corporação",          description = "Contratou 200 funcionários no total.",gemReward = 60 },
+            new() { id = "turbo_50",      name = "Turbinado",           description = "Usou o Turbo 50 vezes.",              gemReward = 40 },
+            new() { id = "kill_10000",    name = "Apocalipse de Bugs",  description = "Derrotou 10.000 monstros.",           gemReward = 100},
+            new() { id = "gems_5000",     name = "Barão das Gemas",     description = "Coletou 5.000 gemas no total.",       gemReward = 80 },
+            new() { id = "cycle_25",      name = "Senhor do Abismo",    description = "Completou 25 ciclos de batalha.",     gemReward = 200},
+            new() { id = "missions_30",   name = "Inabalável",          description = "Completou as missões 30 dias seguidos.", gemReward = 150},
         };
 
         private static readonly HashSet<string> _unlocked = new();
@@ -71,6 +81,7 @@ namespace GameIdle
         {
             _turboUseCount++;
             if (_turboUseCount >= 10) TryUnlock("turbo_10");
+            if (_turboUseCount >= 50) TryUnlock("turbo_50");
         }
 
         public static void CheckAll()
@@ -78,21 +89,26 @@ namespace GameIdle
             if (GameManager.Instance == null) return;
             var gm = GameManager.Instance;
 
-            if (gm.LifetimeTapCount  >= 500)  TryUnlock("tap_500");
-            if (gm.LifetimeTapCount  >= 5000) TryUnlock("tap_5000");
+            if (gm.LifetimeTapCount  >= 500)   TryUnlock("tap_500");
+            if (gm.LifetimeTapCount  >= 5000)  TryUnlock("tap_5000");
+            if (gm.LifetimeTapCount  >= 25000) TryUnlock("tap_25000");
             if (gm.LifetimeHireCount >= 1)    TryUnlock("first_hire");
             if (gm.LifetimeHireCount >= 10)   TryUnlock("hire_10");
             if (gm.LifetimeHireCount >= 50)   TryUnlock("hire_50");
+            if (gm.LifetimeHireCount >= 200)  TryUnlock("hire_200");
             if (gm.TotalEarned       >= 1e6)  TryUnlock("millionaire");
             if (gm.TotalEarned       >= 1e9)  TryUnlock("billionaire");
             if (gm.TotalEarned       >= 1e12) TryUnlock("trillionaire");
+            if (gm.TotalEarned       >= 1e15) TryUnlock("quadrillionaire");
             if (gm.LifetimePrestigeCount >= 1)  TryUnlock("prestige_1");
             if (gm.LifetimePrestigeCount >= 5)  TryUnlock("prestige_5");
             if (gm.LifetimePrestigeCount >= 10) TryUnlock("prestige_10");
-            if (gm.LifetimeKillCount     >= 10)   TryUnlock("kill_10");
-            if (gm.LifetimeKillCount     >= 50)   TryUnlock("kill_50");
-            if (gm.LifetimeKillCount     >= 100)  TryUnlock("kill_100");
-            if (gm.LifetimeKillCount     >= 1000) TryUnlock("kill_1000");
+            if (gm.LifetimePrestigeCount >= 25) TryUnlock("prestige_25");
+            if (gm.LifetimeKillCount     >= 10)    TryUnlock("kill_10");
+            if (gm.LifetimeKillCount     >= 50)    TryUnlock("kill_50");
+            if (gm.LifetimeKillCount     >= 100)   TryUnlock("kill_100");
+            if (gm.LifetimeKillCount     >= 1000)  TryUnlock("kill_1000");
+            if (gm.LifetimeKillCount     >= 10000) TryUnlock("kill_10000");
             if (gm.LifetimeBossKillCount >= 1)    TryUnlock("boss_1");
             if (gm.LifetimeBossKillCount >= 10)   TryUnlock("boss_10");
 
@@ -102,16 +118,19 @@ namespace GameIdle
                 if (cycle >= 2)  TryUnlock("cycle_2");
                 if (cycle >= 5)  TryUnlock("cycle_5");
                 if (cycle >= 10) TryUnlock("cycle_10");
+                if (cycle >= 25) TryUnlock("cycle_25");
             }
 
             // Gems lifetime
             if (gm.LifetimeGemsEarned >= 50)   TryUnlock("gems_50");
             if (gm.LifetimeGemsEarned >= 200)  TryUnlock("gems_200");
             if (gm.LifetimeGemsEarned >= 1000) TryUnlock("gems_1000");
+            if (gm.LifetimeGemsEarned >= 5000) TryUnlock("gems_5000");
 
             // Mission streak
-            if (gm.MissionStreakDays >= 1) TryUnlock("missions_1");
-            if (gm.MissionStreakDays >= 7) TryUnlock("missions_7");
+            if (gm.MissionStreakDays >= 1)  TryUnlock("missions_1");
+            if (gm.MissionStreakDays >= 7)  TryUnlock("missions_7");
+            if (gm.MissionStreakDays >= 30) TryUnlock("missions_30");
         }
 
         public static void CheckCombo(int combo)

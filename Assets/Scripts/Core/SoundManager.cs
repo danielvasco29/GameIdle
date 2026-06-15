@@ -38,6 +38,7 @@ namespace GameIdle
         private AudioSource musicSrc;
         private AudioSource ambientSrc;
         private AudioClip clickClip, buyClip, prestigeClip, errorClip, coinClip;
+        private AudioClip turboClip, hireClip;
         private AudioClip typingClip;
         private AudioClip[] chatterClips;
         private AudioClip hitClip, deathClip, bossRoarClip;
@@ -59,6 +60,8 @@ namespace GameIdle
             buyClip      = MakeBuy();
             prestigeClip = MakePrestige();
             errorClip    = MakeError();
+            turboClip    = MakeTurbo();
+            hireClip     = MakeHire();
 
             // Trilha de fundo em loop
             musicSrc = gameObject.AddComponent<AudioSource>();
@@ -119,6 +122,8 @@ namespace GameIdle
         public void PlayClick()    => PlayClip(clickClip,    Random.Range(0.90f, 1.10f), 0.50f);
         public void PlayCoin()     => PlayClip(coinClip,     Random.Range(0.95f, 1.08f), 0.45f);
         public void PlayBuy()      => PlayClip(buyClip,      Random.Range(0.98f, 1.03f), 0.35f);
+        public void PlayHire()     => PlayClip(hireClip,     Random.Range(0.98f, 1.04f), 0.50f);
+        public void PlayTurbo()    => PlayClip(turboClip,    1f, 0.60f);
         public void PlayPrestige() => PlayClip(prestigeClip, 1f, 0.70f);
         public void PlayError()    => PlayClip(errorClip,    1f, 0.50f);
         public void PlayHit()      => PlayClip(hitClip,      Random.Range(0.88f, 1.12f), 0.55f);
@@ -195,6 +200,26 @@ namespace GameIdle
 
         // Prestige: an ascending wooden run (xylophone-like) — still the same tock
         // timbre, but a rising figure that reads as a reward.
+        // Power-up ascendente para a ativação do Turbo (mais agudo/rápido que o prestígio).
+        private AudioClip MakeTurbo()
+        {
+            float[] freqs = { 440f, 587f, 784f, 1047f, 1319f, 1568f };
+            var data = new float[Rate * 45 / 100];
+            const float step = 0.045f;
+            for (int k = 0; k < freqs.Length; k++)
+                RenderTock(data, (int)(k * step * Rate), freqs[k], 20f, 0.5f);
+            return Make("turbo", data);
+        }
+
+        // "Ding" amigável de duas notas para contratação (distinto da compra na loja).
+        private AudioClip MakeHire()
+        {
+            var data = new float[Rate * 24 / 100];
+            RenderTock(data, 0, 784f, 28f, 0.5f);
+            RenderTock(data, (int)(0.085f * Rate), 1175f, 24f, 0.5f);
+            return Make("hire", data);
+        }
+
         private AudioClip MakePrestige()
         {
             float[] freqs = { 523f, 659f, 784f, 988f, 1175f }; // rising pentatonic-ish run
