@@ -80,7 +80,7 @@ namespace GameIdle
 
         private RectTransform panelMain;
         private float floatBurstTimer;
-        private const float FloatBurstInterval = 1.5f;
+        private const float FloatBurstInterval = 2.2f; // > duracao do float => so um por vez
 
         // Tap button
         private RectTransform tapButtonRT;
@@ -823,6 +823,22 @@ namespace GameIdle
                 fitter.aspectRatio = floorImg.sprite != null
                     ? floorImg.sprite.rect.width / floorImg.sprite.rect.height
                     : 1672f / 941f;
+
+                // Vinheta de profundidade — escurece as bordas do escritorio e o
+                // integra ao navy, destacando o centro (animacao). Acima da arte,
+                // abaixo dos workers (que vivem no Panel_Main).
+                {
+                    var vgGO = new GameObject("Vignette", typeof(RectTransform), typeof(Image));
+                    vgGO.transform.SetParent(areaGO.transform, false);
+                    var vgRT = vgGO.GetComponent<RectTransform>();
+                    vgRT.anchorMin = Vector2.zero; vgRT.anchorMax = Vector2.one;
+                    vgRT.offsetMin = vgRT.offsetMax = Vector2.zero;
+                    var vgImg = vgGO.GetComponent<Image>();
+                    vgImg.sprite = UiSpriteFactory.Vignette(); vgImg.type = Image.Type.Simple;
+                    vgImg.color = Color.white;
+                    vgImg.raycastTarget = false;
+                    vgGO.transform.SetAsLastSibling();
+                }
 
                 // Fundo das laterais: gradiente navy combinando com o tema. O
                 // escritorio nitido ajusta pela altura e sobravam barras pretas nas
@@ -1938,11 +1954,11 @@ namespace GameIdle
             go.transform.SetParent(mParent, false);
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
-            // Renda passiva tambem sobe de cima do botao TRABALHAR
-            rt.anchoredPosition = new Vector2(Random.Range(-40f, 40f), Random.Range(70f, 100f));
+            // Renda passiva sobe de cima do botao TRABALHAR, em coluna limpa
+            rt.anchoredPosition = new Vector2(Random.Range(-12f, 12f), 84f);
             rt.sizeDelta = new Vector2(220f, 50f);
             double amount = GameManager.Instance.MoneyPerSecond * FloatBurstInterval;
-            go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(amount)}", NeonGreen, 34f);
+            go.GetComponent<FloatingText>().Init($"+${NumberFormatter.Format(amount)}", new Color(0.45f, 1f, 0.55f, 1f), 34f);
         }
 
         // ── Core UI Update ────────────────────────────────────────────────────

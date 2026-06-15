@@ -17,6 +17,7 @@ namespace GameIdle
         private static Sprite gear;
         private static Sprite check;
         private static Sprite bolt;
+        private static Sprite vignette;
         private static Material whiteDiscardMat;
 
         // Vertical white gradient: opaque white at the TOP fading to transparent
@@ -137,6 +138,30 @@ namespace GameIdle
         public static Sprite Bolt() => Polyline(
             new[] { new Vector2(40f, 58f), new Vector2(22f, 31f), new Vector2(34f, 31f), new Vector2(20f, 6f) },
             7f, ref bolt, "GenBolt");
+
+        // Vinheta radial: centro transparente -> bordas escuras (profundidade).
+        public static Sprite Vignette()
+        {
+            if (vignette != null) return vignette;
+            const int N = 128;
+            float c = (N - 1) / 2f, maxR = c;
+            var tex = new Texture2D(N, N, TextureFormat.RGBA32, false)
+            { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            var px = new Color32[N * N];
+            for (int y = 0; y < N; y++)
+            for (int x = 0; x < N; x++)
+            {
+                float dx = x - c, dy = y - c;
+                float d = Mathf.Sqrt(dx * dx + dy * dy) / maxR; // 0 centro .. ~1 borda
+                float a = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((d - 0.55f) / 0.45f)) * 0.6f;
+                px[y * N + x] = new Color32(2, 4, 10, (byte)(a * 255)); // quase preto levemente navy
+            }
+            tex.SetPixels32(px);
+            tex.Apply();
+            vignette = Sprite.Create(tex, new Rect(0, 0, N, N), new Vector2(0.5f, 0.5f), 100f);
+            vignette.name = "GenVignette";
+            return vignette;
+        }
 
         // Material that discards near-white/background pixels from GPT-generated sprites.
         public static Material WhiteDiscardMaterial()
