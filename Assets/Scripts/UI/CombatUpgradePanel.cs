@@ -97,7 +97,7 @@ namespace GameIdle
             var rt = GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = Vector2.zero;
-            rt.sizeDelta = new Vector2(480f, 636f);
+            rt.sizeDelta = new Vector2(640f, 760f);
 
             // Background
             var bg = gameObject.AddComponent<Image>();
@@ -107,10 +107,10 @@ namespace GameIdle
 
             // Title
             var title = MakeText(transform, "Title", "UPGRADES DE COMBATE",
-                20, GoldColor, FontStyles.Bold, TextAlignmentOptions.Center);
+                28, GoldColor, FontStyles.Bold, TextAlignmentOptions.Center);
             var trt = title.rectTransform;
             trt.anchorMin = new Vector2(0f, 1f); trt.anchorMax = new Vector2(1f, 1f);
-            trt.offsetMin = new Vector2(48f, -54f); trt.offsetMax = new Vector2(-48f, -10f);
+            trt.offsetMin = new Vector2(58f, -66f); trt.offsetMax = new Vector2(-58f, -10f);
 
             // Close (X) button — top right
             var closeGO = new GameObject("CloseBtn",
@@ -118,14 +118,14 @@ namespace GameIdle
             closeGO.transform.SetParent(transform, false);
             var crt = closeGO.GetComponent<RectTransform>();
             crt.anchorMin = crt.anchorMax = crt.pivot = new Vector2(1f, 1f);
-            crt.anchoredPosition = new Vector2(-8f, -8f);
-            crt.sizeDelta = new Vector2(36f, 36f);
+            crt.anchoredPosition = new Vector2(-10f, -10f);
+            crt.sizeDelta = new Vector2(42f, 42f);
             var cImg = closeGO.GetComponent<Image>();
             cImg.sprite = Circle(); cImg.type = Image.Type.Simple;
             cImg.color = new Color(0.10f, 0.16f, 0.28f, 1f); // navy
             closeGO.GetComponent<Button>().onClick.AddListener(() => gameObject.SetActive(false));
             var cLabel = MakeText(closeGO.transform, "X", "X",
-                18, new Color(1f, 0.45f, 0.45f, 1f), FontStyles.Bold, TextAlignmentOptions.Center); // X vermelho
+                21, new Color(1f, 0.45f, 0.45f, 1f), FontStyles.Bold, TextAlignmentOptions.Center); // X vermelho
             var clrt = cLabel.rectTransform;
             clrt.anchorMin = Vector2.zero; clrt.anchorMax = Vector2.one;
             clrt.offsetMin = clrt.offsetMax = Vector2.zero;
@@ -133,10 +133,10 @@ namespace GameIdle
 
             // Upgrade rows  (top → bottom inside the panel)
             // We layout 5 rows starting 62px from top, each 96px tall, 10px gap
-            float startY   = 64f;
-            float rowH     = 96f;
-            float rowGap   = 10f;
-            float panelH   = 636f;
+            float startY   = 76f;
+            float rowH     = 122f;
+            float rowGap   = 12f;
+            float panelH   = 760f;
 
             _rowSword  = BuildRow("Espada Afiada",
                 "+25% dano por tap",
@@ -180,23 +180,10 @@ namespace GameIdle
                 }
                 if (cardT == null) continue;
 
-                // Colored circle background for icon
-                var bgGO = new GameObject("IconBg", typeof(RectTransform), typeof(Image));
-                bgGO.transform.SetParent(cardT, false);
-                var bgRT = bgGO.GetComponent<RectTransform>();
-                bgRT.anchorMin = new Vector2(0f, 0.5f); bgRT.anchorMax = new Vector2(0f, 0.5f);
-                bgRT.pivot = new Vector2(0f, 0.5f);
-                bgRT.anchoredPosition = new Vector2(8f, 0f);
-                bgRT.sizeDelta = new Vector2(56f, 56f);
-                var bgImg = bgGO.GetComponent<Image>();
-                bgImg.sprite = Circle(); bgImg.type = Image.Type.Simple;
-                bgImg.color = new Color(iconColors[i].r * 0.25f, iconColors[i].g * 0.25f, iconColors[i].b * 0.25f, 0.8f);
-                bgImg.raycastTarget = false;
-
                 var iconTex = Resources.Load<Texture2D>(IconPaths[i]);
                 if (iconTex != null)
                 {
-                    var processed = SpriteBackgroundRemover.Process(iconTex);
+                    var processed = SpriteBackgroundRemover.ProcessDarkBg(iconTex);
                     var sp = Sprite.Create(processed,
                         new Rect(0, 0, processed.width, processed.height),
                         new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
@@ -205,8 +192,8 @@ namespace GameIdle
                     var irt = iconGO.GetComponent<RectTransform>();
                     irt.anchorMin = new Vector2(0f, 0.5f); irt.anchorMax = new Vector2(0f, 0.5f);
                     irt.pivot = new Vector2(0f, 0.5f);
-                    irt.anchoredPosition = new Vector2(12f, 0f);
-                    irt.sizeDelta = new Vector2(48f, 48f);
+                    irt.anchoredPosition = new Vector2(16f, 0f);
+                    irt.sizeDelta = new Vector2(86f, 86f);
                     var iImg = iconGO.GetComponent<Image>();
                     iImg.sprite = sp; iImg.preserveAspect = true; iImg.raycastTarget = false;
                 }
@@ -218,10 +205,10 @@ namespace GameIdle
                     var srt = symGO.GetComponent<RectTransform>();
                     srt.anchorMin = new Vector2(0f, 0.5f); srt.anchorMax = new Vector2(0f, 0.5f);
                     srt.pivot = new Vector2(0f, 0.5f);
-                    srt.anchoredPosition = new Vector2(8f, 0f);
-                    srt.sizeDelta = new Vector2(56f, 56f);
+                    srt.anchoredPosition = new Vector2(14f, 0f);
+                    srt.sizeDelta = new Vector2(88f, 88f);
                     var sTMP = symGO.GetComponent<TextMeshProUGUI>();
-                    sTMP.text = iconSymbols[i]; sTMP.fontSize = 28;
+                    sTMP.text = iconSymbols[i]; sTMP.fontSize = 44;
                     sTMP.color = iconColors[i]; sTMP.alignment = TextAlignmentOptions.Center;
                     sTMP.raycastTarget = false;
                     if (_font != null) sTMP.font = _font;
@@ -230,8 +217,8 @@ namespace GameIdle
                 // Shift name/desc text right to make room for icon
                 var nameRT = cardT.Find("Name")?.GetComponent<RectTransform>();
                 var descRT = cardT.Find("Desc")?.GetComponent<RectTransform>();
-                if (nameRT != null) nameRT.offsetMin = new Vector2(72f, 0f);
-                if (descRT != null) descRT.offsetMin = new Vector2(72f, 0f);
+                if (nameRT != null) nameRT.offsetMin = new Vector2(116f, 0f);
+                if (descRT != null) descRT.offsetMin = new Vector2(116f, 0f);
             }
 
             // Wire buttons
@@ -244,6 +231,7 @@ namespace GameIdle
             // Extra potion state label (cooldown / active timer)
             _potionStateText = MakeText(transform, "PotionState", "",
                 12, RedAccent, FontStyles.Bold, TextAlignmentOptions.Center);
+            _potionStateText.fontSize = 16f;
             var psrt = _potionStateText.rectTransform;
             // Position it just below the 4th row
             float row4Bottom = startY + 3 * (rowH + rowGap) + rowH;
@@ -263,8 +251,8 @@ namespace GameIdle
             var rt = card.GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(0f, 1f); rt.anchorMax = new Vector2(1f, 1f);
             rt.pivot     = new Vector2(0.5f, 1f);
-            rt.offsetMin = new Vector2(12f, -(topOffset + height));
-            rt.offsetMax = new Vector2(-12f, -topOffset);
+            rt.offsetMin = new Vector2(14f, -(topOffset + height));
+            rt.offsetMax = new Vector2(-14f, -topOffset);
 
             var cardImg = card.GetComponent<Image>();
             cardImg.sprite = Rounded(); cardImg.type = Image.Type.Sliced;
@@ -272,40 +260,42 @@ namespace GameIdle
 
             // ── Name ──────────────────────────────────────────────────────────
             var nameT = MakeText(card.transform, "Name", upgradeName,
-                18, TextPrimary, FontStyles.Bold, TextAlignmentOptions.TopLeft);
+                25, TextPrimary, FontStyles.Bold, TextAlignmentOptions.TopLeft);
             var nrt = nameT.rectTransform;
-            nrt.anchorMin = new Vector2(0f, 0.55f); nrt.anchorMax = new Vector2(0.58f, 1f);
-            nrt.offsetMin = new Vector2(14f, 0f); nrt.offsetMax = new Vector2(0f, -6f);
+            nrt.anchorMin = new Vector2(0f, 0.58f); nrt.anchorMax = new Vector2(0.66f, 1f);
+            nrt.offsetMin = new Vector2(18f, 0f); nrt.offsetMax = new Vector2(0f, -6f);
+            nameT.textWrappingMode = TextWrappingModes.NoWrap;
+            nameT.overflowMode = TextOverflowModes.Ellipsis;
 
             // ── Description ───────────────────────────────────────────────────
             var descT = MakeText(card.transform, "Desc", description,
-                13, TextSec, FontStyles.Normal, TextAlignmentOptions.TopLeft);
+                18, TextSec, FontStyles.Normal, TextAlignmentOptions.TopLeft);
             var drt = descT.rectTransform;
-            drt.anchorMin = new Vector2(0f, 0.1f); drt.anchorMax = new Vector2(0.58f, 0.55f);
-            drt.offsetMin = new Vector2(14f, 0f); drt.offsetMax = Vector2.zero;
+            drt.anchorMin = new Vector2(0f, 0.08f); drt.anchorMax = new Vector2(0.66f, 0.58f);
+            drt.offsetMin = new Vector2(18f, 0f); drt.offsetMax = Vector2.zero;
             descT.textWrappingMode = TextWrappingModes.Normal;
 
             // ── Level badge (top-right of card) ───────────────────────────────
             var lvlT = MakeText(card.transform, "Level", "",
-                15, GoldColor, FontStyles.Bold, TextAlignmentOptions.TopRight);
+                19, GoldColor, FontStyles.Bold, TextAlignmentOptions.TopRight);
             var lrt = lvlT.rectTransform;
-            lrt.anchorMin = new Vector2(0.58f, 0.55f); lrt.anchorMax = new Vector2(1f, 1f);
-            lrt.offsetMin = Vector2.zero; lrt.offsetMax = new Vector2(-14f, -6f);
+            lrt.anchorMin = new Vector2(0.66f, 0.60f); lrt.anchorMax = new Vector2(1f, 1f);
+            lrt.offsetMin = Vector2.zero; lrt.offsetMax = new Vector2(-16f, -8f);
 
             // ── Buy button (right side, vertically centered) ──────────────────
             var buyGO = new GameObject("BuyBtn",
                 typeof(RectTransform), typeof(Image), typeof(Button));
             buyGO.transform.SetParent(card.transform, false);
             var brt = buyGO.GetComponent<RectTransform>();
-            brt.anchorMin = new Vector2(0.60f, 0.12f); brt.anchorMax = new Vector2(1f, 0.50f);
-            brt.offsetMin = new Vector2(6f, 0f); brt.offsetMax = new Vector2(-12f, 0f);
+            brt.anchorMin = new Vector2(0.66f, 0.12f); brt.anchorMax = new Vector2(1f, 0.54f);
+            brt.offsetMin = new Vector2(8f, 0f); brt.offsetMax = new Vector2(-14f, 0f);
             var buyBg = buyGO.GetComponent<Image>();
             buyBg.sprite = Rounded(); buyBg.type = Image.Type.Sliced;
             buyBg.color  = GreenBtn;
 
             // Cost label inside button
             var costT = MakeText(buyGO.transform, "Cost", "",
-                15, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
+                20, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
             var costRT = costT.rectTransform;
             costRT.anchorMin = Vector2.zero; costRT.anchorMax = Vector2.one;
             costRT.offsetMin = costRT.offsetMax = Vector2.zero;

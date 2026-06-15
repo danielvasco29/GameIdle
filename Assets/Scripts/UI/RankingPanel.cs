@@ -251,5 +251,11 @@ namespace GameIdle
             PlayerPrefs.SetString(RankingKey, JsonUtility.ToJson(data));
             PlayerPrefs.Save();
         }
+
+        public static void ClearSaved()
+        {
+            PlayerPrefs.DeleteKey(RankingKey);
+            PlayerPrefs.Save();
+        }
     }
 }

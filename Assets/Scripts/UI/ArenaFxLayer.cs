@@ -57,9 +57,9 @@ namespace GameIdle
         private readonly List<Image> _torchGlows = new();
         private readonly List<float> _torchAnimTimers = new();
         private readonly List<float> _torchAnimSpeeds = new();
+        private readonly List<int> _torchFrameIndices = new();
         private readonly List<float> _torchGlowPhases = new();
         private Sprite[] _torchFrames;
-        private int _torchFrame;
 
         private void Awake()
         {
@@ -111,25 +111,28 @@ namespace GameIdle
                 }
             }
 
-            // Full animated torches (flame + sconce + bracket) from the atlas.
-            // The battle_bg has no torches of its own, so these are placed on
-            // clear stone-wall spots; the bg is stretched full-screen, so
-            // bg-normalized coords ARE screen anchors. Box aspect matches the
-            // 64x114 frame so the torch isn't distorted.
+            // Full animated torches from the atlas. Keep every frame stretched
+            // into the same rect so frame-height differences do not bob.
             _torchFrames = ArenaAtlas.TorchFrames();
+            if (_torchFrames != null && _torchFrames.Length > 6)
+            {
+                var stableRow = new Sprite[6];
+                for (int i = 0; i < stableRow.Length; i++)
+                    stableRow[i] = _torchFrames[i];
+                _torchFrames = stableRow;
+            }
             if (_torchFrames != null && _torchFrames[0] != null)
             {
                 // (xMin, yMin, xMax, yMax), bottom-left origin
                 Vector4[] spots =
                 {
-                    new(0.176f, 0.501f, 0.238f, 0.699f), // left circuit pillar
-                    new(0.409f, 0.461f, 0.471f, 0.659f), // center wall, left of screen
-                    new(0.529f, 0.461f, 0.591f, 0.659f), // center wall, right of screen
-                    new(0.848f, 0.501f, 0.910f, 0.699f), // right pillar between arches
+                    new(0.176f, 0.488f, 0.238f, 0.716f), // left wall torch
+                    new(0.848f, 0.488f, 0.910f, 0.716f), // right wall torch
                 };
                 Sprite soft = SoftCircle();
                 foreach (var s in spots)
                 {
+                    int startFrame = Random.Range(0, _torchFrames.Length);
                     var go = new GameObject("TorchFlame", typeof(RectTransform), typeof(Image));
                     go.transform.SetParent(transform, false);
                     var rt = go.GetComponent<RectTransform>();
@@ -137,7 +140,7 @@ namespace GameIdle
                     rt.anchorMax = new Vector2(s.z, s.w);
                     rt.offsetMin = rt.offsetMax = Vector2.zero;
                     var img = go.GetComponent<Image>();
-                    img.sprite = _torchFrames[0];
+                    img.sprite = _torchFrames[startFrame];
                     img.preserveAspect = false;
                     img.raycastTarget = false;
                     _torchImgs.Add(img);
@@ -146,11 +149,10 @@ namespace GameIdle
                     var glowGO = new GameObject("TorchGlow", typeof(RectTransform), typeof(Image));
                     glowGO.transform.SetParent(transform, false);
                     var glowRT = glowGO.GetComponent<RectTransform>();
-                    float glowSize = (s.z - s.x) * 1.8f;
-                    glowRT.anchorMin = new Vector2(s.x + (s.z - s.x) * 0.5f, s.y + (s.w - s.y) * 0.5f);
+                    glowRT.anchorMin = new Vector2(s.x + (s.z - s.x) * 0.5f, s.y + (s.w - s.y) * 0.72f);
                     glowRT.anchorMax = glowRT.anchorMin;
                     glowRT.pivot = new Vector2(0.5f, 0.5f);
-                    glowRT.sizeDelta = new Vector2(glowSize, glowSize * 1.4f);
+                    glowRT.sizeDelta = new Vector2(150f, 190f);
                     var glowImg = glowGO.GetComponent<Image>();
                     glowImg.sprite = soft;
                     glowImg.color = new Color(0.95f, 0.7f, 0.4f, 0.12f); // warm torch glow
@@ -163,6 +165,7 @@ namespace GameIdle
                     float baseInterval = 0.1f;
                     float speedVar = Random.Range(0.85f, 1.15f);
                     _torchAnimSpeeds.Add(baseInterval * speedVar);
+                    _torchFrameIndices.Add(startFrame);
                     _torchGlowPhases.Add(Random.Range(0f, Mathf.PI * 2f));
                 }
             }
@@ -240,13 +243,27 @@ namespace GameIdle
         {
             float dt = Time.deltaTime;
 
-            // Torch glow pulsing — torches are static (no animation), only glows breathe
+            // Torch sprite-sheet animation + independent glow pulse.
             for (int i = 0; i < _torchGlows.Count; i++)
             {
+                if (_torchFrames != null && _torchFrames.Length > 0 &&
+                    i < _torchImgs.Count && _torchImgs[i] != null &&
+                    i < _torchAnimTimers.Count && i < _torchAnimSpeeds.Count &&
+                    i < _torchFrameIndices.Count)
+                {
+                    _torchAnimTimers[i] += dt;
+                    if (_torchAnimTimers[i] >= _torchAnimSpeeds[i])
+                    {
+                        _torchAnimTimers[i] = 0f;
+                        _torchFrameIndices[i] = (_torchFrameIndices[i] + 1) % _torchFrames.Length;
+                        _torchImgs[i].sprite = _torchFrames[_torchFrameIndices[i]];
+                    }
+                }
+
                 if (_torchGlows[i] == null) continue;
                 _torchGlowPhases[i] += dt * 1.8f;
                 float glowPulse = (Mathf.Sin(_torchGlowPhases[i]) + 1f) * 0.5f;
-                float glowAlpha = Mathf.Lerp(0.50f, 0.90f, glowPulse);
+                float glowAlpha = Mathf.Lerp(0.20f, 0.42f, glowPulse);
                 var glowColor = _torchGlows[i].color;
                 glowColor.a = glowAlpha;
                 _torchGlows[i].color = glowColor;

@@ -157,6 +157,18 @@ namespace GameIdle
             CheckDailyReset();
         }
 
+        public static void ResetAll()
+        {
+            _lastDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
+            for (int i = 0; i < All.Length; i++)
+            {
+                All[i].tier = 1;
+                All[i].Build();
+                _progress[i] = 0;
+                _claimed[i] = false;
+            }
+        }
+
         public static List<long> GetProgressSave() => new(_progress);
         public static List<bool> GetClaimedSave()  => new(_claimed);
         public static List<int>  GetTierSave()

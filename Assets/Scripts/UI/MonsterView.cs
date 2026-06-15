@@ -213,7 +213,7 @@ namespace GameIdle
                     // Sheets are 4 stacked rows of DIFFERENT animations (movement /
                     // attack / hurt / death) with baked-in text labels. We only use
                     // the TOP movement row so the monster never jumps between poses.
-                    var tex = SpriteBackgroundRemover.ProcessSheet(srcTex);
+                    var tex = SpriteBackgroundRemover.ProcessDarkBg(srcTex);
                     if (isWorm)
                     {
                         // The worm's MOVEMENT row is one continuous body (can't be
