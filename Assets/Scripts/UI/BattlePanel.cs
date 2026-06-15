@@ -73,6 +73,7 @@ namespace GameIdle
                 _monsterView.SetMonster(cm.CurrentDef, cm.Wave);
                 _monsterView.UpdateHp(cm.CurrentHp, cm.MaxHp);
                 RefreshArena(cm.CurrentDef.type == CombatManager.MonsterType.Boss);
+                UpdateWaveLabel(cm);
             }
         }
 
@@ -135,7 +136,7 @@ namespace GameIdle
                 lrt.anchorMin = new Vector2(0.25f, 0.88f); lrt.anchorMax = new Vector2(0.75f, 1f);
                 lrt.offsetMin = lrt.offsetMax = Vector2.zero;
                 _waveLabel = go.GetComponent<TextMeshProUGUI>();
-                _waveLabel.text = "ONDA 1 / 10";
+                _waveLabel.text = "FASE 1  -  ONDA 1 / 10";
                 _waveLabel.fontSize = 22f; _waveLabel.fontStyle = FontStyles.Bold;
                 _waveLabel.color = GoldColor;
                 _waveLabel.alignment = TextAlignmentOptions.Center;
@@ -246,11 +247,7 @@ namespace GameIdle
                 _monsterView?.SetMonster(def, cm.Wave);
                 bool boss = def.type == CombatManager.MonsterType.Boss;
                 RefreshArena(boss);
-                if (_waveLabel != null)
-                {
-                    _waveLabel.text  = boss ? "!! ONDA 10 - BOSS !!" : $"ONDA {cm.Wave} / 10";
-                    _waveLabel.color = boss ? GoldColor : new Color(0.7f, 0.85f, 1f, 1f);
-                }
+                UpdateWaveLabel(cm);
             };
             cm.OnHpChanged    += (hp, max) => _monsterView?.UpdateHp(hp, max);
             cm.OnMonsterDied  += reward    =>
@@ -271,6 +268,17 @@ namespace GameIdle
         }
 
         // ── Dungeon background (procedural) ───────────────────────────────────
+
+        private void UpdateWaveLabel(CombatManager cm)
+        {
+            if (_waveLabel == null || cm == null) return;
+
+            bool boss = cm.CurrentDef.type == CombatManager.MonsterType.Boss || cm.Wave == 10;
+            _waveLabel.text = boss
+                ? $"FASE {cm.Cycle}  -  BOSS 10 / 10"
+                : $"FASE {cm.Cycle}  -  ONDA {cm.Wave} / 10";
+            _waveLabel.color = boss ? GoldColor : new Color(0.7f, 0.85f, 1f, 1f);
+        }
 
         private static Texture2D MakeDungeonBg()
         {

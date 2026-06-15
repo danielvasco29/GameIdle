@@ -127,6 +127,13 @@ namespace GameIdle
                 foreach (var s in saved) _unlocked.Add(s);
         }
 
+        public static void ResetAll()
+        {
+            _unlocked.Clear();
+            _turboUseCount = 0;
+            HasUnseen = false;
+        }
+
         public static List<string> GetSaved() => new(_unlocked);
     }
 }

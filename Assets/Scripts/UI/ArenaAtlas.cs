@@ -29,11 +29,9 @@ namespace GameIdle
             return _tex;
         }
 
-        // Checker squares are neutral gray (~64 and ~100) while the art is
-        // colorful neon, so within the checker brightness range the pixel's
-        // saturation works as its alpha: pure gray vanishes, glow halos over
-        // the checker fade out smoothly, saturated art stays opaque. Pixels
-        // darker or brighter than the checker range are solid art.
+        // Checker squares are neutral gray while the art is mostly colorful
+        // neon. Low-chroma gray pixels become transparent, and slightly
+        // colored edge pixels fade in so the cutout stays soft.
         private static Texture2D RemoveChecker(Texture2D src)
         {
             var px = src.GetPixels32();
@@ -42,9 +40,10 @@ namespace GameIdle
                 var p = px[i];
                 int mn = Mathf.Min(p.r, Mathf.Min(p.g, p.b));
                 int mx = Mathf.Max(p.r, Mathf.Max(p.g, p.b));
-                if (mn >= 50 && mn <= 118)
+                int chroma = mx - mn;
+                if (mn >= 35 && mn <= 145 && chroma <= 60)
                 {
-                    int a = Mathf.Min(255, (mx - mn) * 255 / 70);
+                    int a = Mathf.Clamp((chroma - 18) * 255 / 42, 0, 255);
                     px[i] = new Color32(p.r, p.g, p.b, (byte)a);
                 }
             }
@@ -70,6 +69,46 @@ namespace GameIdle
             return Sprite.Create(tex, r, new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
         }
 
+        private static Sprite SliceCleanDark(float x, float yTop, float w, float h)
+        {
+            var tex = Load();
+            if (tex == null) return null;
+            float sx = tex.width / SrcW, sy = tex.height / SrcH;
+            int rx = Mathf.RoundToInt(x * sx);
+            int ry = Mathf.RoundToInt((SrcH - yTop - h) * sy);
+            int rw = Mathf.RoundToInt(w * sx);
+            int rh = Mathf.RoundToInt(h * sy);
+
+            try
+            {
+                var frame = new Texture2D(rw, rh, TextureFormat.RGBA32, true)
+                {
+                    wrapMode = TextureWrapMode.Clamp,
+                    filterMode = FilterMode.Trilinear,
+                    anisoLevel = 4
+                };
+                var srcPx = tex.GetPixels32();
+                var framePx = new Color32[rw * rh];
+                for (int yy = 0; yy < rh; yy++)
+                {
+                    int srcRow = (ry + yy) * tex.width + rx;
+                    int dstRow = yy * rw;
+                    for (int xx = 0; xx < rw; xx++)
+                        framePx[dstRow + xx] = srcPx[srcRow + xx];
+                }
+                frame.SetPixels32(framePx);
+                frame.Apply(true);
+
+                var clean = SpriteBackgroundRemover.ProcessDarkBg(frame);
+                return Sprite.Create(clean, new Rect(0, 0, clean.width, clean.height),
+                    new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+            }
+            catch
+            {
+                return Slice(x, yTop, w, h);
+            }
+        }
+
         // ── Torch flames: 12 animation frames (2 rows x 6) ───────────────────
         // Flame cores measured at these column centers; each cell is 64 wide.
         // Row 1: y 86..200, row 2: y 200..316 (flame + sconce + wall bracket).
@@ -79,9 +118,9 @@ namespace GameIdle
             float[] cx = { 745f, 810f, 864f, 917f, 969f, 1021f };
             var frames = new Sprite[12];
             for (int i = 0; i < 6; i++)
-                frames[i] = Slice(cx[i] - 32f, 86f, 64f, 114f);
+                frames[i] = SliceCleanDark(cx[i] - 32f, 86f, 64f, 114f);
             for (int i = 0; i < 6; i++)
-                frames[6 + i] = Slice(cx[i] - 32f, 200f, 64f, 116f);
+                frames[6 + i] = SliceCleanDark(cx[i] - 32f, 200f, 64f, 116f);
             return frames;
         }
 
@@ -93,9 +132,9 @@ namespace GameIdle
             float[] cx = { 745f, 810f, 864f, 917f, 969f, 1021f };
             var frames = new Sprite[12];
             for (int i = 0; i < 6; i++)
-                frames[i] = Slice(cx[i] - 32f, 86f, 64f, 84f);
+                frames[i] = SliceCleanDark(cx[i] - 32f, 86f, 64f, 84f);
             for (int i = 0; i < 6; i++)
-                frames[6 + i] = Slice(cx[i] - 32f, 200f, 64f, 84f);
+                frames[6 + i] = SliceCleanDark(cx[i] - 32f, 200f, 64f, 84f);
             return frames;
         }
 
