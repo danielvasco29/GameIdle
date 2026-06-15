@@ -38,7 +38,7 @@ namespace GameIdle
         private AudioSource musicSrc;
         private AudioSource ambientSrc;
         private AudioClip clickClip, buyClip, prestigeClip, errorClip, coinClip;
-        private AudioClip turboClip, hireClip;
+        private AudioClip turboClip, hireClip, keyClip;
         private AudioClip typingClip;
         private AudioClip[] chatterClips;
         private AudioClip hitClip, deathClip, bossRoarClip;
@@ -62,6 +62,7 @@ namespace GameIdle
             errorClip    = MakeError();
             turboClip    = MakeTurbo();
             hireClip     = MakeHire();
+            keyClip      = MakeKey();
 
             // Trilha de fundo em loop
             musicSrc = gameObject.AddComponent<AudioSource>();
@@ -120,6 +121,8 @@ namespace GameIdle
         }
 
         public void PlayClick()    => PlayClip(clickClip,    Random.Range(0.90f, 1.10f), 0.50f);
+        // Som de tecla mecânica (digitação) — pitch bem variado p/ dar sensação de teclado
+        public void PlayKey()      => PlayClip(keyClip,      Random.Range(0.82f, 1.22f), 0.45f);
         public void PlayCoin()     => PlayClip(coinClip,     Random.Range(0.95f, 1.08f), 0.45f);
         public void PlayBuy()      => PlayClip(buyClip,      Random.Range(0.98f, 1.03f), 0.35f);
         public void PlayHire()     => PlayClip(hireClip,     Random.Range(0.98f, 1.04f), 0.50f);
@@ -209,6 +212,25 @@ namespace GameIdle
             for (int k = 0; k < freqs.Length; k++)
                 RenderTock(data, (int)(k * step * Rate), freqs[k], 20f, 0.5f);
             return Make("turbo", data);
+        }
+
+        // Clique seco de tecla mecânica: estalo curto (ruído) + corpo agudo rápido.
+        private AudioClip MakeKey()
+        {
+            var data = new float[Rate * 7 / 100]; // ~70 ms
+            int n = data.Length;
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / Rate;
+                // Estalo (attack) — ruído curtíssimo, o "tec"
+                float clackEnv = Mathf.Exp(-t * 320f);
+                float clack = (Random.value * 2f - 1f) * clackEnv * 0.6f;
+                // Corpo agudo curto — o "tic" da haste
+                float bodyEnv = Mathf.Exp(-t * 130f);
+                float body = Mathf.Sin(2f * Mathf.PI * 1500f * t) * bodyEnv * 0.35f;
+                data[i] = clack + body;
+            }
+            return Make("key", data);
         }
 
         // "Ding" amigável de duas notas para contratação (distinto da compra na loja).

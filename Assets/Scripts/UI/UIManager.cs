@@ -976,6 +976,26 @@ namespace GameIdle
             var tf = GetCachedFont(); if (tf != null) tapValueText.font = tf;
             UpdateTapValueText();
 
+            // Mini-teclado: cada clique "aperta" uma tecla (visual + som de tecla)
+            _tapKeys.Clear();
+            const int keyCount = 7;
+            const float keySize = 15f, keyGap = 3f;
+            float rowW = keyCount * keySize + (keyCount - 1) * keyGap;
+            float kx0 = -rowW / 2f + keySize / 2f;
+            for (int i = 0; i < keyCount; i++)
+            {
+                var k = new GameObject("Key", typeof(RectTransform), typeof(Image));
+                k.transform.SetParent(tapButtonRT, false);
+                var krt = k.GetComponent<RectTransform>();
+                krt.anchorMin = krt.anchorMax = krt.pivot = new Vector2(0.5f, 0.5f);
+                krt.anchoredPosition = new Vector2(kx0 + i * (keySize + keyGap), -62f);
+                krt.sizeDelta = new Vector2(keySize, keySize);
+                var kImg = k.GetComponent<Image>();
+                kImg.sprite = Rounded(); kImg.type = Image.Type.Sliced;
+                kImg.color = _keyBase; kImg.raycastTarget = false;
+                _tapKeys.Add(kImg);
+            }
+
             tapBtn.onClick.AddListener(OnTapClicked);
 
             // Hold: segura o botão para disparar repetidamente com aceleração
@@ -1176,13 +1196,16 @@ namespace GameIdle
         private float  _lastTapFloatTime = -999f;
         private const float TapFloatInterval = 0.45f;
         private readonly List<GameObject> _tapFloats = new(); // limita quantos ficam na tela
+        private readonly List<Image> _tapKeys = new();        // mini-teclado do botão TRABALHAR
+        private static readonly Color _keyBase = new(0.16f, 0.24f, 0.36f, 1f);
 
         private void OnTapClicked()
         {
             double val = GameManager.Instance.GetTapValue();
             GameManager.Instance.Tap();
             UpdateTapValueText();
-            if (SoundManager.Instance != null) SoundManager.Instance.PlayClick();
+            if (SoundManager.Instance != null) SoundManager.Instance.PlayKey();
+            PressRandomKey();
 
             _tapFloatAccum += val;
             float now = Time.unscaledTime;
@@ -1196,6 +1219,33 @@ namespace GameIdle
             }
 
             if (tapButtonRT != null && _tapPunchCo == null) _tapPunchCo = StartCoroutine(PunchScaleTap());
+        }
+
+        // "Aperta" uma tecla aleatória do mini-teclado (afunda + acende em verde).
+        private void PressRandomKey()
+        {
+            if (_tapKeys.Count == 0) return;
+            var key = _tapKeys[Random.Range(0, _tapKeys.Count)];
+            if (key != null) StartCoroutine(PressKey(key));
+        }
+
+        private IEnumerator PressKey(Image key)
+        {
+            var rt = key.rectTransform;
+            var hit = new Color(GreenBtn.r, GreenBtn.g, GreenBtn.b, 1f);
+            // Afunda instantâneo
+            key.color = hit;
+            rt.localScale = Vector3.one * 0.78f;
+            float t = 0f; const float dur = 0.14f;
+            while (t < dur && key != null)
+            {
+                t += Time.deltaTime;
+                float p = t / dur;
+                rt.localScale = Vector3.one * Mathf.Lerp(0.78f, 1f, p);
+                key.color = Color.Lerp(hit, _keyBase, p);
+                yield return null;
+            }
+            if (key != null) { rt.localScale = Vector3.one; key.color = _keyBase; }
         }
 
         // Mostra um único float somado de cima do botão TRABALHAR.
