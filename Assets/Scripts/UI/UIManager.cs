@@ -1350,7 +1350,7 @@ namespace GameIdle
             var prt = pillGO.GetComponent<RectTransform>();
             prt.anchorMin = prt.anchorMax = prt.pivot = new Vector2(0f, 1f);
             prt.anchoredPosition = new Vector2(297f, -10f);
-            prt.sizeDelta = new Vector2(84f, 50f);
+            prt.sizeDelta = new Vector2(112f, 50f);
             var pImg = pillGO.GetComponent<Image>();
             pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
             pImg.color  = TabBg;
@@ -1382,6 +1382,8 @@ namespace GameIdle
             gemText.fontSize = 16; gemText.fontStyle = FontStyles.Bold;
             gemText.color = new Color(0.72f, 0.93f, 1f, 1f);
             gemText.alignment = TextAlignmentOptions.Center;
+            gemText.textWrappingMode = TextWrappingModes.NoWrap;
+            gemText.overflowMode = TextOverflowModes.Overflow;
             gemText.raycastTarget = false;
             var gf = GetCachedFont(); if (gf != null) gemText.font = gf;
 
