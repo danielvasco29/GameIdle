@@ -9,10 +9,10 @@ namespace GameIdle
         public int level;
         public bool isUnlocked;
 
-        private const double CostGrowthProducer   = 1.15;
+        private const double CostGrowthProducer   = 1.175;
         // Multiplier characters cost more per level so their exponential value
         // doesn't outpace their cost — prevents early game snowball.
-        private const double CostGrowthMultiplier = 1.28;
+        private const double CostGrowthMultiplier = 1.30;
 
         private double CostGrowth =>
             data.type == CharacterType.Multiplier ? CostGrowthMultiplier : CostGrowthProducer;

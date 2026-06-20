@@ -19,7 +19,7 @@ namespace GameIdle
         public long LastLoginTimestamp { get; private set; }
 
         // Prestige requirement scales each reset: base * growth^prestigeCount
-        [SerializeField] private double prestigeBaseRequirement = 1_000_000_000.0;
+        [SerializeField] private double prestigeBaseRequirement = 1_500_000_000.0;
         [SerializeField] private double prestigeRequirementGrowth = 5.0;
 
         private readonly List<EventEffect> activeEffects = new();
@@ -230,7 +230,7 @@ namespace GameIdle
 
         public double GetTapValue()
         {
-            double base_ = System.Math.Max(1.0, MoneyPerSecond * 0.5) * GemShop.GetTapMult();
+            double base_ = System.Math.Max(1.0, MoneyPerSecond * 0.35) * GemShop.GetTapMult();
             return TapBoostActive ? base_ * BoostMult : base_;
         }
 
