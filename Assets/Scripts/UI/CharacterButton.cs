@@ -436,6 +436,15 @@ namespace GameIdle
             costProgressBar.raycastTarget = false;
         }
 
+        // Atribui e refaz o mesh só quando o texto realmente mudou — o Refresh
+        // roda 10x/s em todos os cards e o ForceMeshUpdate era o custo dominante.
+        private static void SetText(TMPro.TextMeshProUGUI t, string s)
+        {
+            if (t == null || t.text == s) return;
+            t.text = s;
+            t.ForceMeshUpdate();
+        }
+
         public void Refresh()
         {
             if (character == null) return;
@@ -444,34 +453,22 @@ namespace GameIdle
             int buyCount   = CharacterManager.Instance.GetPurchaseCount(characterIndex);
             double buyCost = CharacterManager.Instance.GetPurchaseCost(characterIndex);
 
-            if (nameText != null)       { nameText.text       = character.data.characterName; nameText.ForceMeshUpdate(); }
-            if (levelText != null)      { levelText.text      = $"Nv. {character.level}";      levelText.ForceMeshUpdate(); }
-            if (costText != null)
-            {
-                costText.text = maxedOut
-                    ? "MÁX"
-                    : buyCount > 1
-                        ? $"${NumberFormatter.Format(buyCost)} <size=70%><color=#9fb2c9>x{buyCount}</color></size>"
-                        : $"${NumberFormatter.Format(buyCost)}";
-                costText.ForceMeshUpdate();
-            }
+            SetText(nameText,  character.data.characterName);
+            SetText(levelText, $"Nv. {character.level}");
+            SetText(costText, maxedOut
+                ? "MÁX"
+                : buyCount > 1
+                    ? $"${NumberFormatter.Format(buyCost)} <size=70%><color=#9fb2c9>x{buyCount}</color></size>"
+                    : $"${NumberFormatter.Format(buyCost)}");
 
-            if (gainText != null)
-            {
-                double gain = maxedOut ? 0 : CharacterManager.Instance.GetIncomeGain(characterIndex);
-                gainText.text = gain > 0 ? $"+{NumberFormatter.Format(gain)}/s" : "";
-                gainText.ForceMeshUpdate();
-            }
+            double gain = maxedOut ? 0 : CharacterManager.Instance.GetIncomeGain(characterIndex);
+            SetText(gainText, gain > 0 ? $"+{NumberFormatter.Format(gain)}/s" : "");
 
-            if (productionText != null)
+            SetText(productionText, character.data.type switch
             {
-                productionText.text = character.data.type switch
-                {
-                    CharacterType.Multiplier => $"x{character.GetCurrentMultiplier():F2} total",
-                    _                        => $"+{NumberFormatter.Format(character.GetCurrentProduction())}/s"
-                };
-                productionText.ForceMeshUpdate();
-            }
+                CharacterType.Multiplier => $"x{character.GetCurrentMultiplier():F2} total",
+                _                        => $"+{NumberFormatter.Format(character.GetCurrentProduction())}/s"
+            });
 
             bool affordable = !maxedOut && buyCount >= 1 && GameManager.Instance.Money >= buyCost;
 

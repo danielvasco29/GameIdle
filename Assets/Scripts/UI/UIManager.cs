@@ -422,6 +422,7 @@ namespace GameIdle
             gearImg.sprite = UiSpriteFactory.Gear();
             gearImg.color = new Color(0.72f, 0.80f, 0.90f, 1f);
             gearImg.raycastTarget = false;
+            AddTooltip(btnGO, "Opções");
 
             // ── Offline Progress Panel ─────────────────────────────────────
             var offlineGO = new GameObject("OfflineProgressPanel", typeof(RectTransform));
@@ -447,6 +448,7 @@ namespace GameIdle
             mBtnGO.GetComponent<Button>().onClick.AddListener(() => { if (missionPanel != null) ToggleModal(missionPanel.gameObject, missionPanel.Open); });
             AddIcon(mBtnGO, UiSpriteFactory.Check(), NeonCyan, 28f);
             StyleNavTab(mBtnGO, NeonCyan);
+            AddTooltip(mBtnGO, "Missões");
             _missionDot = MakeNotifyDot(mBtnGO.transform);
 
             // ── Achievement Panel ──────────────────────────────────────────
@@ -488,6 +490,7 @@ namespace GameIdle
             });
             AddIcon(bBtnGO, UiSpriteFactory.Bolt(), GoldColor, 30f);
             StyleNavTab(bBtnGO, GoldColor);
+            AddTooltip(bBtnGO, "Bônus ativos");
             _bonusDot = MakeNotifyDot(bBtnGO.transform);
         }
 
@@ -517,6 +520,13 @@ namespace GameIdle
             var img = go.GetComponent<Image>();
             img.sprite = sprite; img.color = color; img.raycastTarget = false;
             img.preserveAspect = true;
+        }
+
+        // Tooltip com o nome do botão (ícones do topo não têm texto).
+        private static void AddTooltip(GameObject btn, string label)
+        {
+            var t = btn.GetComponent<SimpleTooltip>() ?? btn.AddComponent<SimpleTooltip>();
+            t.text = label;
         }
 
         // Pontinho vermelho de notificação no canto superior direito do botão.
@@ -660,6 +670,7 @@ namespace GameIdle
             starImg.sprite = UiSpriteFactory.Star();
             starImg.color = rankColor; starImg.raycastTarget = false;
             StyleNavTab(btnGO, rankColor);
+            AddTooltip(btnGO, "Ranking");
         }
 
         private void OpenRanking()
@@ -704,6 +715,7 @@ namespace GameIdle
                 barImg.color = statColor; barImg.raycastTarget = false;
             }
             StyleNavTab(btnGO, statColor);
+            AddTooltip(btnGO, "Estatísticas");
         }
 
         // ── Tap Button ────────────────────────────────────────────────────────
@@ -1510,6 +1522,7 @@ namespace GameIdle
             pillGO.GetComponent<Button>().onClick.AddListener(() => { if (gemShopPanel != null) ToggleModal(gemShopPanel.gameObject, gemShopPanel.Open); });
             var gemCyan = new Color(0.32f, 0.85f, 1f, 1f);
             StyleNavTab(pillGO, gemCyan);
+            AddTooltip(pillGO, "Loja de Gemas");
 
             // Icone de gema: diamante ciano (quadrado arredondado rotacionado 45°)
             var gemGO = new GameObject("GemIcon", typeof(RectTransform), typeof(Image));
@@ -2113,8 +2126,15 @@ namespace GameIdle
                 GameEventSystem.Instance.OnEventTriggered -= ShowEventPanel;
         }
 
+        private string _lastBalanceStr;
+
         private void Update()
         {
+            // Botão voltar do Android (mapeia p/ Escape) / ESC no desktop:
+            // fecha qualquer painel aberto em vez de sair do jogo.
+            if (Input.GetKeyDown(KeyCode.Escape))
+                CloseAllModals();
+
             // Contador suave: sobe com lerp, cai imediato (gasto)
             if (GameManager.Instance != null)
             {
@@ -2123,7 +2143,12 @@ namespace GameIdle
                     ? target
                     : displayedMoney + (target - displayedMoney) * (double)Mathf.Min(1f, Time.deltaTime * 8f);
                 if (statBalanceText != null)
-                    statBalanceText.text = $"${NumberFormatter.Format(displayedMoney)}";
+                {
+                    // Só reatribui quando o texto formatado muda (evita layout/mesh
+                    // do TMP todo frame — o formato compacto muda bem menos que 60x/s)
+                    string s = $"${NumberFormatter.Format(displayedMoney)}";
+                    if (s != _lastBalanceStr) { statBalanceText.text = s; _lastBalanceStr = s; }
+                }
             }
 
             uiRefreshTimer -= Time.deltaTime;
