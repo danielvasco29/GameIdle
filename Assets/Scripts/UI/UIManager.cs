@@ -122,6 +122,9 @@ namespace GameIdle
 
         // Contador suave de dinheiro
         private double displayedMoney;
+        // Ultimo estado conhecido do prestigio, para so redesenhar quando muda.
+        private bool _lastPrestigeReady;
+        private bool _prestigeStateInit;
 
         // Cached TMP font to avoid repeated FindAnyObjectByType calls
         private TMP_FontAsset cachedFont;
@@ -1749,6 +1752,33 @@ namespace GameIdle
             UpdatePrestigeProgressBar();
         }
 
+        // A meta de prestigio depende do SALDO, que sobe sozinho a cada frame.
+        // OnStatsUpdated so dispara em recalculo (contratar, evento, gema), entao
+        // sem isto a barra ficava congelada e o botao nao liberava sozinho.
+        private void RefreshPrestigeAvailability()
+        {
+            if (GameManager.Instance == null) return;
+
+            UpdatePrestigeProgressBar();   // barato: so muda fillAmount e cor
+
+            bool ready = GameManager.Instance.CanPrestige();
+            if (_prestigeStateInit && ready == _lastPrestigeReady) return;
+
+            // So reconstroi os textos quando o estado realmente vira.
+            _lastPrestigeReady = ready;
+            _prestigeStateInit = true;
+
+            if (prestigeInfoText != null)
+                prestigeInfoText.text = ready
+                    ? $"Prestígio pronto! +{GameManager.Instance.GetPrestigeGemReward()} gemas"
+                    : $"Prestígio em: ${NumberFormatter.Format(GameManager.Instance.GetPrestigeRequirement())}";
+
+            if (prestigeButton != null)
+                prestigeButton.interactable = ready;
+
+            RefreshPrestigeLabel();
+        }
+
         private void UpdatePrestigeProgressBar()
         {
             if (prestigeProgressBar == null) return;
@@ -2157,6 +2187,7 @@ namespace GameIdle
                 uiRefreshTimer = UiRefreshInterval;
                 RefreshButtonAffordability();
                 RefreshGemDisplay();
+                RefreshPrestigeAvailability();
 
                 UpdateBoostButton();
                 AchievementManager.CheckAll(); // conquistas de dinheiro acumulado (idle)
@@ -2211,6 +2242,8 @@ namespace GameIdle
 
             UpdatePrestigeProgressBar();
             RefreshPrestigeLabel();
+            _lastPrestigeReady = canPrestige;
+            _prestigeStateInit = true;
             UpdateTapValueText();
             RefreshMainStats();
             RefreshGemDisplay();
