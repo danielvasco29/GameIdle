@@ -11,7 +11,10 @@ namespace GameIdle
         private const string RankingKey = "GameIdle_Ranking";
         private const int MaxRecords = 20;
 
+        private static readonly Color GoldColor = new(1f, 0.808f, 0.227f, 1f); // #ffce3a — mesmo tom do resto do jogo
+
         private Transform rowsContainer;
+        private TMP_FontAsset _font;
 
         private void Awake()
         {
@@ -21,6 +24,8 @@ namespace GameIdle
 
         private void BuildUI()
         {
+            _font = TMP_Settings.defaultFontAsset;
+
             var rt = GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(0.5f, 0.5f);
             rt.anchorMax = new Vector2(0.5f, 0.5f);
@@ -45,8 +50,9 @@ namespace GameIdle
             ttmp.fontSize = 24;
             ttmp.fontStyle = FontStyles.Bold;
             ttmp.alignment = TextAlignmentOptions.Center;
-            ttmp.color = new Color(1f, 0.84f, 0f);
+            ttmp.color = GoldColor;
             ttmp.raycastTarget = false;
+            if (_font != null) ttmp.font = _font;
 
             // Separator
             var sepGO = new GameObject("Sep", typeof(RectTransform), typeof(Image));
@@ -54,7 +60,7 @@ namespace GameIdle
             var sept = sepGO.GetComponent<RectTransform>();
             sept.anchorMin = new Vector2(0f, 1f); sept.anchorMax = new Vector2(1f, 1f);
             sept.offsetMin = new Vector2(12f, -52f); sept.offsetMax = new Vector2(-12f, -48f);
-            sepGO.GetComponent<Image>().color = new Color(1f, 0.84f, 0f, 0.4f);
+            sepGO.GetComponent<Image>().color = new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0.4f);
 
             // Scroll area
             var scrollGO = new GameObject("Scroll", typeof(RectTransform), typeof(ScrollRect));
@@ -114,6 +120,7 @@ namespace GameIdle
             cltmp.alignment = TextAlignmentOptions.Center;
             cltmp.color = Color.white;
             cltmp.raycastTarget = false;
+            if (_font != null) cltmp.font = _font;
         }
 
         public void Open()
@@ -161,20 +168,20 @@ namespace GameIdle
             hlg.childForceExpandHeight = true;
             hlg.childForceExpandWidth = false;
 
-            Color textColor = header ? new Color(1f, 0.84f, 0f) : Color.white;
+            Color textColor = header ? GoldColor : Color.white;
             FontStyles style = FontStyles.Bold;
             int fontSize = header ? 15 : 16;
 
-            AddCell(rowGO.transform, pos,   36f, textColor, style, fontSize);
-            AddCell(rowGO.transform, name,   0f, textColor, style, fontSize, flexible: true);
-            AddCell(rowGO.transform, count, 70f, textColor, style, fontSize);
-            AddCell(rowGO.transform, kills, 62f, textColor, style, fontSize);
-            AddCell(rowGO.transform, boss,  56f, textColor, style, fontSize);
-            AddCell(rowGO.transform, date,  84f, textColor, style, fontSize);
+            AddCell(rowGO.transform, pos,   36f, textColor, style, fontSize, _font);
+            AddCell(rowGO.transform, name,   0f, textColor, style, fontSize, _font, flexible: true);
+            AddCell(rowGO.transform, count, 70f, textColor, style, fontSize, _font);
+            AddCell(rowGO.transform, kills, 62f, textColor, style, fontSize, _font);
+            AddCell(rowGO.transform, boss,  56f, textColor, style, fontSize, _font);
+            AddCell(rowGO.transform, date,  84f, textColor, style, fontSize, _font);
         }
 
         private static void AddCell(Transform parent, string text, float width, Color color,
-                                    FontStyles style, int fontSize, bool flexible = false)
+                                    FontStyles style, int fontSize, TMP_FontAsset font, bool flexible = false)
         {
             var go = new GameObject("C", typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(parent, false);
@@ -185,6 +192,7 @@ namespace GameIdle
             tmp.color = color;
             tmp.alignment = TextAlignmentOptions.MidlineLeft;
             tmp.raycastTarget = false;
+            if (font != null) tmp.font = font;
             var le = go.AddComponent<LayoutElement>();
             if (flexible) le.flexibleWidth = 1f;
             else { le.minWidth = width; le.preferredWidth = width; }
@@ -201,6 +209,7 @@ namespace GameIdle
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = new Color(0.6f, 0.6f, 0.6f);
             tmp.raycastTarget = false;
+            if (_font != null) tmp.font = _font;
         }
 
         // Fix 1: Deduplication — update existing record if new prestigeCount is higher

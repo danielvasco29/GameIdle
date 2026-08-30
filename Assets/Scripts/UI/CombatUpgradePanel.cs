@@ -18,7 +18,6 @@ namespace GameIdle
         private static readonly Color GrayBtn    = new(0.09f,  0.12f,  0.18f,  1f); // navy apagado
         private static readonly Color RedAccent  = new(0.85f,  0.22f,  0.22f,  1f);
 
-        private static Sprite Circle()  => UiSpriteFactory.Circle();
         private static Sprite Rounded() => UiSpriteFactory.RoundedBox();
 
         // Icon paths inside Resources/Icons/
@@ -97,7 +96,7 @@ namespace GameIdle
             var rt = GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = Vector2.zero;
-            rt.sizeDelta = new Vector2(640f, 760f);
+            rt.sizeDelta = new Vector2(640f, 810f);
 
             // Background
             var bg = gameObject.AddComponent<Image>();
@@ -112,20 +111,21 @@ namespace GameIdle
             trt.anchorMin = new Vector2(0f, 1f); trt.anchorMax = new Vector2(1f, 1f);
             trt.offsetMin = new Vector2(58f, -66f); trt.offsetMax = new Vector2(-58f, -10f);
 
-            // Close (X) button — top right
-            var closeGO = new GameObject("CloseBtn",
-                typeof(RectTransform), typeof(Image), typeof(Button));
+            // Botão Fechar — barra dourada embaixo, igual ao resto dos painéis
+            // (Conquistas, Missões, Loja, Ranking, Stats, Efeitos Ativos).
+            var closeGO = new GameObject("Close", typeof(RectTransform), typeof(Image), typeof(Button));
             closeGO.transform.SetParent(transform, false);
             var crt = closeGO.GetComponent<RectTransform>();
-            crt.anchorMin = crt.anchorMax = crt.pivot = new Vector2(1f, 1f);
-            crt.anchoredPosition = new Vector2(-10f, -10f);
-            crt.sizeDelta = new Vector2(42f, 42f);
+            crt.anchorMin = new Vector2(0f, 0f); crt.anchorMax = new Vector2(1f, 0f);
+            crt.pivot = new Vector2(0.5f, 0f);
+            crt.offsetMin = new Vector2(16f, 10f); crt.offsetMax = new Vector2(-16f, 10f);
+            crt.sizeDelta = new Vector2(crt.sizeDelta.x, 46f);
             var cImg = closeGO.GetComponent<Image>();
-            cImg.sprite = Circle(); cImg.type = Image.Type.Simple;
+            cImg.sprite = Rounded(); cImg.type = Image.Type.Sliced;
             cImg.color = new Color(0.10f, 0.16f, 0.28f, 1f); // navy
             closeGO.GetComponent<Button>().onClick.AddListener(() => gameObject.SetActive(false));
-            var cLabel = MakeText(closeGO.transform, "X", "X",
-                21, new Color(1f, 0.45f, 0.45f, 1f), FontStyles.Bold, TextAlignmentOptions.Center); // X vermelho
+            var cLabel = MakeText(closeGO.transform, "L", "FECHAR",
+                16, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
             var clrt = cLabel.rectTransform;
             clrt.anchorMin = Vector2.zero; clrt.anchorMax = Vector2.one;
             clrt.offsetMin = clrt.offsetMax = Vector2.zero;

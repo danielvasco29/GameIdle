@@ -101,7 +101,7 @@ namespace GameIdle
             cllrt.anchorMin = Vector2.zero; cllrt.anchorMax = Vector2.one;
             cllrt.offsetMin = cllrt.offsetMax = Vector2.zero;
             var cltmp = cl.GetComponent<TextMeshProUGUI>();
-            cltmp.text = "Fechar"; cltmp.fontSize = 18; cltmp.fontStyle = FontStyles.Bold;
+            cltmp.text = "FECHAR"; cltmp.fontSize = 18; cltmp.fontStyle = FontStyles.Bold;
             cltmp.color = Color.white; cltmp.alignment = TextAlignmentOptions.Center; cltmp.raycastTarget = false;
             if (font != null) cltmp.font = font;
 

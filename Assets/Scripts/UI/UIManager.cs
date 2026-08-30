@@ -25,7 +25,7 @@ namespace GameIdle
 
         [Header("Painéis")]
         private EventPanel eventPanel;
-        [SerializeField] private PrestigePanel prestigePanel;
+        private PrestigePanel prestigePanel;
         private OfflineProgressPanel offlinePanel;
         private MissionPanel missionPanel;
         private AchievementPanel achievementPanel;
@@ -198,7 +198,7 @@ namespace GameIdle
             if (prestigeButton != null)
             {
                 prestigeButton.onClick.RemoveAllListeners();
-                prestigeButton.onClick.AddListener(OnPrestigeDirectClick);
+                prestigeButton.onClick.AddListener(OnPrestigeButtonClicked);
             }
 
             RefreshAll();
@@ -477,6 +477,13 @@ namespace GameIdle
             activeEffectsPanel = aepGO.AddComponent<ActiveEffectsPanel>();
             aepGO.SetActive(false);
             modalPanels.Add(aepGO);
+
+            // ── Prestige Panel ──────────────────────────────────────────────
+            var prestigeGO = new GameObject("PrestigePanel", typeof(RectTransform));
+            prestigeGO.transform.SetParent(canvas.transform, false);
+            prestigePanel = prestigeGO.AddComponent<PrestigePanel>();
+            prestigeGO.SetActive(false);
+            modalPanels.Add(prestigeGO);
 
             // Botão BÔNUS — icone (raio) ao lado de MISSOES
             var bBtnGO = new GameObject("BonusButton", typeof(RectTransform), typeof(Image), typeof(Button));
@@ -2212,11 +2219,11 @@ namespace GameIdle
             }
         }
 
-        private void OnPrestigeDirectClick()
+        private void OnPrestigeButtonClicked()
         {
             if (!GameManager.Instance.CanPrestige()) { ShowToast("Prestígio requer $1B total!", new Color(1f,0.4f,0.4f)); return; }
-            GameManager.Instance.Prestige();
-            ShowToast("Prestígio realizado! Multiplicador aumentado.", new Color(1f, 0.84f, 0f));
+            if (prestigePanel != null) ToggleModal(prestigePanel.gameObject, prestigePanel.Show);
+            else GameManager.Instance.Prestige(); // fallback caso o painel nao exista
         }
 
         public void RefreshAll()

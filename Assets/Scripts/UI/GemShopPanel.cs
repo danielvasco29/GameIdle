@@ -10,7 +10,7 @@ namespace GameIdle
         private static readonly Color NavyCard = new(0.106f, 0.169f, 0.275f, 1f);
         private static readonly Color Gold     = new(1f, 0.808f, 0.227f, 1f);
         private static readonly Color Green    = new(0.247f, 0.749f, 0.353f, 1f);
-        private static readonly Color GemCyan  = new(0.32f, 0.85f, 1f, 1f);
+        private static readonly Color GemAccent = new(0.290f, 0.620f, 1f, 1f); // #4a9eff — BlueAccent do resto do jogo
         private static readonly Color TextSec  = new(0.624f, 0.698f, 0.788f, 1f);
 
         private static Sprite Circle()  => UiSpriteFactory.Circle();
@@ -113,7 +113,7 @@ namespace GameIdle
                 pImg.sprite = Rounded(); pImg.type = Image.Type.Sliced;
                 pImg.color = new Color(0.10f, 0.16f, 0.28f, 1f);
 
-                gemBalanceText = MakeText(pillGO.transform, "Balance", "", 21, GemCyan,
+                gemBalanceText = MakeText(pillGO.transform, "Balance", "", 21, GemAccent,
                     FontStyles.Bold, TextAlignmentOptions.Center);
                 var gbrt = gemBalanceText.rectTransform;
                 gbrt.anchorMin = Vector2.zero; gbrt.anchorMax = Vector2.one;
@@ -295,7 +295,7 @@ namespace GameIdle
             gemLE.preferredWidth = 18f; gemLE.preferredHeight = 18f;
             var giImg = gemIcon.GetComponent<Image>();
             giImg.sprite = UiSpriteFactory.Box(); giImg.type = Image.Type.Simple;
-            giImg.color = GemCyan;
+            giImg.color = GemAccent;
             giImg.raycastTarget = false;
             gemIcon.transform.localRotation = Quaternion.Euler(0f, 0f, 45f);
 
