@@ -13,8 +13,19 @@ namespace GameIdle
 
         private void Awake()
         {
-            confirmButton.onClick.AddListener(OnConfirmClicked);
-            cancelButton.onClick.AddListener(() => gameObject.SetActive(false));
+            // Button GUIDs may be broken in scene — find by name and add component as fallback.
+            if (confirmButton == null)
+            {
+                var go = GameObject.Find("ConfirmButton") ?? transform.Find("ConfirmButton")?.gameObject;
+                if (go != null) confirmButton = go.GetComponent<Button>() ?? go.AddComponent<Button>();
+            }
+            if (cancelButton == null)
+            {
+                var go = GameObject.Find("CancelButton") ?? transform.Find("CancelButton")?.gameObject;
+                if (go != null) cancelButton = go.GetComponent<Button>() ?? go.AddComponent<Button>();
+            }
+            if (confirmButton != null) confirmButton.onClick.AddListener(OnConfirmClicked);
+            if (cancelButton != null)  cancelButton.onClick.AddListener(() => gameObject.SetActive(false));
             gameObject.SetActive(false);
         }
 
@@ -26,12 +37,15 @@ namespace GameIdle
             int nextPrestigeCount = GameManager.Instance.PrestigeCount + 1;
             double nextMultiplier = 1.0 + nextPrestigeCount * 0.5;
 
-            infoText.text = canPrestige
-                ? $"Total ganho: ${NumberFormatter.Format(GameManager.Instance.TotalEarned)}\n\nReiniciar o jogo vai zerar seus personagens mas o multiplicador permanece!"
-                : $"Você ainda não pode fazer prestígio.\n\nNecessário: $1B total ganho.\nAtual: ${NumberFormatter.Format(GameManager.Instance.TotalEarned)}";
+            if (infoText != null)
+                infoText.text = canPrestige
+                    ? $"Total ganho: ${NumberFormatter.Format(GameManager.Instance.TotalEarned)}\n\nReiniciar o jogo vai zerar seus personagens mas o multiplicador permanece!"
+                    : $"Você ainda não pode fazer prestígio.\n\nNecessário: $1B total ganho.\nAtual: ${NumberFormatter.Format(GameManager.Instance.TotalEarned)}";
 
-            bonusText.text = $"Multiplicador após prestígio: ×{nextMultiplier:F1}";
-            confirmButton.interactable = canPrestige;
+            if (bonusText != null)
+                bonusText.text = $"Multiplicador após prestígio: ×{nextMultiplier:F1}";
+            if (confirmButton != null)
+                confirmButton.interactable = canPrestige;
         }
 
         private void OnConfirmClicked()

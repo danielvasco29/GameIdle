@@ -14,6 +14,9 @@ namespace GameIdle
 
         public event Action OnCharactersUpdated;
 
+        // Bulk-buy mode shared across all character cards: 1, 10, or -1 (Max).
+        public static int BuyAmount = 1;
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -56,22 +59,81 @@ namespace GameIdle
             return multiplier;
         }
 
+        // How many levels would actually be bought for `index` given the current
+        // BuyAmount mode and money (Max resolves to what the player can afford).
+        public int GetPurchaseCount(int index)
+        {
+            if (index < 0 || index >= characters.Length) return 0;
+            var c = characters[index];
+            // Multiplier characters scale exponentially (multiplier^level), so
+            // bulk-buying them runs away instantly. They're always bought 1 at a
+            // time; x10/Máx only apply to producers.
+            if (c.data.type == CharacterType.Multiplier)
+                return c.ClampPurchaseCount(1);
+            int count = BuyAmount == -1
+                ? c.GetMaxAffordable(GameManager.Instance.Money)
+                : BuyAmount;
+            return c.ClampPurchaseCount(count);
+        }
+
+        // Total cost for the resolved purchase count above.
+        public double GetPurchaseCost(int index)
+        {
+            if (index < 0 || index >= characters.Length) return 0;
+            return characters[index].GetCostForLevels(GetPurchaseCount(index));
+        }
+
+        // How much money/second the resolved purchase would add (works for both
+        // producers and multiplier characters — simulated by bumping the level).
+        public double GetIncomeGain(int index)
+        {
+            if (index < 0 || index >= characters.Length) return 0;
+            int count = GetPurchaseCount(index);
+            if (count <= 0) return 0;
+
+            var c = characters[index];
+            double before = GameManager.Instance.MoneyPerSecond;
+            int original = c.level;
+            c.level += count;
+            double after = GameManager.Instance.ComputeMoneyPerSecond();
+            c.level = original;
+            return System.Math.Max(0, after - before);
+        }
+
         public bool TryUpgrade(int index)
         {
             if (index < 0 || index >= characters.Length) return false;
 
             var character = characters[index];
-            double cost = character.GetCurrentCost();
+            int count = character.data.type == CharacterType.Multiplier
+                ? 1 // multipliers always buy one level at a time (no runaway)
+                : (BuyAmount == -1
+                    ? character.GetMaxAffordable(GameManager.Instance.Money)
+                    : BuyAmount);
+            count = character.ClampPurchaseCount(count);
+            if (count < 1) return false;
 
+            double cost = character.GetCostForLevels(count);
             if (!GameManager.Instance.SpendMoney(cost)) return false;
 
-            character.level++;
+            character.level += count;
             if (index + 1 < characters.Length)
                 characters[index + 1].isUnlocked = true;
 
             GameManager.Instance.RecalculateStats();
             OnCharactersUpdated?.Invoke();
+            SaveSystem.Save();
             return true;
+        }
+
+        public (CharacterInstance next, CharacterInstance via) GetNextUnlock()
+        {
+            for (int i = 1; i < characters.Length; i++)
+            {
+                if (!characters[i].isUnlocked)
+                    return (characters[i], characters[i - 1]);
+            }
+            return (null, null);
         }
 
         public void ResetAll()
@@ -99,7 +161,9 @@ namespace GameIdle
                 {
                     if (characters[i].data.characterId == saved.characterId)
                     {
-                        characters[i].level = saved.level;
+                        // Clamp multiplier characters to a safe level — repairs
+                        // old saves whose multiplier had overflowed to Infinity.
+                        characters[i].level = Math.Min(saved.level, characters[i].SafeMaxLevel());
                         if (saved.level > 0 && i + 1 < characters.Length)
                             characters[i + 1].isUnlocked = true;
                         break;
