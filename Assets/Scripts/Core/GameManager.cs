@@ -27,6 +27,10 @@ namespace GameIdle
         private float saveTimer;
         private const float SaveInterval = 30f;
 
+        private float moneyEventTimer;
+        private bool  passiveDirty;
+        private const float MoneyEventInterval = 0.1f;
+
         public event Action OnMoneyChanged;
         public event Action OnStatsUpdated;
         public event Action OnPrestige;
@@ -46,7 +50,8 @@ namespace GameIdle
             CharacterManager.Instance.Initialize();
             SaveSystem.Load();
             RecalculateStats();
-            OfflineProgress.Calculate();
+
+            // Wiring critico ANTES de qualquer calculo que possa falhar.
             GameEventSystem.Instance.StartEventCycle();
             DailyMissionSystem.CheckDailyReset();
 
@@ -54,6 +59,10 @@ namespace GameIdle
             OnTap     += () => { DailyMissionSystem.RegisterTap();     AchievementManager.CheckAll(); };
             OnHire    += () => { DailyMissionSystem.RegisterHire();    AchievementManager.CheckAll(); };
             OnPrestige+= () => { DailyMissionSystem.RegisterPrestige();AchievementManager.CheckAll(); };
+
+            // Por ultimo: se algo aqui falhar, o resto do jogo ja esta de pe.
+            try { OfflineProgress.Calculate(); }
+            catch (Exception e) { Debug.LogError($"[OfflineProgress] {e}"); }
         }
 
         private void Update()
@@ -61,7 +70,15 @@ namespace GameIdle
             TickEffects(Time.deltaTime);
             UpdateTapBoostCharge(Time.deltaTime);
             if (MoneyPerSecond > 0)
-                AddMoney(MoneyPerSecond * Time.deltaTime);
+                AddMoneyPassive(MoneyPerSecond * Time.deltaTime);
+
+            // Renda passiva nao dispara evento a cada frame: avisa a UI 10x/s.
+            moneyEventTimer += Time.deltaTime;
+            if (moneyEventTimer >= MoneyEventInterval)
+            {
+                moneyEventTimer = 0f;
+                if (passiveDirty) { passiveDirty = false; OnMoneyChanged?.Invoke(); }
+            }
 
             saveTimer += Time.deltaTime;
             if (saveTimer >= SaveInterval)
@@ -83,6 +100,18 @@ namespace GameIdle
             }
             if (!double.IsFinite(Money)) Money = double.MaxValue;
             OnMoneyChanged?.Invoke();
+        }
+
+        // Renda passiva: credita sem disparar OnMoneyChanged a cada frame.
+        private void AddMoneyPassive(double amount)
+        {
+            if (!double.IsFinite(amount) || amount <= 0) return;
+            Money += amount;
+            TotalEarned += amount;
+            if (!double.IsFinite(Money)) Money = double.MaxValue;
+            if (!double.IsFinite(TotalEarned)) TotalEarned = double.MaxValue;
+            DailyMissionSystem.RegisterEarn(amount);
+            passiveDirty = true;
         }
 
         public bool SpendMoney(double amount)
@@ -240,7 +269,7 @@ namespace GameIdle
         {
             if (!CanPrestige()) return;
             int gemsGained = GetPrestigeGemReward(); // compute before count/state reset
-            Gems += gemsGained;
+            AddGems(gemsGained);   // usa AddGems para contar LifetimeGemsEarned
             PrestigeCount++;
             PrestigeMultiplier = 1.0 + PrestigeCount * 0.5;
             Money = GemShop.GetStartMoney();
@@ -327,6 +356,11 @@ namespace GameIdle
             PrestigeMultiplier = data.prestigeMultiplier > 0 ? data.prestigeMultiplier : 1.0;
             Gems = data.gems;
             GemShop.LoadLevels(data.gemUpgrades);
+            activeEffects.Clear();
+            if (data.activeEffects != null)
+                foreach (var fx in data.activeEffects)
+                    if (fx != null && (fx.isPermanent || fx.timeRemaining > 0))
+                        activeEffects.Add(fx);
             LastLoginTimestamp = data.lastLoginTimestamp;
             LifetimeTapCount      = data.lifetimeTapCount;
             LifetimePrestigeCount = data.lifetimePrestigeCount;
@@ -338,6 +372,8 @@ namespace GameIdle
             _lastMissionCompleteDate = data.lastMissionCompleteDate ?? "";
             _savedCombatCycle = data.combatCycle > 0 ? data.combatCycle : 1;
             _savedCombatWave  = data.combatWave  > 0 ? data.combatWave  : 1;
+            CombatManager.LoadUpgradeLevels(data.combatSword, data.combatArmor,
+                                            data.combatFrost, data.combatCritico, data.combatPotion);
             AchievementManager.Load(data.unlockedAchievements);
             DailyMissionSystem.Load(data.lastMissionDate, data.missionProgress, data.missionClaimed, data.missionTier);
         }
@@ -353,6 +389,7 @@ namespace GameIdle
                 prestigeMultiplier = PrestigeMultiplier,
                 gems = Gems,
                 gemUpgrades = GemShop.GetLevels(),
+                activeEffects = new List<EventEffect>(activeEffects),
                 lastLoginTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                 characters = CharacterManager.Instance.GetSaveData(),
                 unlockedAchievements = AchievementManager.GetSaved(),
@@ -368,12 +405,17 @@ namespace GameIdle
                 lifetimeGemsEarned    = LifetimeGemsEarned,
                 missionStreakDays     = MissionStreakDays,
                 lastMissionCompleteDate = _lastMissionCompleteDate,
+                combatSword   = CombatManager.SwordLevel,
+                combatArmor   = CombatManager.ArmorLevel,
+                combatFrost   = CombatManager.FrostLevel,
+                combatCritico = CombatManager.CriticoLevel,
+                combatPotion  = CombatManager.PotionUnlocked,
                 combatCycle = CombatManager.Instance != null ? CombatManager.Instance.Cycle : _savedCombatCycle,
                 combatWave  = CombatManager.Instance != null ? CombatManager.Instance.Wave  : _savedCombatWave,
             };
         }
 
-        private void OnApplicationPause(bool paused) { if (paused) SaveSystem.Save(); }
-        private void OnApplicationQuit() => SaveSystem.Save();
+        private void OnApplicationPause(bool paused) { if (paused) SaveSystem.Save(true); }
+        private void OnApplicationQuit() => SaveSystem.Save(true);
     }
 }

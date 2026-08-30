@@ -20,6 +20,8 @@ namespace GameIdle
         public double prestigeMultiplier;
         public int gems;
         public List<int> gemUpgrades = new();
+        // Efeitos ativos (eventos e compras permanentes) — antes se perdiam ao fechar.
+        public List<EventEffect> activeEffects = new();
         public long lastLoginTimestamp;
         public List<CharacterSaveData> characters = new();
 
@@ -41,6 +43,12 @@ namespace GameIdle
         public int lifetimeGemsEarned;
         public int combatWave;
         public int combatCycle;
+        // Upgrades de combate: agora no JSON (antes so em PlayerPrefs).
+        public int  combatSword;
+        public int  combatArmor;
+        public int  combatFrost;
+        public int  combatCritico;
+        public bool combatPotion;
         public int missionStreakDays;
         public string lastMissionCompleteDate;
     }

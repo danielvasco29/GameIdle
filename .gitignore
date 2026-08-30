@@ -26,3 +26,5 @@
 *.unitypackage
 *.app
 crashlytics-build.properties
+
+.utmp/

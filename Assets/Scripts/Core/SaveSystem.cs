@@ -10,15 +10,17 @@ namespace GameIdle
 
         private const string BackupKey = "GameIdle_Save_Backup";
 
-        public static void Save()
+        // flushPrefs: PlayerPrefs.Save() trava a thread principal. So vale a pena
+        // quando o app esta indo para segundo plano ou fechando.
+        public static void Save(bool flushPrefs = false)
         {
             try
             {
                 SaveData data = GameManager.Instance.GetSaveData();
-                string json = JsonUtility.ToJson(data, true);
+                string json = JsonUtility.ToJson(data, false);
                 File.WriteAllText(SavePath, json);
                 PlayerPrefs.SetString(BackupKey, json);
-                PlayerPrefs.Save();
+                if (flushPrefs) PlayerPrefs.Save();
             }
             catch (System.Exception e)
             {

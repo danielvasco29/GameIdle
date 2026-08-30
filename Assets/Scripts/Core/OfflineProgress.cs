@@ -22,8 +22,10 @@ namespace GameIdle
 
             double earned = elapsed * mps * GemShop.GetOfflineMult();
 
-            // Offline combat rewards
-            if (CombatManager.Instance != null && CharacterManager.Instance != null)
+            // Offline combat rewards.
+            // NAO usa CombatManager.Instance: este calculo roda no Start do GameManager,
+            // antes do Start do CombatManager, quando CurrentDef ainda e null.
+            if (CharacterManager.Instance != null)
             {
                 int workers = 0;
                 foreach (var c in CharacterManager.Instance.GetAllCharacters())
@@ -40,8 +42,9 @@ namespace GameIdle
 
                     if (kills > 0)
                     {
-                        int cycle = CombatManager.Instance.Cycle;
-                        double baseReward = CombatManager.Instance.CurrentDef.baseReward;
+                        int cycle = Math.Max(1, GameManager.Instance.SavedCombatCycle);
+                        int wave  = Math.Max(1, GameManager.Instance.SavedCombatWave);
+                        double baseReward = CombatManager.GetBaseRewardFor(cycle, wave);
                         double combatEarned = kills * baseReward * (1 + (cycle - 1) * 1.2) * GemShop.GetOfflineMult();
                         earned += combatEarned;
                     }

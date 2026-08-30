@@ -137,6 +137,41 @@ namespace GameIdle
             PotionRemaining = PotionDuration;
         }
 
+        // Recompensa base da wave sem depender da instancia (usado no calculo offline,
+        // que roda antes do Start do CombatManager).
+        public static double GetBaseRewardFor(int cycle, int wave)
+        {
+            if (wave == 10) return Defs[3].baseReward;
+            int offset = (cycle % 2 == 0) ? 4 : 0;
+            if (wave >= 7) return Defs[offset + 2].baseReward;
+            if (wave >= 4) return Defs[offset + 1].baseReward;
+            return Defs[offset].baseReward;
+        }
+
+        // Carrega os niveis vindos do save JSON. Se o save ainda nao tem nada
+        // (jogo antigo), cai pro PlayerPrefs para nao perder progresso.
+        public static void LoadUpgradeLevels(int sword, int armor, int frost, int critico, bool potion)
+        {
+            bool saveVazio = sword == 0 && armor == 0 && frost == 0 && critico == 0 && !potion;
+            if (saveVazio)
+            {
+                sword   = PlayerPrefs.GetInt("cbt_sword",   0);
+                armor   = PlayerPrefs.GetInt("cbt_armor",   0);
+                frost   = PlayerPrefs.GetInt("cbt_frost",   0);
+                critico = PlayerPrefs.GetInt("cbt_critico", 0);
+                potion  = PlayerPrefs.GetInt("cbt_potion",  0) == 1;
+            }
+
+            SwordLevel     = Math.Clamp(sword,   0, SwordMax);
+            ArmorLevel     = Math.Clamp(armor,   0, ArmorMax);
+            FrostLevel     = Math.Clamp(frost,   0, FrostMax);
+            CriticoLevel   = Math.Clamp(critico, 0, CriticoMax);
+            PotionUnlocked = potion;
+
+            if (Instance != null)
+                Instance._autoAttackInterval = (float)GetAutoAttackInterval();
+        }
+
         public static void ResetPersistentProgress()
         {
             SwordLevel = 0;
@@ -196,13 +231,7 @@ namespace GameIdle
 
         private void Start()
         {
-            // Load upgrade levels
-            SwordLevel     = PlayerPrefs.GetInt("cbt_sword",   0);
-            ArmorLevel     = PlayerPrefs.GetInt("cbt_armor",   0);
-            FrostLevel     = PlayerPrefs.GetInt("cbt_frost",   0);
-            CriticoLevel   = PlayerPrefs.GetInt("cbt_critico", 0);
-            PotionUnlocked = PlayerPrefs.GetInt("cbt_potion",  0) == 1;
-
+            // Niveis ja foram carregados por GameManager.ApplySaveData (save JSON).
             _autoAttackInterval = (float)GetAutoAttackInterval();
 
             // Restore combat progress from save

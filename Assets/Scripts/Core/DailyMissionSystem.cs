@@ -150,9 +150,9 @@ namespace GameIdle
                 All[i].tier = (tiers != null && i < tiers.Count && tiers[i] >= 1) ? tiers[i] : 1;
                 All[i].Build();
                 _progress[i] = (progress != null && i < progress.Count) ? progress[i] : 0;
-                _claimed[i]  = (claimed  != null && i < claimed.Count)  ? claimed[i]  : false;
-                // Garante que um slot carregado já coletado nao fique travado.
-                if (_claimed[i]) Advance(i);
+                // TryClaim ja avanca o slot e zera a flag, entao 'claimed' nunca
+                // fica true no save. Carregado apenas por compatibilidade.
+                _claimed[i]  = false;
             }
             CheckDailyReset();
         }
